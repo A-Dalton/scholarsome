@@ -6,8 +6,6 @@
 
 *Inspired by the larger sites that are now charging for core functionality, Scholarsome intends to be a drop-in replacement for any study workflow.*
 
-https://scholarsome.com
-
 <a href="https://discord.gg/hRgVvc5MKf">![](https://img.shields.io/badge/-Join%20our%20Discord-white?logo=Discord&logoColor=blue)</a>
 <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/LICENSE">![](https://img.shields.io/github/license/hwgilbert16/scholarsome?color=blue)</a>
 <a href="https://github.com/hwgilbert16/scholarsome/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">![](https://img.shields.io/badge/contributions-welcome-orange)</a>
@@ -61,13 +59,11 @@ You can read more about our design philosophy <a href="https://github.com/hwgilb
 
 ## Usage
 
-Scholarsome is accessible at https://scholarsome.com for individuals who are not interested in hosting it themselves. It is free and runs the same as the most recently released version.
-
-However, the service can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://scholarsome.com/handbook/installation/prerequisites">here.</a>
+Scholarsome  can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/installation/installing.md">here.</a>
 
 ## Development
 
-For development purposes, Scholarsome is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://scholarsome.com/handbook/development/development-guide">here.</a>
+For development purposes, Scholarsome is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
 
 While we use many technologies, some of our most prominent are:
 
