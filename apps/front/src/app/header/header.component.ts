@@ -6,8 +6,9 @@ import { CookieService } from "ngx-cookie";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { DeviceDetectorService } from "ngx-device-detector";
 import { NavigationEnd, Router } from "@angular/router";
-import { faQ, faArrowRightFromBracket, faStar, faFileCsv, faGear, faFolder, faClone, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faQ, faArrowRightFromBracket, faStar, faFileCsv, faGear, faFolder, faClone, faUser, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { SharedService } from "../shared/shared.service";
+import { ThemeService } from "../shared/theme.service";
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import packageJson from "../../../../../package.json";
 import { AnkiImportModalComponent } from "./anki-import-modal/anki-import-modal.component";
@@ -71,6 +72,15 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly faGear = faGear;
   protected readonly faFolder = faFolder;
   protected readonly faClone = faClone;
+  protected readonly faMoon = faMoon;
+  protected readonly faSun = faSun;
+
+  // Whether dark mode is currently active
+  protected darkMode = false;
+
+  async toggleTheme(): Promise<void> {
+    this.darkMode = this.themeService.toggle() === "dark";
+  }
 
   constructor(
     private readonly modalService: ModalService,
@@ -80,6 +90,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly sharedService: SharedService,
     private readonly sanitizer: DomSanitizer,
     private readonly usersService: UsersService,
+    private readonly themeService: ThemeService,
     public readonly cookieService: CookieService
   ) {}
 
@@ -100,6 +111,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    this.darkMode = this.themeService.currentTheme() === "dark";
+
     if (this.cookieService.get("authenticated")) {
       // we set this.user here so that it can be checked on every router event and log users out if auth invalid
       // however since header initializes on the homepage, this.user will not be set immediately after login

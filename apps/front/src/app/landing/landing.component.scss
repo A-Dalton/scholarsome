@@ -33,11 +33,11 @@
 }
 
 .section-3 {
-  background: linear-gradient(to top, #e5ddff, white);
+  background: linear-gradient(to top, var(--sl-landing-g-start, #e5ddff), var(--sl-landing-g-end, white));
 }
 
 .section-4 {
-  background: linear-gradient(to bottom, #e5ddff, white);
+  background: linear-gradient(to bottom, var(--sl-landing-g-start, #e5ddff), var(--sl-landing-g-end, white));
   margin-bottom: 7vh;
 }
 
@@ -57,6 +57,11 @@
 
 body {
   overflow-x: hidden;
+}
+
+html.dark {
+  --sl-landing-g-start: #1e2330;
+  --sl-landing-g-end: var(--scholarsome-body-bg);
 }
 
 .showcase-image {

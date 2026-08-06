@@ -61,12 +61,12 @@
 @keyframes flip-card-body-back {
   0% {
     transform: rotateX(0deg);
-    background-color: white;
+    background-color: var(--scholarsome-surface);
   }
 
   100% {
     transform: rotateX(180deg);
-    background-color: #f6f7fb;
+    background-color: var(--scholarsome-surface-2);
   }
 }
 
@@ -83,12 +83,12 @@
 @keyframes flip-card-body-forwards {
   0% {
     transform: rotateX(0deg);
-    background-color: #f6f7fb;
+    background-color: var(--scholarsome-surface-2);
   }
 
   100% {
     transform: rotateX(-180deg);
-    background-color: white;
+    background-color: var(--scholarsome-surface);
   }
 }
 

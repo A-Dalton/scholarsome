@@ -32,6 +32,52 @@ a:hover {
   margin-left: 0.14rem;
 }
 
+/* Theme toggle switch */
+.theme-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.theme-toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 0.5rem;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  border-radius: 18px;
+  background-color: #ced4da;
+  transition: background-color 0.2s;
+  vertical-align: middle;
+  cursor: pointer;
+  pointer-events: none;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: white;
+  transition: left 0.2s;
+}
+
+.theme-toggle-on {
+  background-color: #8438ff;
+}
+
+.theme-toggle-on .theme-toggle-thumb {
+  left: 17px;
+}
+
 @media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
   .create-button {
     margin-bottom: 1rem;

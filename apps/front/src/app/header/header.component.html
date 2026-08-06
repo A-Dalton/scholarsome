@@ -212,6 +212,18 @@
                 <fa-icon [icon]="faGear"></fa-icon> Settings
               </a>
               <a
+                class="dropdown-item theme-dropdown-toggle"
+                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+                (click)="toggleTheme()">
+                <fa-icon [icon]="darkMode ? faSun : faMoon"></fa-icon> Dark mode
+                <span class="theme-toggle-wrap">
+                  <span class="theme-toggle" [ngClass]="{ 'theme-toggle-on': darkMode }">
+                    <span class="theme-toggle-thumb"></span>
+                  </span>
+                </span>
+              </a>
+              <a
                 class="dropdown-item"
                 [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
                 [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
