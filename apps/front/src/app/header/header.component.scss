@@ -32,11 +32,23 @@ a:hover {
   margin-left: 0.14rem;
 }
 
+/* User dropdown items (profile, settings, dark mode, logout) */
+.dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.dropdown-menu .dropdown-item fa-icon {
+  margin-right: 0.5rem;
+}
+
 /* Theme toggle switch */
 .theme-dropdown-toggle {
   display: flex;
   align-items: center;
   white-space: nowrap;
+ flex: 1;
 }
 
 .theme-toggle-wrap {
