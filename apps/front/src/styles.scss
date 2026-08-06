@@ -22,6 +22,247 @@ body {
   background-color: #f8fafb;
 }
 
+/*
+ * Dark mode
+ *
+ * A `.dark` class is toggled on the <html> element by the ThemeService.
+ * Bootstrap 5.2 does not ship with native `data-bs-theme` support, so the
+ * theme is implemented by overriding the relevant components/utilities below.
+ */
+:root {
+  --scholarsome-body-bg: #f8fafb;
+  --scholarsome-surface: #fff;
+  --scholarsome-surface-2: #f6f7fb;
+  --scholarsome-border: #dee2e6;
+  --scholarsome-text: #212529;
+  --scholarsome-muted: #6c757d;
+}
+
+html.dark {
+  color-scheme: dark;
+  --scholarsome-body-bg: #121212;
+  --scholarsome-surface: #1e1f24;
+  --scholarsome-surface-2: #26272c;
+  --scholarsome-border: #34343c;
+  --scholarsome-text: #e9ecef;
+  --scholarsome-muted: #9da3ad;
+}
+
+html.dark body {
+  background-color: var(--scholarsome-body-bg);
+  color: var(--scholarsome-text);
+}
+
+html.dark ::selection {
+  background-color: rgba(132, 56, 255, 0.4);
+}
+
+/* Utility overrides */
+html.dark .bg-white,
+html.dark .bg-light {
+  background-color: var(--scholarsome-surface) !important;
+}
+
+html.dark .text-black,
+html.dark .text-dark,
+html.dark .help-button,
+html.dark .nav-link,
+html.dark .navbar-nav .nav-link,
+html.dark .form-text > a {
+  color: var(--scholarsome-text) !important;
+}
+
+html.dark .text-secondary {
+  color: var(--scholarsome-muted) !important;
+}
+
+/* Surfaces (navbar, cards, dropdowns, modals) */
+html.dark nav.navbar {
+  background-color: var(--scholarsome-surface) !important;
+}
+
+html.dark nav.navbar .navbar-text,
+html.dark nav.navbar .github,
+html.dark nav.navbar .github fa-icon {
+  color: var(--scholarsome-text) !important;
+}
+
+html.dark nav.navbar .github:hover,
+html.dark nav.navbar .github:hover fa-icon {
+  color: #8438ff !important;
+}
+
+html.dark .card {
+  background-color: var(--scholarsome-surface);
+  --bs-card-color: var(--scholarsome-text);
+  --bs-card-border-color: var(--scholarsome-border);
+}
+
+html.dark .card-header {
+  background-color: var(--scholarsome-surface);
+  color: var(--scholarsome-text);
+}
+
+html.dark .btn-light {
+  background-color: var(--scholarsome-surface-2);
+  border-color: var(--scholarsome-border);
+  color: var(--scholarsome-text);
+}
+
+html.dark .btn-outline-secondary {
+  color: var(--scholarsome-muted);
+  border-color: var(--scholarsome-muted);
+}
+
+html.dark .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+html.dark .dropdown-menu {
+  background-color: var(--scholarsome-surface-2);
+  --bs-dropdown-link-color: var(--scholarsome-text);
+  --bs-dropdown-link-hover-bg: rgba(132, 56, 255, 0.15);
+  --bs-dropdown-link-active-bg: #8438ff;
+}
+
+html.dark .dropdown-item {
+  color: var(--scholarsome-text);
+}
+
+html.dark .modal-content {
+  background-color: var(--scholarsome-surface);
+  color: var(--scholarsome-text);
+  --bs-modal-bg: var(--scholarsome-surface);
+}
+
+html.dark .modal-header,
+html.dark .modal-footer {
+  border-color: var(--scholarsome-border);
+}
+
+/* Forms */
+html.dark .form-control,
+html.dark .form-select,
+html.dark .form-check-input {
+  background-color: var(--scholarsome-surface-2);
+  border-color: var(--scholarsome-border);
+  color: var(--scholarsome-text);
+}
+
+html.dark .form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+html.dark .form-label,
+html.dark .form-check-label {
+  color: var(--scholarsome-text);
+}
+
+html.dark input[type="color"].bg-white {
+  background-color: var(--scholarsome-surface-2) !important;
+}
+
+html.dark table,
+html.dark .table {
+  --bs-table-bg: var(--scholarsome-surface);
+  --bs-table-color: var(--scholarsome-text);
+}
+
+html.dark .alert {
+  border: 1px solid transparent;
+}
+
+/* Dark-mode alert variants: darker backgrounds with lighter, readable text */
+html.dark .alert-danger {
+  --bs-alert-bg: rgba(150, 40, 52, 0.25);
+  --bs-alert-color: #f0b3ba;
+  --bs-alert-border-color: rgba(150, 40, 52, 0.5);
+  background-color: var(--bs-alert-bg);
+  color: var(--bs-alert-color);
+  border-color: var(--bs-alert-border-color);
+}
+
+html.dark .alert-success {
+  --bs-alert-bg: rgba(28, 105, 61, 0.25);
+  --bs-alert-color: #b1e0c4;
+  --bs-alert-border-color: rgba(28, 105, 61, 0.5);
+  background-color: var(--bs-alert-bg);
+  color: var(--bs-alert-color);
+  border-color: var(--bs-alert-border-color);
+}
+
+html.dark .alert-warning {
+  --bs-alert-bg: rgba(132, 92, 12, 0.25);
+  --bs-alert-color: #f0d9a8;
+  --bs-alert-border-color: rgba(132, 92, 12, 0.5);
+  background-color: var(--bs-alert-bg);
+  color: var(--bs-alert-color);
+  border-color: var(--bs-alert-border-color);
+}
+
+html.dark .alert-info {
+  --bs-alert-bg: rgba(0, 94, 140, 0.25);
+  --bs-alert-color: #a7d4e8;
+  --bs-alert-border-color: rgba(0, 94, 140, 0.5);
+  background-color: var(--bs-alert-bg);
+  color: var(--bs-alert-color);
+  border-color: var(--bs-alert-border-color);
+}
+
+html.dark .alert-secondary {
+  --bs-alert-bg: rgba(60, 71, 82, 0.35);
+  --bs-alert-color: #cfd6db;
+  --bs-alert-border-color: var(--scholarsome-border);
+  background-color: var(--bs-alert-bg);
+  color: var(--bs-alert-color);
+  border-color: var(--bs-alert-border-color);
+}
+
+/* Fixed bottom controls (flashcards, quiz navigation) */
+html.dark .fixed-bottom.bg-white {
+  background-color: var(--scholarsome-surface) !important;
+}
+
+/* Quill editor */
+html.dark .ql-toolbar.ql-snow,
+html.dark .ql-container.ql-snow,
+html.dark .ql-snow .ql-toolbar {
+  border-color: var(--scholarsome-border);
+  background-color: var(--scholarsome-surface-2);
+  color: var(--scholarsome-text);
+}
+
+html.dark .ql-container {
+  color: var(--scholarsome-text);
+}
+
+html.dark .ql-snow .ql-stroke {
+  stroke: var(--scholarsome-text);
+}
+
+html.dark .ql-snow .ql-fill {
+  fill: var(--scholarsome-text);
+}
+
+html.dark .quill-editor textarea,
+html.dark .ql-editor {
+  color: var(--scholarsome-text);
+}
+
+html.dark .ql-editor.ql-blank::before {
+  color: #9ca3af;
+}
+
+html.dark .angular-editor-toolbar,
+html.dark .angular-editor-textarea {
+  background-color: var(--scholarsome-surface-2) !important;
+}
+
+html.dark .angular-editor-button.active {
+  background-color: var(--scholarsome-border) !important;
+}
+
 .grecaptcha-badge {
   visibility: hidden;
 }
@@ -84,7 +325,7 @@ img {
 
 @keyframes help-button-color-change {
   0% {
-    color: #212529;
+    color: var(--scholarsome-text);
   }
 
   100% {
