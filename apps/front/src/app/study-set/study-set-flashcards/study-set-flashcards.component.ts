@@ -158,6 +158,8 @@ export class StudySetFlashcardsComponent implements OnInit {
 
         if (this.shufflingEnabled) this.cards = this.cards.sort(() => 0.5 - Math.random());
 
+        // reset the side to the prompt side for the next round
+        this.side = this.answer === "definition" ? "term" : "definition";
         this.sideText = this.cards[0][this.side as keyof Card] as string;
       }
 
