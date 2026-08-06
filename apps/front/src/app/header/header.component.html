@@ -43,6 +43,25 @@
         <li class="nav-item">
           <a class="nav-link text-black" aria-current="page" href="/handbook">Handbook</a>
         </li>
+        <li class="nav-item">
+          <a
+            class="nav-link text-black"
+            aria-current="page"
+            [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+            [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+            (click)="
+              !this.cookieService.get('authenticated')
+                ? (this.modalRef = loginModal.open())
+                : ''
+            "
+            [routerLink]="
+              this.cookieService.get('authenticated')
+                ? '/card-mistakes'
+                : undefined
+            "
+            >Previous mistakes</a
+          >
+        </li>
         <li class="btn-group" dropdown>
           <button
             id="button-basic"

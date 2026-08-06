@@ -7,6 +7,7 @@ import { faThumbsUp, faCake } from "@fortawesome/free-solid-svg-icons";
 import { DomSanitizer, Meta, Title } from "@angular/platform-browser";
 import { NgForm } from "@angular/forms";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { CardMistakesService } from "../../shared/http/card-mistakes.service";
 
 @Component({
   selector: "scholarsome-study-set-flashcards",
@@ -20,7 +21,8 @@ export class StudySetFlashcardsComponent implements OnInit {
     private readonly router: Router,
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    public readonly sanitizer: DomSanitizer
+    public readonly sanitizer: DomSanitizer,
+    private readonly cardMistakesService: CardMistakesService
   ) {}
 
   @ViewChild("flashcardsConfig") configModal: TemplateRef<HTMLElement>;
@@ -107,6 +109,13 @@ export class StudySetFlashcardsComponent implements OnInit {
 
   incrementLearntCount(): void {
     this.newLearnedCards++;
+  }
+
+  // Stores the current card as a mistake for progressive mode's "Don't know" option
+  async markAsMistake(): Promise<void> {
+    if (this.flashcardsMode === "progressive" && this.currentCard) {
+      await this.cardMistakesService.createMistake(this.currentCard.id);
+    }
   }
 
   flipCard(type?: string) {

@@ -1,0 +1,36 @@
+<div class="d-flex justify-content-center mt-5" #spinner>
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<div class="py-4 px-4" hidden #container>
+  <div class="header">
+    <h2>
+      <fa-icon class="fs-3" [icon]="faHistory"></fa-icon>
+      Previous mistakes
+    </h2>
+    <p class="text-secondary">Cards you marked as "Don't know" during progressive flashcards, sorted from most recent to oldest.</p>
+  </div>
+
+  <div *ngIf="mistakes && mistakes.length === 0" class="mt-3">
+    <p class="fs-5 text-secondary">You haven't made any mistakes yet. Keep studying!</p>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-3 g-4 py-4 w-100" *ngIf="mistakes && mistakes.length > 0">
+    <div class="col" *ngFor="let mistake of mistakes">
+      <div class="card shadow-sm set-card h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">
+            {{ mistake.term }}
+            <span class="float-end text-secondary fs-6">{{ mistake.createdAt.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) }}</span>
+          </h5>
+          <p class="card-text">{{ mistake.definition }}</p>
+        </div>
+        <div class="card-footer" [routerLink]="['/study-set', mistake.set.id]">
+          <small class="text-body-secondary" role="button">{{ mistake.set.title }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
