@@ -1,5 +1,15 @@
 .card-footer {
   cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.card-footer:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.card-footer:hover small {
+  color: var(--bs-primary);
+  text-decoration: underline;
 }
 
 .selected-card .set-card {
