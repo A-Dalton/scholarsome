@@ -92,6 +92,15 @@ html.dark nav.navbar .github:hover fa-icon {
   color: #8438ff !important;
 }
 
+/* Navbar toggler (hamburger menu): invert the icon so it is visible on dark surfaces */
+html.dark nav.navbar .navbar-toggler-icon {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+html.dark nav.navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(132, 56, 255, 0.5);
+}
+
 html.dark .card {
   background-color: var(--scholarsome-surface);
   --bs-card-color: var(--scholarsome-text);

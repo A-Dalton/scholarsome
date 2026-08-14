@@ -87,7 +87,7 @@
           <button type="button" class="fs-4 w-25 btn btn-outline-secondary mb-3" (click)="changeCard(1)" [disabled]="cards.length === index + 1 ? true : null"><fa-icon [icon]="['far', 'arrow-alt-circle-right']"></fa-icon></button>
         </div>
         <div class="mt-2 d-flex justify-content-around" *ngIf="cards && flashcardsMode !== 'traditional'">
-          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" (click)="changeCard(1)">Don't know</button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" (click)="markAsMistake(); changeCard(1)">Don't know</button>
           <button type="button" class="fs-4 w-25 btn btn-outline-success mb-3 fw-bold" (click)="incrementLearntCount(); knownCardIDs.push(currentCard.id); changeCard(1);">Know</button>
         </div>
         <div class="mx-2 d-flex justify-content-between">

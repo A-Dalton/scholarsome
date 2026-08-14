@@ -21,6 +21,7 @@ import { TokenRefreshMiddleware } from "./providers/token-refresh.middleware";
 import { ConvertingModule } from "./converting/converting.module";
 import { StorageModule } from "./providers/storage/storage.module";
 import { FoldersModule } from "./folders/folders.module";
+import { CardMistakesModule } from "./card-mistakes/card-mistakes.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TasksService } from "./providers/tasks.service";
 
@@ -104,7 +105,8 @@ import { TasksService } from "./providers/tasks.service";
       global: true
     },
     ConvertingModule,
-    FoldersModule
+    FoldersModule,
+    CardMistakesModule
   ],
   controllers: [],
   providers: [TasksService],

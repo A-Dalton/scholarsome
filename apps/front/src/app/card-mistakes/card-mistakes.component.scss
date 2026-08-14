@@ -1,0 +1,22 @@
+.card-footer {
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.card-footer:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.15);
+}
+
+.card-footer:hover small {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+.selected-card .set-card {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.col {
+  cursor: pointer;
+}

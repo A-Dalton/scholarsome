@@ -52,3 +52,4 @@ apps/front/src/environments/*
 #Nx files
 
 .nx/cache
+/.nx/
