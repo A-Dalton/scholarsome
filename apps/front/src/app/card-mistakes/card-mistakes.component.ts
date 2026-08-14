@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { CardMistake } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
+import { DomSanitizer } from "@angular/platform-browser";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { faHistory } from "@fortawesome/free-solid-svg-icons";
 
@@ -20,7 +21,8 @@ export class CardMistakesComponent implements OnInit {
   constructor(
     private readonly cardMistakesService: CardMistakesService,
     private readonly titleService: Title,
-    private readonly metaService: Meta
+    private readonly metaService: Meta,
+    public readonly sanitizer: DomSanitizer
   ) {
     this.titleService.setTitle("Previous mistakes — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Review the flashcards you previously did not know on Scholarsome." });
