@@ -21,7 +21,30 @@ export class SharedService {
   private readonly starsRes: Promise<any>;
 
   async isUpdateAvailable(): Promise<boolean> {
-    return (await this.releaseCheckRes)[0]["name"] !== "v" + packageJson.version;
+    const latestRelease = (await this.releaseCheckRes)[0]["name"];
+    // Only report an update if the latest release is strictly newer than the local version
+    return this.compareVersions(latestRelease, packageJson.version) > 0;
+  }
+
+  private compareVersions(a: string, b: string): number {
+    const parse = (s: string): number[] => {
+      const cleaned = s.replace(/^v/i, "");
+      const parts = cleaned.split(".");
+      return parts.filter((p) => p.length > 0).map((p) => parseInt(p, 10) || 0);
+    };
+
+    const aParts = parse(a);
+    const bParts = parse(b);
+    const maxLength = Math.max(aParts.length, bParts.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      const aNum = aParts[i] ?? 0;
+      const bNum = bParts[i] ?? 0;
+      if (aNum > bNum) return 1;
+      if (aNum < bNum) return -1;
+    }
+
+    return 0;
   }
 
   async getReleaseUrl(): Promise<string> {
