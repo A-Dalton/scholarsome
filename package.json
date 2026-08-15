@@ -47,7 +47,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@liaoliaots/nestjs-redis": "^9.0.5",
     "@mdx-js/react": "^1.6.22",
-    "@nestjs-modules/mailer": "^1.8.1",
+    "@nestjs-modules/mailer": "^1.11.2",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "10.0.2",
     "@nestjs/config": "^2.2.0",
@@ -76,7 +76,7 @@
     "better-sqlite3": "^8.4.0",
     "bootstrap": "^5.2.3",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0",
+    "class-validator": "^0.15.1",
     "clsx": "^1.2.1",
     "cookie-parser": "^1.4.7",
     "csv-parse": "^5.5.3",
@@ -164,7 +164,16 @@
     "jest-preset-angular": "13.1.6",
     "prettier": "^2.6.2",
     "ts-jest": "^29.4.12",
-    "ts-node": "10.9.1",
-    "tsdoc": "^0.0.4"
+    "ts-node": "10.9.1"
+  },
+  "overrides": {
+    "websocket-driver": "0.7.5",
+    "shell-quote": "1.10.0",
+    "ws@7": "7.5.13",
+    "fast-xml-parser": "5.10.1",
+    "form-data@2": "2.5.6",
+    "form-data@3": "3.0.5",
+    "form-data@4": "4.0.6",
+    "tar": "7.5.22"
   }
 }
