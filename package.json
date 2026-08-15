@@ -18,6 +18,9 @@
     "serve:pm2": "npm run migrate && pm2 start dist/apps/api/main.js --name \"scholarsome\"",
     "prepare": "husky"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "private": true,
   "dependencies": {
     "@angular-devkit/architect": "^0.1602.12",
@@ -141,7 +144,7 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.17",
     "@types/jest": "29.4.4",
-    "@types/node": "18.16.9",
+    "@types/node": "^20.11.0",
     "@types/nodemailer": "^6.4.6",
     "@types/passport-jwt": "^3.0.6",
     "@types/passport-local": "^1.0.34",
