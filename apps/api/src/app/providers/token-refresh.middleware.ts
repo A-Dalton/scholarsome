@@ -3,8 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "../auth/auth.service";
-import { InjectRedis } from "@liaoliaots/nestjs-redis";
-import Redis from "ioredis";
+import { RedisService } from "@liaoliaots/nestjs-redis";
 import * as jwt from "jsonwebtoken";
 import * as crypto from "crypto";
 
@@ -14,7 +13,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
-    @InjectRedis() private readonly redis: Redis
+    private readonly redisService: RedisService
   ) {}
 
   use(req: Request, res: Response, next: NextFunction) {
@@ -65,7 +64,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
       return true;
     }
 
-    if (!refreshToken.sessionId || !this.redis.get(req.cookies["refresh_token"].sessionId)) {
+    if (!refreshToken.sessionId || !this.redisService.getOrThrow().get(req.cookies["refresh_token"].sessionId)) {
       this.authService.logout(req, res);
       return true;
     }

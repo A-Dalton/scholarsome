@@ -49,7 +49,7 @@ export class AuthController {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService
   ) {
-    this.apiKeyRedis = this.redisService.getClient("apiToken");
+    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
   }
 
   /*
