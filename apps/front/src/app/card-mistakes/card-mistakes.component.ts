@@ -8,6 +8,7 @@ import { Router } from "@angular/router";
 import { faCheck, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-card-mistakes",
   templateUrl: "./card-mistakes.component.html",
   styleUrls: ["./card-mistakes.component.scss"]

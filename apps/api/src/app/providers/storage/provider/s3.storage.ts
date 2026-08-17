@@ -28,7 +28,7 @@ export class S3StorageProvider implements StorageProvider {
         Key: path,
         Bucket: this.bucket
       });
-    } catch (_) {
+    } catch {
       return null;
     }
 

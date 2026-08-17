@@ -1,0 +1,10 @@
+{
+  "name": "scholarsome-docusaurus-executors",
+  "version": "1.0.0",
+  "private": true,
+  "executors": "./executors.json",
+  "dependencies": {
+    "@docusaurus/core": "^2.1.0",
+    "tslib": "^2.3.0"
+  }
+}

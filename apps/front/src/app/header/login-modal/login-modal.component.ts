@@ -7,6 +7,7 @@ import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ModalService } from "../../shared/modal.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-login-modal",
   templateUrl: "./login-modal.component.html",
   styleUrls: ["./login-modal.component.scss"]
@@ -43,7 +44,7 @@ export class LoginModalComponent {
   public open(): BsModalRef {
     this.publicAppEnv = process.env["NG_APP_ENV"] === "public";
     this.onLandingPage = this.router.url === "/";
-    this.recaptchaEnabled === !process.env["SCHOLARSOME_RECAPTCHA_SECRET"] || !process.env["SCHOLARSOME_RECAPTCHA_SITE"];
+    this.recaptchaEnabled = !process.env["SCHOLARSOME_RECAPTCHA_SECRET"] || !process.env["SCHOLARSOME_RECAPTCHA_SITE"];
     this.appUrl = window.location.host;
 
     this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv && this.onLandingPage });

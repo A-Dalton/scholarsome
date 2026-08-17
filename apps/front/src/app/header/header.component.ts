@@ -23,6 +23,7 @@ import { UsersService } from "../shared/http/users.service";
 import { CsvImportModalComponent } from "./csv-import-modal/csv-import-modal.component";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-header",
   templateUrl: "./header.component.html",
   styleUrls: ["./header.component.scss"]

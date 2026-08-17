@@ -6,6 +6,7 @@ import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-anki-import-modal",
   templateUrl: "./anki-import-modal.component.html",
   styleUrls: ["./anki-import-modal.component.scss"]

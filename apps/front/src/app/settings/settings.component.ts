@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { faImage, faKey, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-settings",
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.scss"]

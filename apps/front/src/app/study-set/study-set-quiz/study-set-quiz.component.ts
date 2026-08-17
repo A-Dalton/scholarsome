@@ -9,6 +9,7 @@ import { compareTwoStrings } from "string-similarity";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-study-set-quiz",
   templateUrl: "./study-set-quiz.component.html",
   styleUrls: ["./study-set-quiz.component.scss"]

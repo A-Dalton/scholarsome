@@ -21,7 +21,7 @@ export class FoldersService {
 
     try {
       folder = await lastValueFrom(this.http.get<ApiResponse<Folder>>("/api/sets/folders/" + folderId));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -42,7 +42,7 @@ export class FoldersService {
 
     try {
       folders = await lastValueFrom(this.http.get<ApiResponse<Folder[]>>("/api/sets/folders/user/" + folderId));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -61,7 +61,7 @@ export class FoldersService {
 
     try {
       folders = await lastValueFrom(this.http.get<ApiResponse<Folder[]>>("/api/sets/folders/user/me"));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -102,7 +102,7 @@ export class FoldersService {
         subfolders: body.subfolders,
         sets: body.sets
       }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -144,7 +144,7 @@ export class FoldersService {
         subfolders: body.subfolders,
         sets: body.sets
       }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -166,7 +166,7 @@ export class FoldersService {
 
     try {
       folder = await lastValueFrom(this.http.delete<ApiResponse<Folder>>("/api/sets/folders/" + folderId));
-    } catch (e) {
+    } catch {
       return null;
     }
 

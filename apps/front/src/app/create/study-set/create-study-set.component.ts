@@ -18,6 +18,7 @@ import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { SavedSet } from "@scholarsome/shared";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
   styleUrls: ["./create-study-set.component.scss"]

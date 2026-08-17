@@ -5,13 +5,13 @@
   "sourceRoot": "apps/docs/src",
   "targets": {
     "build": {
-      "executor": "@nx-plus/docusaurus:browser",
+      "executor": "./tools/docusaurus:browser",
       "options": {
         "outputPath": "dist/apps/docs"
       }
     },
     "serve": {
-      "executor": "@nx-plus/docusaurus:dev-server",
+      "executor": "./tools/docusaurus:dev-server",
       "options": {
         "port": 3000
       }

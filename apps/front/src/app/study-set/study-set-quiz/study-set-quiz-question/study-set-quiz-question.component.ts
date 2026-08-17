@@ -5,6 +5,7 @@ import { FormGroup } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-study-set-quiz-question",
   templateUrl: "./study-set-quiz-question.component.html",
   styleUrls: ["./study-set-quiz-question.component.scss"]

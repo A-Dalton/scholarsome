@@ -191,7 +191,7 @@ export class AuthController {
             req.cookies["resetPasswordToken"],
             this.configService.get<string>("JWT_SECRET")
         ) as { email: string; forPasswordReset: boolean };
-      } catch (e) {
+      } catch {
         throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
       }
 
@@ -254,7 +254,7 @@ export class AuthController {
           params.token,
           this.configService.get<string>("JWT_SECRET")
       ) as { email: string; forPasswordReset: boolean };
-    } catch (e) {
+    } catch {
       return res.redirect("/");
     }
 
@@ -312,7 +312,7 @@ export class AuthController {
           params.token,
           this.configService.get<string>("JWT_SECRET")
       ) as { email: string };
-    } catch (e) {
+    } catch {
       return {
         status: ApiResponseOptions.Fail,
         message: "Invalid token"

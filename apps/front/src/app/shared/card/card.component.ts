@@ -19,6 +19,7 @@ import { DeviceDetectorService } from "ngx-device-detector";
 import Quill from "quill";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"]

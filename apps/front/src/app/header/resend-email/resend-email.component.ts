@@ -3,6 +3,7 @@ import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-resend-email",
   templateUrl: "./resend-email.component.html",
   styleUrls: ["./resend-email.component.scss"]

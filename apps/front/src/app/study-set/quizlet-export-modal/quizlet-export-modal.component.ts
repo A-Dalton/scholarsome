@@ -7,6 +7,7 @@ import { Set } from "@scholarsome/shared";
 import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-quizlet-export-modal",
   templateUrl: "./quizlet-export-modal.component.html",
   styleUrls: ["./quizlet-export-modal.component.scss"]

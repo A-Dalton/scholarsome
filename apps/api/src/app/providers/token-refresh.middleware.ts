@@ -40,7 +40,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
       // if your access token is expired
       try {
         jwt.verify(req.cookies.access_token, this.configService.get<string>("JWT_SECRET"));
-      } catch (e) {
+      } catch {
         // and you have a refresh token
         if ("refresh_token" in req.cookies) {
           // renew your access token
@@ -59,7 +59,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
 
     try {
       refreshToken = jwt.verify(req.cookies["refresh_token"], this.configService.get<string>("JWT_SECRET")) as { id: string; sessionId: string; email: string; type: "refresh" };
-    } catch (e) {
+    } catch {
       this.authService.logout(req, res);
       return true;
     }

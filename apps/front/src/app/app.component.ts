@@ -4,6 +4,7 @@ import { Meta } from "@angular/platform-browser";
 import { ThemeService } from "./shared/theme.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-root",
   templateUrl: "./app.component.html"
 })

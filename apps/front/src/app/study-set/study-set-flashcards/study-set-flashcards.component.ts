@@ -10,6 +10,7 @@ import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { CardMistakesService } from "../../shared/http/card-mistakes.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
   styleUrls: ["./study-set-flashcards.component.scss"]

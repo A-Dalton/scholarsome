@@ -5,6 +5,7 @@ import { UsersService } from "../shared/http/users.service";
 import { faPlus, faClone, faFolder } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-view",
   templateUrl: "./homepage.component.html",
   styleUrls: ["./homepage.component.scss"]

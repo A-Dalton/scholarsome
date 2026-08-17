@@ -7,6 +7,7 @@ import { faFileCsv } from "@fortawesome/free-solid-svg-icons";
 import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-csv-import-modal",
   templateUrl: "./csv-import-modal.component.html",
   styleUrls: ["./csv-import-modal.component.scss"]

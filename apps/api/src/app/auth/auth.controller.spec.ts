@@ -458,6 +458,7 @@ describe("AuthController", () => {
     } as any as Response;
 
     it("should call the logout method", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const req = {} as any as Request;
 
       await authController.logout(req, res);

@@ -9,6 +9,7 @@ import { UsersService } from "../../shared/http/users.service";
 import { Set, Folder } from "@prisma/client";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-create-folder",
   templateUrl: "./create-folder.component.html",
   styleUrls: ["./create-folder.component.scss"]

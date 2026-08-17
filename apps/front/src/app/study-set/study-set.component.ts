@@ -18,6 +18,7 @@ import { faFileExport, faShareFromSquare, faPencil, faSave, faCancel, faTrashCan
 import { ConvertingService } from "../shared/http/converting.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-study-set",
   templateUrl: "./study-set.component.html",
   styleUrls: ["./study-set.component.scss"]

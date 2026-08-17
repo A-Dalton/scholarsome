@@ -486,7 +486,7 @@ export class ConvertingService {
 
       try {
         mediaLegend = Object.entries(JSON.parse(zip.readFile("media").toString()));
-      } catch (e) {
+      } catch {
         mediaLegend = null;
       }
 
@@ -565,7 +565,7 @@ export class ConvertingService {
     try {
       // eslint-disable-next-line camelcase
       parsed = parse(file.buffer.toString().replace(/\r\n/g, "\n"), { skip_empty_lines: false });
-    } catch (e) {
+    } catch {
       return false;
     }
 

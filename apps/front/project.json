@@ -78,14 +78,15 @@
       "executor": "@ngx-env/builder:dev-server",
       "configurations": {
         "production": {
-          "browserTarget": "front:build:production"
+          "buildTarget": "front:build:production"
         },
         "development": {
-          "browserTarget": "front:build:development"
+          "buildTarget": "front:build:development"
         }
       },
       "defaultConfiguration": "development",
       "options": {
+        "buildTarget": "front:build:development",
         "proxyConfig": "apps/front/proxy.conf.json"
       }
     },

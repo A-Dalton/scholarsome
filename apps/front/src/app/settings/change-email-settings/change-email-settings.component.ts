@@ -5,6 +5,7 @@ import { ApiResponseOptions } from "@scholarsome/shared";
 import { Router } from "@angular/router";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-change-email-settings",
   templateUrl: "./change-email-settings.component.html",
   styleUrls: ["./change-email-settings.component.scss"]

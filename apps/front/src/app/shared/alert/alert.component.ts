@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-alert",
   templateUrl: "./alert.component.html",
   styleUrls: ["./alert.component.css"]

@@ -6,6 +6,7 @@ import { User } from "@scholarsome/shared";
 import { faFolder, faClone } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-profile",
   templateUrl: "./profile.component.html",
   styleUrls: ["./profile.component.scss"]

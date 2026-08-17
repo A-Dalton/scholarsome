@@ -5,6 +5,7 @@ import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ModalService } from "../../shared/modal.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-set-password-modal",
   templateUrl: "./set-password-modal.component.html",
   styleUrls: ["./set-password-modal.component.scss"]

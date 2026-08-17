@@ -10,6 +10,7 @@ import { SetsService } from "../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-folder",
   templateUrl: "./folder.component.html",
   styleUrls: ["./folder.component.scss"]

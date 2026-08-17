@@ -43,7 +43,7 @@ export class AuthService {
 
       try {
         decoded = jwt.verify(req.cookies["access_token"], this.configService.get<string>("JWT_SECRET"));
-      } catch (e) {
+      } catch {
         return false;
       }
 

@@ -9,6 +9,7 @@ import { Meta, Title } from "@angular/platform-browser";
 import { SharedService } from "../shared/shared.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-landing",
   templateUrl: "./landing.component.html",
   styleUrls: ["./landing.component.scss"]

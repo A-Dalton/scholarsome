@@ -2,6 +2,7 @@ import { Component } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-notfound",
   templateUrl: "./notfound.component.html",
   styleUrls: ["./notfound.component.scss"]

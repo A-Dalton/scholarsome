@@ -7,6 +7,7 @@ import { Router } from "@angular/router";
 import { ModalService } from "../../shared/modal.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-forgot-password-modal",
   templateUrl: "./forgot-password-modal.component.html",
   styleUrls: ["./forgot-password-modal.component.scss"]

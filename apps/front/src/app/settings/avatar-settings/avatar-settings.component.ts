@@ -4,6 +4,7 @@ import { SharedService } from "../../shared/shared.service";
 import { UsersService } from "../../shared/http/users.service";
 
 @Component({
+  standalone: false,
   selector: "scholarsome-avatar-settings",
   templateUrl: "./avatar-settings.component.html",
   styleUrls: ["./avatar-settings.component.scss"]
