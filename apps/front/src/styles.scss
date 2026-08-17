@@ -14,9 +14,9 @@ $dropdown-link-active-bg: $primary !important;
 $enable-negative-margins: true;
 @import '../../../node_modules/bootstrap/scss/bootstrap.scss';
 
-@import '~quill/dist/quill.core.css';
-@import '~quill/dist/quill.snow.css';
-@import '~katex/dist/katex.min.css';
+@import '../../../node_modules/quill/dist/quill.core.css';
+@import '../../../node_modules/quill/dist/quill.snow.css';
+@import '../../../node_modules/katex/dist/katex.min.css';
 
 body {
   background-color: #f8fafb;
@@ -72,7 +72,8 @@ html.dark .form-text > a {
   color: var(--scholarsome-text) !important;
 }
 
-html.dark .text-secondary {
+html.dark .text-secondary,
+html.dark .text-body-secondary {
   color: var(--scholarsome-muted) !important;
 }
 
@@ -107,9 +108,12 @@ html.dark .card {
   --bs-card-border-color: var(--scholarsome-border);
 }
 
-html.dark .card-header {
+html.dark .card-header,
+html.dark .card-footer {
   background-color: var(--scholarsome-surface);
   color: var(--scholarsome-text);
+  --bs-card-cap-bg: var(--scholarsome-surface);
+  --bs-card-cap-color: var(--scholarsome-text);
 }
 
 html.dark .btn-light {

@@ -23,7 +23,7 @@ import { QuillEditorComponent } from "ngx-quill";
   providers: [
     {
       provide: RECAPTCHA_V3_SITE_KEY,
-      useValue: process.env["SCHOLARSOME_RECAPTCHA_SITE"]
+      useValue: import.meta.env.SCHOLARSOME_RECAPTCHA_SITE
     }
   ],
   declarations: [

@@ -14,7 +14,7 @@
         "assets": ["apps/api/src/assets"],
         "target": "node",
         "compiler": "tsc",
-        "isolatedConfig": false
+        "webpackConfig": "apps/api/webpack.config.js"
       },
       "configurations": {
         "production": {

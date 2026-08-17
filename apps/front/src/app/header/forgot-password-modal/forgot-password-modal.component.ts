@@ -37,7 +37,7 @@ export class ForgotPasswordModalComponent {
   protected modalRef?: BsModalRef;
 
   public open(): BsModalRef {
-    this.publicAppEnv = process.env["NG_APP_ENV"] === "public";
+    this.publicAppEnv = import.meta.env.NODE_ENV === "public";
     this.onLandingPage = this.router.url === "/";
 
     this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv });

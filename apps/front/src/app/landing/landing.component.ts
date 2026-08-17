@@ -38,7 +38,7 @@ export class LandingComponent implements OnInit {
   protected landingPageEnabled = true;
 
   async ngOnInit(): Promise<void> {
-    if (process.env["NG_APP_ENV"] !== "public") {
+    if (import.meta.env.NODE_ENV !== "public") {
       this.landingPageEnabled = false;
       this.modalService.modal.next("login-open");
     }

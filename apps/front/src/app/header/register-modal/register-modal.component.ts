@@ -41,9 +41,9 @@ export class RegisterModalComponent {
   protected readonly ApiResponseOptions = ApiResponseOptions;
 
   public open(): BsModalRef {
-    this.publicAppEnv = process.env["NG_APP_ENV"] === "public";
+    this.publicAppEnv = import.meta.env.NODE_ENV === "public";
     this.onLandingPage = this.router.url === "/";
-    this.recaptchaEnabled = !process.env["SCHOLARSOME_RECAPTCHA_SECRET"] || !process.env["SCHOLARSOME_RECAPTCHA_SITE"];
+    this.recaptchaEnabled = !import.meta.env.SCHOLARSOME_RECAPTCHA_SECRET || !import.meta.env.SCHOLARSOME_RECAPTCHA_SITE;
     this.appUrl = window.location.host;
 
     this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv && this.onLandingPage });

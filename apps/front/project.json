@@ -6,14 +6,14 @@
   "prefix": "scholarsome",
   "targets": {
     "build": {
-      "executor": "@ngx-env/builder:browser",
-      "builder": "@ngx-env/builder:browser",
+      "executor": "@ngx-env/builder:application",
+      "builder": "@ngx-env/builder:application",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/front",
         "index": "apps/front/src/index.html",
-        "main": "apps/front/src/main.ts",
-        "polyfills": "apps/front/src/polyfills.ts",
+        "browser": "apps/front/src/main.ts",
+        "polyfills": ["apps/front/src/polyfills.ts"],
         "tsConfig": "apps/front/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -38,7 +38,6 @@
       },
       "configurations": {
         "production": {
-          "buildOptimizer": true,
           "optimization": {
             "scripts": true,
             "fonts": true,
@@ -64,9 +63,7 @@
           "outputHashing": "all"
         },
         "development": {
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true
@@ -100,7 +97,7 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@ngx-env/builder:karma",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/apps/front"],
       "options": {
         "jestConfig": "apps/front/jest.config.ts",
