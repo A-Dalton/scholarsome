@@ -10,7 +10,7 @@ jobs:
       - name: Setup Node.JS
         uses: actions/setup-node@v3
         with:
-          node-version: 'lts/Iron'
+          node-version: 'lts/Jod'
 
       - name: Install dependencies and generate Prisma types
         run: |

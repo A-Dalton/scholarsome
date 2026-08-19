@@ -52,7 +52,7 @@ Quill.register("modules/resize", QuillResize);
     HttpClientModule,
     SharedModule,
     FontAwesomeModule,
-    ModalModule.forRoot(),
+    ModalModule,
     CookieModule.withOptions(),
     AppRoutingModule,
     BrowserAnimationsModule,

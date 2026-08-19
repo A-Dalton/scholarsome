@@ -520,7 +520,7 @@ export class ConvertingService {
                     extension === "tiff" ||
                     extension === "webp"
                   ) {
-                    file = await sharp(zip.readFile(mediaLegend[x][0])).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer();
+                    file = Buffer.from(await sharp(zip.readFile(mediaLegend[x][0])).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer());
                     extension = ".jpeg";
                   } else {
                     extension = mediaLegend[x][1].split(".").pop();

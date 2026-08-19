@@ -48,7 +48,7 @@ export class CardsService {
           split[0].includes("tiff") ||
           split[0].includes("webp")
         ) {
-          decoded = await sharp(decoded).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer();
+          decoded = Buffer.from(await sharp(decoded).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer());
           extension = ".jpeg";
         }
 

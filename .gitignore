@@ -53,3 +53,6 @@ apps/front/src/environments/*
 
 .nx/cache
 /.nx/
+
+.claude/worktrees
+.claude/settings.local.json
