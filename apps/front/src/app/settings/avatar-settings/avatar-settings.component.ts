@@ -1,10 +1,11 @@
-import { Component, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from "@angular/core";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { SharedService } from "../../shared/shared.service";
 import { UsersService } from "../../shared/http/users.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-avatar-settings",
   templateUrl: "./avatar-settings.component.html",
   styleUrls: ["./avatar-settings.component.scss"]
@@ -13,7 +14,8 @@ export class AvatarSettingsComponent implements OnInit {
   constructor(
     private readonly usersService: UsersService,
     private readonly sanitizer: DomSanitizer,
-    private readonly sharedService: SharedService
+    private readonly sharedService: SharedService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   protected changeClicked = false;
@@ -68,5 +70,9 @@ export class AvatarSettingsComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.viewAvatar();
+
+    // The avatar is loaded asynchronously; mark the view for change detection so it
+    // re-renders with the loaded avatar.
+    this.cdr.markForCheck();
   }
 }

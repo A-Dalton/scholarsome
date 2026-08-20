@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
 import { NgForm } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -8,6 +8,7 @@ import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-quizlet-import-modal",
   templateUrl: "./quizlet-import-modal.component.html",
   styleUrls: ["./quizlet-import-modal.component.scss"]

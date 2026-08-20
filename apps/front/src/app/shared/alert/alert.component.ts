@@ -1,7 +1,8 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-alert",
   templateUrl: "./alert.component.html",
   styleUrls: ["./alert.component.css"]

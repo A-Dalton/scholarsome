@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from "@angular/core";
 import { ModalService } from "../shared/modal.service";
 import { CookieService } from "ngx-cookie";
 import { Router } from "@angular/router";
@@ -10,6 +10,7 @@ import { SharedService } from "../shared/shared.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-landing",
   templateUrl: "./landing.component.html",
   styleUrls: ["./landing.component.scss"]
@@ -22,7 +23,8 @@ export class LandingComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     public readonly modalService: ModalService,
-    public readonly sharedService: SharedService
+    public readonly sharedService: SharedService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.titleService.setTitle("Studying done the correct way — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Scholarsome is the way studying was meant to be. No monthly fees or upsells to get between you and your study tools. Just flashcards." });
@@ -53,5 +55,9 @@ export class LandingComponent implements OnInit {
     }
 
     this.stargazers = await this.sharedService.getStargazers();
+
+    // The stargazers value is loaded asynchronously, so mark the view for change
+    // detection to ensure the landing page re-renders with the loaded value.
+    this.cdr.markForCheck();
   }
 }

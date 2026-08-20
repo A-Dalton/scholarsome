@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.3-labs
-FROM node:22-alpine as builder
+FROM node:26-alpine as builder
 
 WORKDIR /usr/src/app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run generate
 RUN npm run build
 
-FROM node:22-alpine
+FROM node:26-alpine
 
 WORKDIR /usr/src/app
 

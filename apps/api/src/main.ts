@@ -1,12 +1,12 @@
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app/app.module";
-import * as cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import * as https from "https";
 import * as http from "http";
-import * as express from "express";
+import express from "express";
 import { ExpressAdapter } from "@nestjs/platform-express";
-import * as compression from "compression";
+import compression from "compression";
 import { envSchema } from "@scholarsome/shared";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as fs from "fs";

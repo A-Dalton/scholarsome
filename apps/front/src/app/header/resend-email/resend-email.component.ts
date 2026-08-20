@@ -1,9 +1,10 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-resend-email",
   templateUrl: "./resend-email.component.html",
   styleUrls: ["./resend-email.component.scss"]

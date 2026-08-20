@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input, OnInit } from "@angular/core";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { QuizQuestion } from "@scholarsome/shared";
 import { FormGroup } from "@angular/forms";
@@ -6,6 +6,7 @@ import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set-quiz-question",
   templateUrl: "./study-set-quiz-question.component.html",
   styleUrls: ["./study-set-quiz-question.component.scss"]

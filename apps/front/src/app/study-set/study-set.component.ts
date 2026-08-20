@@ -1,4 +1,6 @@
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ComponentRef,
   ElementRef,
@@ -19,6 +21,7 @@ import { ConvertingService } from "../shared/http/converting.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set",
   templateUrl: "./study-set.component.html",
   styleUrls: ["./study-set.component.scss"]
@@ -31,7 +34,8 @@ export class StudySetComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     private readonly setsService: SetsService,
-    private readonly convertingService: ConvertingService
+    private readonly convertingService: ConvertingService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -387,5 +391,10 @@ export class StudySetComponent implements OnInit {
     this.container.nativeElement.removeAttribute("hidden");
 
     this.viewCards();
+
+    // The data above is loaded and assigned asynchronously. Mark the view for change
+    // detection so the next tick re-renders with the loaded data and the check passes
+    // without throwing ExpressionChangedAfterItHasBeenChecked.
+    this.cdr.markForCheck();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -8,6 +8,7 @@ import { ModalService } from "../../shared/modal.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-forgot-password-modal",
   templateUrl: "./forgot-password-modal.component.html",
   styleUrls: ["./forgot-password-modal.component.scss"]

@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ComponentRef,
   ElementRef, OnInit,
@@ -19,6 +20,7 @@ import { SavedSet } from "@scholarsome/shared";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
   styleUrls: ["./create-study-set.component.scss"]

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { UsersService } from "../shared/http/users.service";
 import { DomSanitizer, Meta, SafeResourceUrl, Title } from "@angular/platform-browser";
@@ -7,6 +7,7 @@ import { faFolder, faClone } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-profile",
   templateUrl: "./profile.component.html",
   styleUrls: ["./profile.component.scss"]
@@ -18,7 +19,8 @@ export class ProfileComponent implements OnInit {
     private readonly router: Router,
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -64,5 +66,9 @@ export class ProfileComponent implements OnInit {
     this.user.createdAt = new Date(this.user.createdAt);
 
     this.registrationDate = this.user.createdAt.toLocaleString("en-us", { month: "long", day: "numeric", year: "numeric" } );
+
+    // The profile data above is loaded asynchronously. Mark the view for change
+    // detection so it re-renders with the loaded user data.
+    this.cdr.markForCheck();
   }
 }

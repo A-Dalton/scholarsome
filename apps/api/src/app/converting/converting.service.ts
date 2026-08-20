@@ -6,8 +6,8 @@ import * as fs from "fs";
 import * as path from "path";
 import AdmZip = require("adm-zip");
 import { parse } from "csv-parse/sync";
-import * as Database from "better-sqlite3";
-import * as sharp from "sharp";
+import Database from "better-sqlite3";
+import sharp from "sharp";
 import { StorageService } from "../providers/storage/storage.service";
 
 @Injectable()

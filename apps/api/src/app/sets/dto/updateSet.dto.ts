@@ -11,7 +11,7 @@ import {
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { CardWithIdValidator } from "../validator/cardWithId.validator";
-import * as sanitizeHtml from "sanitize-html";
+import sanitizeHtml from "sanitize-html";
 
 export class UpdateSetDto {
   @ApiProperty({

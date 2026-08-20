@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -20,6 +22,7 @@ import Quill from "quill";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"]
@@ -29,6 +32,7 @@ export class CardComponent implements OnInit, AfterViewInit {
     private readonly bsModalService: BsModalService,
     private readonly vps: ViewportScroller,
     private readonly deviceService: DeviceDetectorService,
+    private readonly cdr: ChangeDetectorRef,
     public readonly sanitizer: DomSanitizer
   ) {}
 
@@ -89,11 +93,17 @@ export class CardComponent implements OnInit, AfterViewInit {
     this.bsModalService.onShow.subscribe(() => {
       this.actualTerm = String(this.actualTerm) as string;
       this.actualDefinition = String(this.actualDefinition) as string;
+      // Modal hide/show events fire asynchronously. Mark the view for change detection
+      // so the card's display refreshes with the latest text.
+      this.cdr.markForCheck();
     });
 
     this.bsModalService.onHide.subscribe(() => {
       this.actualTerm = this.changingTerm ? this.changingTerm : "";
       this.actualDefinition = this.changingDefinition ? this.changingDefinition : "";
+      // Modal hide/show events fire asynchronously. Mark the view for change detection
+      // so the card's display refreshes with the latest text.
+      this.cdr.markForCheck();
     });
 
     // scroll to bottom of cards list

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { NgForm } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
@@ -8,6 +8,7 @@ import { Router } from "@angular/router";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-register-modal",
   templateUrl: "./register-modal.component.html",
   styleUrls: ["./register-modal.component.scss"]

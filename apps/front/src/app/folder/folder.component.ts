@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { FoldersService } from "../shared/http/folders.service";
 import { Folder } from "@scholarsome/shared";
 import { Set, Folder as PrismaFolder } from "@prisma/client";
@@ -11,6 +11,7 @@ import { Meta, Title } from "@angular/platform-browser";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-folder",
   templateUrl: "./folder.component.html",
   styleUrls: ["./folder.component.scss"]
@@ -23,7 +24,8 @@ export class FolderComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly metaService: Meta,
-    private readonly titleService: Title
+    private readonly titleService: Title,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -178,6 +180,10 @@ export class FolderComponent implements OnInit {
 
     this.editingLoading = false;
 
+    // The set/folder data above is loaded asynchronously. Mark the view for change
+    // detection so the loading spinners are removed and the edit form is shown.
+    this.cdr.markForCheck();
+
     if (userSets && userSets.length > 0) {
       this.userSets = userSets;
 
@@ -264,6 +270,10 @@ export class FolderComponent implements OnInit {
 
     this.folderSets = folder.sets;
     this.subfolders = folder.subfolders;
+
+    // The folder data above is loaded asynchronously. Mark the view for change
+    // detection so it re-renders with the updated folder/sets data.
+    this.cdr.markForCheck();
   }
 
   async ngOnInit() {
@@ -307,5 +317,9 @@ export class FolderComponent implements OnInit {
     this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder.name + " folder on Scholarsome." });
 
     this.loading = false;
+
+    // The folder data above is loaded asynchronously. Mark the view for change
+    // detection so it re-renders with the loaded data.
+    this.cdr.markForCheck();
   }
 }

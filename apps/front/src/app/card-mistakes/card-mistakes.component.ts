@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { CardMistake } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -9,6 +9,7 @@ import { faCheck, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-ic
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-card-mistakes",
   templateUrl: "./card-mistakes.component.html",
   styleUrls: ["./card-mistakes.component.scss"]
@@ -35,7 +36,8 @@ export class CardMistakesComponent implements OnInit {
     private readonly router: Router,
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    public readonly sanitizer: DomSanitizer
+    public readonly sanitizer: DomSanitizer,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.titleService.setTitle("Previous mistakes — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Review the flashcards you previously did not know on Scholarsome." });
@@ -52,6 +54,10 @@ export class CardMistakesComponent implements OnInit {
 
     this.spinner.nativeElement.remove();
     this.container.nativeElement.removeAttribute("hidden");
+
+    // The mistakes are loaded asynchronously. Mark the view for change detection so
+    // it re-renders with the loaded mistakes data.
+    this.cdr.markForCheck();
   }
 
   /**

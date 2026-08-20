@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
@@ -6,6 +6,7 @@ import { Router } from "@angular/router";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-change-email-settings",
   templateUrl: "./change-email-settings.component.html",
   styleUrls: ["./change-email-settings.component.scss"]

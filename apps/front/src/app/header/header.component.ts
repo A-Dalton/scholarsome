@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { ModalService } from "../shared/modal.service";
 import { AuthService } from "../auth/auth.service";
@@ -24,6 +24,7 @@ import { CsvImportModalComponent } from "./csv-import-modal/csv-import-modal.com
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-header",
   templateUrl: "./header.component.html",
   styleUrls: ["./header.component.scss"]
@@ -92,7 +93,8 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly sanitizer: DomSanitizer,
     private readonly usersService: UsersService,
     private readonly themeService: ThemeService,
-    public readonly cookieService: CookieService
+    public readonly cookieService: CookieService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   async submitLogout() {
@@ -183,6 +185,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Hide modals when the route changes
     this.router.events.subscribe(() => this.modalRef?.hide());
+
+    // The user (and other async state) is loaded after awaits, which resolve outside
+    // the change-detection cycle. Mark the view for detection so the header re-renders.
+    this.cdr.markForCheck();
   }
 
   ngAfterViewInit() {

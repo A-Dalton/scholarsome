@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { User } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { UsersService } from "../shared/http/users.service";
@@ -6,6 +6,7 @@ import { faPlus, faClone, faFolder } from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-view",
   templateUrl: "./homepage.component.html",
   styleUrls: ["./homepage.component.scss"]
@@ -14,7 +15,8 @@ export class HomepageComponent implements OnInit {
   constructor(
     private readonly usersService: UsersService,
     private readonly titleService: Title,
-    private readonly metaService: Meta
+    private readonly metaService: Meta,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.titleService.setTitle("Homepage — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Scholarsome is the way studying was meant to be. No monthly fees or upsells to get between you and your study tools. Just flashcards." });
@@ -50,5 +52,9 @@ export class HomepageComponent implements OnInit {
 
     this.spinner.nativeElement.remove();
     this.container.nativeElement.removeAttribute("hidden");
+    // The HTTP request above completes outside of the change-detection cycle, so the view
+    // would not re-render with the loaded user. Mark the view for change detection so the
+    // next tick refreshes it with the loaded data.
+    this.cdr.markForCheck();
   }
 }

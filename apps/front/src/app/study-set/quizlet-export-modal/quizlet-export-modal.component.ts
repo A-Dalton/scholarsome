@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
@@ -8,6 +8,7 @@ import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-quizlet-export-modal",
   templateUrl: "./quizlet-export-modal.component.html",
   styleUrls: ["./quizlet-export-modal.component.scss"]

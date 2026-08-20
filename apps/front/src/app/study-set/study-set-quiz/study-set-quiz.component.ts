@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
 import { FormBuilder, FormGroup, NgForm } from "@angular/forms";
 import { SetsService } from "../../shared/http/sets.service";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -10,6 +10,7 @@ import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set-quiz",
   templateUrl: "./study-set-quiz.component.html",
   styleUrls: ["./study-set-quiz.component.scss"]
@@ -21,7 +22,8 @@ export class StudySetQuizComponent implements OnInit {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly titleService: Title,
-    private readonly metaService: Meta
+    private readonly metaService: Meta,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -325,5 +327,9 @@ export class StudySetQuizComponent implements OnInit {
 
     this.spinner.nativeElement.remove();
     this.loaded = true;
+
+    // The set above is loaded asynchronously. Mark the view for change detection so
+    // it re-renders with the loaded set data.
+    this.cdr.markForCheck();
   }
 }

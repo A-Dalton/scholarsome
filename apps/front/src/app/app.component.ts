@@ -1,10 +1,11 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { Meta } from "@angular/platform-browser";
 import { ThemeService } from "./shared/theme.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-root",
   templateUrl: "./app.component.html"
 })

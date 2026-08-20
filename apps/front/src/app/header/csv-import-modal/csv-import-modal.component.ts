@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { Router } from "@angular/router";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -8,6 +8,7 @@ import { ConvertingService } from "../../shared/http/converting.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-csv-import-modal",
   templateUrl: "./csv-import-modal.component.html",
   styleUrls: ["./csv-import-modal.component.scss"]

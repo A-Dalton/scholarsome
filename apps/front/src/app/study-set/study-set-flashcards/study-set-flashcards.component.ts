@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { SetsService } from "../../shared/http/sets.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Card } from "@prisma/client";
@@ -11,6 +11,7 @@ import { CardMistakesService } from "../../shared/http/card-mistakes.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
   styleUrls: ["./study-set-flashcards.component.scss"]
@@ -23,7 +24,8 @@ export class StudySetFlashcardsComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     public readonly sanitizer: DomSanitizer,
-    private readonly cardMistakesService: CardMistakesService
+    private readonly cardMistakesService: CardMistakesService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild("flashcardsConfig") configModal: TemplateRef<HTMLElement>;
@@ -134,6 +136,11 @@ export class StudySetFlashcardsComponent implements OnInit {
         this.sideText = this.cards[this.index].term;
         this.side = "term";
       }
+
+      // The text swap happens inside a timer callback, which runs outside the
+      // change-detection cycle, so the view would otherwise not re-render with the
+      // new sideText. Mark the view for change detection to refresh it.
+      this.cdr.markForCheck();
     }, 150);
   }
 
@@ -238,5 +245,9 @@ export class StudySetFlashcardsComponent implements OnInit {
     });
 
     this.updateIndex();
+
+    // The cards above are loaded asynchronously. Mark the view for change detection
+    // so it re-renders with the loaded card data.
+    this.cdr.markForCheck();
   }
 }

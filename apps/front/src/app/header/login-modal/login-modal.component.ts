@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { NgForm } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -8,6 +8,7 @@ import { ModalService } from "../../shared/modal.service";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-login-modal",
   templateUrl: "./login-modal.component.html",
   styleUrls: ["./login-modal.component.scss"]

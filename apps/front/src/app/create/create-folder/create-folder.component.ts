@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faClone, faFolderPlus, faArrowUp, faFolderTree } from "@fortawesome/free-solid-svg-icons";
 import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
@@ -10,6 +10,7 @@ import { Set, Folder } from "@prisma/client";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-create-folder",
   templateUrl: "./create-folder.component.html",
   styleUrls: ["./create-folder.component.scss"]
@@ -20,7 +21,8 @@ export class CreateFolderComponent implements OnInit {
     private readonly foldersService: FoldersService,
     private readonly router: Router,
     private readonly titleService: Title,
-    private readonly metaService: Meta
+    private readonly metaService: Meta,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.titleService.setTitle("Create a folder — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Create a new Scholarsome folder to contain your study sets. Scholarsome is the way studying was meant to be." });
@@ -175,5 +177,9 @@ export class CreateFolderComponent implements OnInit {
       this.loading = false;
       this.spinner.nativeElement.remove();
     }
+
+    // The user's sets and folders are loaded asynchronously. Mark the view for change
+    // detection so it re-renders with the loaded data.
+    this.cdr.markForCheck();
   }
 }

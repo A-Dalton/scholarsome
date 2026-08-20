@@ -162,6 +162,12 @@ html.dark .form-check-input {
   color: var(--scholarsome-text);
 }
 
+html.dark .form-control::placeholder,
+html.dark .form-select::placeholder,
+html.dark .form-control-floating::placeholder {
+  color: var(--scholarsome-muted);
+}
+
 html.dark .form-check-input:checked {
   background-color: var(--bs-primary);
   border-color: var(--bs-primary);

@@ -1,8 +1,9 @@
-import { Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-notfound",
   templateUrl: "./notfound.component.html",
   styleUrls: ["./notfound.component.scss"]
