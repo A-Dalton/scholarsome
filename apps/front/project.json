@@ -32,7 +32,8 @@
           "node_modules/katex/dist/katex.min.js"
         ],
         "ngxEnv": {
-          "prefix": "SCHOLARSOME_"
+          "prefix": "SCHOLARSOME_",
+          "define": "import.meta.env"
         },
         "allowedCommonJsDependencies": ["@prisma/client", "validator"]
       },
