@@ -6,6 +6,7 @@ import { CookieService } from "ngx-cookie";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { DeviceDetectorService } from "ngx-device-detector";
 import { NavigationEnd, Router } from "@angular/router";
+import { filter } from "rxjs";
 import { faQ, faArrowRightFromBracket, faStar, faFileCsv, faGear, faFolder, faClone, faUser, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { SharedService } from "../shared/shared.service";
 import { ThemeService } from "../shared/theme.service";
@@ -39,9 +40,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("csvImport") csvImportModal: CsvImportModalComponent;
 
   // Whether an update is available compared to the current running version
-  protected updateAvailable: boolean;
+  protected updateAvailable = false;
   // URL of the new version
-  protected releaseUrl: string;
+  protected releaseUrl = "";
 
   // Used to show the verify email banner
   protected verificationResult: boolean | null;
@@ -183,8 +184,12 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.signedIn && !this.hidden) await this.viewAvatar();
 
-    // Hide modals when the route changes
-    this.router.events.subscribe(() => this.modalRef?.hide());
+    // Hide modals when the route changes. Note: the router also emits events for lazy
+    // module preloading (PreloadAllModules), which would otherwise close the login dialog
+    // right after it opens on first load. Only react to actual navigations.
+    this.router.events
+        .pipe(filter((event) => event instanceof NavigationEnd))
+        .subscribe(() => this.modalRef?.hide());
 
     // The user (and other async state) is loaded after awaits, which resolve outside
     // the change-detection cycle. Mark the view for detection so the header re-renders.
