@@ -46,6 +46,10 @@ html.dark {
   --scholarsome-border: #34343c;
   --scholarsome-text: #e9ecef;
   --scholarsome-muted: #9da3ad;
+  /* Re-map Bootstrap's muted/secondary color (used by .form-text, placeholders,
+   * captions, etc.) to the dark-theme muted tone so helper text remains readable
+   * on dark surfaces instead of inheriting the light-theme dark gray. */
+  --bs-secondary-color: var(--scholarsome-muted);
 }
 
 html.dark body {
