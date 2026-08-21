@@ -28,7 +28,7 @@ import { TasksService } from "./providers/tasks.service";
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "..", "front"),
+      rootPath: join(__dirname, "..", "front", "browser"),
       serveStaticOptions: {
         cacheControl: true,
         maxAge: 31536000

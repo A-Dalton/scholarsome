@@ -1,9 +1,8 @@
-version: "3.9"
 services:
   redis:
     image: redis:latest
     expose:
-      - "6379:6379"
+      - "6379/tcp"
     command: >
       redis-server
       --save 900 1
@@ -17,7 +16,7 @@ services:
   mariadb:
     image: mariadb:latest
     expose:
-      - "3306:3306"
+      - "3306/tcp"
     environment:
       - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
       - "MARIADB_ROOT_HOST=localhost"
