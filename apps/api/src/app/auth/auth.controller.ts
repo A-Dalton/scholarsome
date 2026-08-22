@@ -29,7 +29,7 @@ import { ApiExcludeEndpoint, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import { AuthenticatedGuard } from "./guards/authenticated.guard";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { DeleteApiKeyDto } from "./dto/deleteApiKey.dto";
 import { CreateApiKeyDto } from "./dto/createApiKey.dto";
@@ -49,7 +49,7 @@ export class AuthController {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService
   ) {
-    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
+    this.apiKeyRedis = this.redisService.getClient("apiToken");
   }
 
   /*

@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException
 } from "@nestjs/common";
-import { request } from "express";
+import { Request } from "express";
 import { CardsService } from "../cards.service";
 import { SetsService } from "../../sets/sets.service";
 import { plainToClass } from "class-transformer";
@@ -21,7 +21,8 @@ export class DeleteCardGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const param: CardIdParam = context.switchToHttp().getRequest().params;
+    const req: Request = context.switchToHttp().getRequest();
+    const param: CardIdParam = req.params as unknown as CardIdParam;
 
     // guards are executed before pipes -> we have to manually validate body
     if ((await validate(plainToClass(CardIdParam, param))).length > 0) throw new BadRequestException();
@@ -31,7 +32,7 @@ export class DeleteCardGuard implements CanActivate {
     });
     if (!card) throw new NotFoundException();
 
-    if (!(await this.setsService.verifySetOwnership(request, card.setId))) throw new UnauthorizedException();
+    if (!(await this.setsService.verifySetOwnership(req, card.setId))) throw new UnauthorizedException();
 
     return true;
   }

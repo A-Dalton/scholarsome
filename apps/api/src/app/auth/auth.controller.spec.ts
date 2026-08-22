@@ -6,7 +6,7 @@ import { HttpService } from "@nestjs/axios";
 import { Test } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { UsersService } from "../users/users.service";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { MailService } from "../providers/mail/mail.service";
 import { Request, Response } from "express";

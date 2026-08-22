@@ -6,7 +6,7 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { lastValueFrom } from "rxjs";
 import { RecaptchaResponse, User as UserWithSets } from "@scholarsome/shared";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
@@ -26,8 +26,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly redisService: RedisService
   ) {
-    this.refreshTokenRedis = this.redisService.getOrThrow("default");
-    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
+    this.refreshTokenRedis = this.redisService.getClient("default");
+    this.apiKeyRedis = this.redisService.getClient("apiToken");
   }
 
   /**

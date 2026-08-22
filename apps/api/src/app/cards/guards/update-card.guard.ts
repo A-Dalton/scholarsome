@@ -25,13 +25,14 @@ export class UpdateCardGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req: Request = context.switchToHttp().getRequest();
+    const params: CardIdParam = req.params as unknown as CardIdParam;
 
     // guards are executed before pipes -> we have to manually validate body
     if ((await validate(plainToInstance(UpdateCardDto, req.body))).length > 0) throw new BadRequestException();
-    if ((await validate(plainToInstance(CardIdParam, req.params))).length > 0) throw new BadRequestException();
+    if ((await validate(plainToInstance(CardIdParam, params))).length > 0) throw new BadRequestException();
 
     const card = await this.cardsService.card({
-      id: req.params.cardId
+      id: params.cardId
     });
     if (!card) throw new NotFoundException();
 

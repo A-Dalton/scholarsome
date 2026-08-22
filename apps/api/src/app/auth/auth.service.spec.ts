@@ -6,7 +6,7 @@ import { HttpService } from "@nestjs/axios";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { createMock } from "@golevelup/ts-jest";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import { Request, Response } from "express";
 import { of } from "rxjs";
 import { User } from "@prisma/client";
@@ -146,8 +146,8 @@ describe("AuthService", () => {
 
       expect(jwtService.sign).toHaveBeenCalledWith({ id: user.id, sessionId: expect.any(String), email: user.email, type: "refresh" }, { expiresIn: "182d" });
       expect(res.cookie).toHaveBeenCalledWith("refresh_token", {}, { httpOnly: true, expires: expect.any(Date) });
-      expect(redisService.getOrThrow().set).toHaveBeenCalled();
-      expect(redisService.getOrThrow().expire).toHaveBeenCalled();
+      expect(redisService.getClient().set).toHaveBeenCalled();
+      expect(redisService.getClient().expire).toHaveBeenCalled();
     });
 
     it("should set the access token", () => {
@@ -245,7 +245,7 @@ describe("AuthService", () => {
 
       await authService.logout(req, res);
 
-      expect(redisService.getOrThrow().del).toHaveBeenCalled();
+      expect(redisService.getClient().del).toHaveBeenCalled();
     });
   });
 });

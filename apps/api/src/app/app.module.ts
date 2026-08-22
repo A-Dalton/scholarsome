@@ -14,7 +14,7 @@ import { MailModule } from "./providers/mail/mail.module";
 import { HttpsRedirectMiddleware } from "./providers/https-redirect.middleware";
 import { CardsModule } from "./cards/cards.module";
 import { UsersModule } from "./users/users.module";
-import { RedisModule } from "@liaoliaots/nestjs-redis";
+import { RedisModule } from "@songkeys/nestjs-redis";
 import { JwtModule } from "@nestjs/jwt";
 import { MediaModule } from "./media/media.module";
 import { TokenRefreshMiddleware } from "./providers/token-refresh.middleware";
