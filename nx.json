@@ -71,5 +71,6 @@
     }
   },
   "defaultProject": "front",
-  "nxCloudAccessToken": "NGNiZjJlMDQtNTQyMC00ZjMyLTkxNGUtODFjYjAwZjZkZGFlfHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "NGNiZjJlMDQtNTQyMC00ZjMyLTkxNGUtODFjYjAwZjZkZGFlfHJlYWQtd3JpdGU=",
+  "analytics": false
 }
