@@ -3,7 +3,7 @@ import { PrismaService } from "../providers/database/prisma/prisma.service";
 import { Prisma } from "@scholarsome/prisma";
 import { Set } from "@scholarsome/shared";
 import { Request as ExpressRequest } from "express";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { UsersService } from "../users/users.service";
 import { StorageService } from "../providers/storage/storage.service";
 
@@ -36,7 +36,7 @@ export class SetsService {
     let accessToken: { id: string; email: string; };
 
     if (req.cookies && req.cookies["access_token"]) {
-      accessToken = jwt_decode(req.cookies["access_token"]) as { id: string; email: string; };
+      accessToken = jwtDecode(req.cookies["access_token"]) as { id: string; email: string; };
     } else {
       return false;
     }
