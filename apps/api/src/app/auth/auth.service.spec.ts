@@ -9,7 +9,7 @@ import { createMock } from "@golevelup/ts-jest";
 import { RedisService } from "@songkeys/nestjs-redis";
 import { Request, Response } from "express";
 import { of } from "rxjs";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 
 describe("AuthService", () => {
   let authService: AuthService;

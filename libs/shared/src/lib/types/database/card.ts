@@ -1,8 +1,5 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../generated/prisma/browser";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const cardWithRelations = Prisma.validator<Prisma.CardArgs>()({
+export type Card = Prisma.CardGetPayload<{
   include: { set: true, media: true }
-});
-
-export type Card = Prisma.CardGetPayload<typeof cardWithRelations>;
+}>;

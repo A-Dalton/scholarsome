@@ -2,7 +2,7 @@ import { Controller, Get, NotFoundException, Param, Req, UnauthorizedException }
 import { ApiResponse, ApiResponseOptions } from "@scholarsome/shared";
 import { UsersService } from "./users.service";
 import { Request as ExpressRequest } from "express";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { UserIdParam } from "./param/userId.param";
 import { UserSuccessResponse } from "./response/success/user.success.response";

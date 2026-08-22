@@ -10,7 +10,7 @@ import {
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { lastValueFrom } from "rxjs";
 import { ReCaptchaV3Service } from "ng-recaptcha";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 
 @Injectable({
   providedIn: "root"

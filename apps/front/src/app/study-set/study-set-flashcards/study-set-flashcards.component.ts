@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { SetsService } from "../../shared/http/sets.service";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Card } from "@prisma/client";
+import { Card } from "@scholarsome/prisma";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { faThumbsUp, faCake } from "@fortawesome/free-solid-svg-icons";
 import { DomSanitizer, Meta, Title } from "@angular/platform-browser";

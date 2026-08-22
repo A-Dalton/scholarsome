@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { Prisma, Card as PrismaCard, CardMedia as PrismaCardMedia } from "@prisma/client";
+import { Prisma, Card as PrismaCard, CardMedia as PrismaCardMedia } from "@scholarsome/prisma";
 import { Card, CardMedia } from "@scholarsome/shared";
 import sharp from "sharp";
 import * as crypto from "crypto";

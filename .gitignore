@@ -49,6 +49,9 @@ apps/front/src/environments/*
 .docusaurus/
 .cache-loader/
 
+# Generated Prisma Client (recreated via `npm run generate`)
+libs/shared/generated/prisma/
+
 #Nx files
 
 .nx/cache

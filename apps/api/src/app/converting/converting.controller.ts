@@ -41,7 +41,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { SetSuccessResponse } from "../sets/response/success/set.success.response";
 import { ImportSetFromFileDto } from "./dto/importSetFromFile.dto";
 import * as crypto from "crypto";
-import { Set } from "@prisma/client";
+import { Set } from "@scholarsome/prisma";
 import { ConvertingService } from "./converting.service";
 import { ThrottlerGuard } from "@nestjs/throttler";
 import { ImportSetFromQuizletDto } from "./dto/importSetFromQuizlet.dto";

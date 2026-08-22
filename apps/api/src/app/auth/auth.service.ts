@@ -10,7 +10,7 @@ import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 import { JwtPayload } from "jwt-decode";
 import * as crypto from "crypto";
 

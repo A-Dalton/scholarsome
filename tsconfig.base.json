@@ -15,7 +15,9 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@scholarsome/shared": ["./libs/shared/src/index.ts"]
+      "@scholarsome/shared": ["./libs/shared/src/index.ts"],
+      "@scholarsome/prisma": ["./libs/shared/generated/prisma/browser.ts"],
+      "@scholarsome/prisma/server": ["./libs/shared/generated/prisma/client.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

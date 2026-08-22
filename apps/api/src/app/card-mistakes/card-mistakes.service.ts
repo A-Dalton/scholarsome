@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { Prisma, CardMistake as PrismaCardMistake } from "@prisma/client";
+import { Prisma, CardMistake as PrismaCardMistake } from "@scholarsome/prisma";
 import { CardMistake } from "@scholarsome/shared";
 
 @Injectable()

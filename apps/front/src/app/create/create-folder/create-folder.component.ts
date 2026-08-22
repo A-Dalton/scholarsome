@@ -6,7 +6,7 @@ import { FoldersService } from "../../shared/http/folders.service";
 import { Router } from "@angular/router";
 import { Meta, Title } from "@angular/platform-browser";
 import { UsersService } from "../../shared/http/users.service";
-import { Set, Folder } from "@prisma/client";
+import { Set, Folder } from "@scholarsome/prisma";
 
 @Component({
   standalone: false,

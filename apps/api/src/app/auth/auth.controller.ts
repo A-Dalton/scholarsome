@@ -24,7 +24,7 @@ import * as jwt from "jsonwebtoken";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { MailService } from "../providers/mail/mail.service";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import { AuthenticatedGuard } from "./guards/authenticated.guard";
