@@ -343,6 +343,11 @@ export class StudySetComponent implements OnInit {
 
       this.updateCardIndices();
     }
+
+    // Re-rendering the cards and switching out of edit mode happens after
+    // the async save request resolves. Mark the view for change detection so
+    // the spinner is reset and the set/card data refresh is displayed.
+    this.cdr.markForCheck();
   }
 
   async deleteSet() {
