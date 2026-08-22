@@ -64,7 +64,6 @@ Quill.register("modules/resize", QuillResize);
     QuillConfigModule.forRoot({
       modules: {
         resize: true,
-        formula: true,
         keyboard: {
           bindings: {
             tab: {

@@ -16,6 +16,7 @@ $enable-negative-margins: true;
 
 @import '../../../node_modules/quill/dist/quill.core.css';
 @import '../../../node_modules/quill/dist/quill.snow.css';
+@import '../../../node_modules/quill-resize-module/dist/resize.css';
 @import '../../../node_modules/katex/dist/katex.min.css';
 
 body {
@@ -275,6 +276,40 @@ html.dark .ql-editor {
 
 html.dark .ql-editor.ql-blank::before {
   color: #9ca3af;
+}
+
+/* Quill image resize toolbar/overlay */
+html.dark .ql-resize-overlay {
+  border-color: var(--scholarsome-border);
+}
+
+html.dark .ql-resize-toolbar {
+  color: var(--scholarsome-text);
+}
+
+html.dark .ql-resize-toolbar button {
+  background-color: var(--scholarsome-surface-2);
+  border-color: var(--scholarsome-border);
+}
+
+html.dark .ql-resize-toolbar button:hover {
+  background-color: var(--scholarsome-border);
+}
+
+html.dark .ql-resize-toolbar button.active {
+  background-color: rgba(132, 56, 255, 0.3);
+  border-color: var(--scholarsome-border);
+}
+
+html.dark .ql-resize-toolbar .ql-fill {
+  fill: var(--scholarsome-text);
+}
+
+html.dark .ql-resize-handle,
+html.dark .ql-resize-display {
+  background-color: var(--scholarsome-surface-2);
+  border-color: var(--scholarsome-border);
+  color: var(--scholarsome-text);
 }
 
 html.dark .angular-editor-toolbar,
