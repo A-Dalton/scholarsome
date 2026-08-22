@@ -1,17 +1,20 @@
 import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faFileCsv } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { ConvertingService } from "../../shared/http/converting.service";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-csv-import-modal",
   templateUrl: "./csv-import-modal.component.html",
-  styleUrls: ["./csv-import-modal.component.scss"]
+  styleUrls: ["./csv-import-modal.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
 export class CsvImportModalComponent {
   constructor(

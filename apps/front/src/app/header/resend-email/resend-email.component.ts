@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-resend-email",
   templateUrl: "./resend-email.component.html",
-  styleUrls: ["./resend-email.component.scss"]
+  styleUrls: ["./resend-email.component.scss"],
+  imports: [CommonModule]
 })
 export class ResendEmailComponent {
   constructor(private authService: AuthService) {}

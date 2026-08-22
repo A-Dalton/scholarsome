@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { ConvertingService } from "../../shared/http/converting.service";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-anki-import-modal",
   templateUrl: "./anki-import-modal.component.html",
-  styleUrls: ["./anki-import-modal.component.scss"]
+  styleUrls: ["./anki-import-modal.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
 export class AnkiImportModalComponent {
   constructor(

@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
 import { ApiResponseOptions } from "@scholarsome/shared";
-import { NgForm } from "@angular/forms";
-import { Router } from "@angular/router";
+import { NgForm, FormsModule } from "@angular/forms";
+import { Router, RouterLink } from "@angular/router";
+import { CommonModule } from "@angular/common";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ModalService } from "../../shared/modal.service";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-login-modal",
   templateUrl: "./login-modal.component.html",
-  styleUrls: ["./login-modal.component.scss"]
+  styleUrls: ["./login-modal.component.scss"],
+  imports: [CommonModule, FormsModule, RouterLink]
 })
 export class LoginModalComponent {
   constructor(

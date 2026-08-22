@@ -1,17 +1,19 @@
 import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { Router } from "@angular/router";
 import { ModalService } from "../../shared/modal.service";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-forgot-password-modal",
   templateUrl: "./forgot-password-modal.component.html",
-  styleUrls: ["./forgot-password-modal.component.scss"]
+  styleUrls: ["./forgot-password-modal.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class ForgotPasswordModalComponent {
   constructor(

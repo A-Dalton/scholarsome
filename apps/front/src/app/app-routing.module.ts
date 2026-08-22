@@ -1,8 +1,7 @@
-import { PreloadAllModules, RouterModule, Routes } from "@angular/router";
-import { NgModule } from "@angular/core";
+import { Routes } from "@angular/router";
 import { NotfoundComponent } from "./shared/notfound/notfound.component";
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: "",
     loadChildren: () => import("./landing/landing.module").then((m) => m.LandingModule)
@@ -45,11 +44,3 @@ const routes: Routes = [
     redirectTo: "404"
   }
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes, {
-    preloadingStrategy: PreloadAllModules
-  })],
-  exports: [RouterModule]
-})
-export class AppRoutingModule {}

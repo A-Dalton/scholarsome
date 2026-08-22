@@ -1,4 +1,9 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { RouterLinkWithHref } from "@angular/router";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { BsDropdownDirective, BsDropdownMenuDirective, BsDropdownToggleDirective } from "ngx-bootstrap/dropdown";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { ModalService } from "../shared/modal.service";
 import { AuthService } from "../auth/auth.service";
@@ -22,13 +27,31 @@ import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { User } from "@scholarsome/shared";
 import { UsersService } from "../shared/http/users.service";
 import { CsvImportModalComponent } from "./csv-import-modal/csv-import-modal.component";
+import { ResendEmailComponent } from "./resend-email/resend-email.component";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-header",
   templateUrl: "./header.component.html",
-  styleUrls: ["./header.component.scss"]
+  styleUrls: ["./header.component.scss"],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLinkWithHref,
+    FontAwesomeModule,
+    BsDropdownDirective,
+    BsDropdownMenuDirective,
+    BsDropdownToggleDirective,
+    ResendEmailComponent,
+    AnkiImportModalComponent,
+    QuizletImportModalComponent,
+    SetPasswordModalComponent,
+    LoginModalComponent,
+    ForgotPasswordModalComponent,
+    RegisterModalComponent,
+    CsvImportModalComponent
+  ]
 })
 export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild("ankiImport") ankiImportModal: AnkiImportModalComponent;
