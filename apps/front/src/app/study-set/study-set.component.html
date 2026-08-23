@@ -22,7 +22,7 @@
       <a [routerLink]="['/profile', set()!.authorId]"><button type="button" class="btn btn-light bg-white shadow-sm"><fa-icon [icon]="['far', 'user']"></fa-icon> Created by <span class="fw-bold">{{author()}}</span></button></a>
       <fa-icon *ngIf="set()!.private" [icon]="['far', 'eye-slash']" class="fs-5 ms-3"></fa-icon>
     </div>
-    <p class="fs-5 fw-semibold mt-3">{{this.cards.length}} term{{this.cards.length > 1 ? 's' : ''}} in this set</p>
+    <p class="fs-5 fw-semibold mt-3">{{cards().length}} term{{cards().length > 1 ? 's' : ''}} in this set</p>
   </div>
   <div *ngIf="set()">
     <p class="text-secondary text-wrap text-break">{{set()!.description}}</p>
@@ -141,7 +141,23 @@
           </div>
         </div>
       </div>
-      <div #cardsContainer></div>
+      @for (card of cards(); track card.uid) {
+        <scholarsome-card
+          [cardIndex]="$index"
+          [editingEnabled]="card.editingEnabled"
+          [upArrow]="$index !== 0"
+          [downArrow]="$index !== cards().length - 1"
+          [trashCan]="cards().length > 1"
+          [term]="card.term"
+          [definition]="card.definition"
+          [uid]="card.uid"
+          (deleteCardEvent)="deleteCard($event)"
+          (moveCardEvent)="moveCard($event)"
+          (addCardEvent)="addCard({ editingEnabled: true, isSaved: false })"
+          (termChange)="cards.update((list) => list.map((c) => c.uid === card.uid ? { ...c, term: $event } : c))"
+          (definitionChange)="cards.update((list) => list.map((c) => c.uid === card.uid ? { ...c, definition: $event } : c))">
+        </scholarsome-card>
+      }
       <div class="container-fluid" [hidden]="!isEditing()">
         <div class="row">
           <div class="card my-3 bg-white">

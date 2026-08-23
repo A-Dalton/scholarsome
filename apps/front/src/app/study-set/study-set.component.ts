@@ -1,15 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ComponentRef,
   ElementRef,
-  OnDestroy,
   OnInit,
   ViewChild,
-  ViewContainerRef,
+  viewChildren,
   signal
 } from "@angular/core";
-import { Subscription } from "rxjs";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Set } from "@scholarsome/shared";
 import { SetsService } from "../shared/http/sets.service";
@@ -23,24 +20,24 @@ import { ConvertingService } from "../shared/http/converting.service";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
+interface DraftCard {
+  uid: string;
+  id?: string;
+  isSaved: boolean;
+  editingEnabled: boolean;
+  term: string;
+  definition: string;
+}
+
 @Component({
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set",
   templateUrl: "./study-set.component.html",
   styleUrls: ["./study-set.component.scss"],
-  imports: [CommonModule, FontAwesomeModule, RouterLink, QuizletExportModalComponent]
+  imports: [CommonModule, FontAwesomeModule, RouterLink, QuizletExportModalComponent, CardComponent]
 })
-export class StudySetComponent implements OnInit, OnDestroy {
-  // Track per-card subscriptions so they can be cleaned up when cards or the
-  // component are destroyed (the dynamically created cards emit from EventEmitters,
-  // which would otherwise leak).
-  protected cardSubscriptions: Subscription[] = [];
-
-  // Whether the component is no longer active. Guards async callbacks so they
-  // don't mutate destroyed component state.
-  private destroyed = false;
-
+export class StudySetComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly users: UsersService,
@@ -53,13 +50,20 @@ export class StudySetComponent implements OnInit, OnDestroy {
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
   @ViewChild("container", { static: true }) container: ElementRef;
-  @ViewChild("editButton", { static: true }) editButton: ElementRef;
-  @ViewChild("cardsContainer", { static: true, read: ViewContainerRef }) cardsContainer: ViewContainerRef;
   @ViewChild("privateCheck", { static: false }) privateCheck: ElementRef;
   @ViewChild("editDescription", { static: false }) editDescription: ElementRef;
   @ViewChild("editTitle", { static: false }) editTitle: ElementRef;
 
   @ViewChild("quizletExportModal") quizletExportModal: QuizletExportModalComponent;
+
+  // Cards are rendered declaratively with `@for` over this signal. Each card exposes the
+  // committed values through `(termChange)`/`(definitionChange)` so the model always holds
+  // the latest saved data, replacing the old `ComponentRef.instance.term` read-back.
+  protected cards = signal<DraftCard[]>([]);
+
+  // Only needed to call `notifyEmptyInput()` on a specific card instance during save
+  // validation; everything else flows through inputs/outputs.
+  protected readonly cardViews = viewChildren(CardComponent);
 
   protected userIsAuthor = signal(false);
   protected isEditing = signal(false);
@@ -67,7 +71,6 @@ export class StudySetComponent implements OnInit, OnDestroy {
 
   protected author = signal("");
 
-  protected cards: ComponentRef<CardComponent>[] = [];
   protected set = signal<Set | undefined>(undefined);
 
   protected saveInProgress = signal(false);
@@ -165,103 +168,54 @@ export class StudySetComponent implements OnInit, OnDestroy {
     this.mediaExportInProgress.set(false);
   }
 
-  updateCardIndices() {
-    for (let i = 0; i < this.cards.length; i++) {
-      this.cards[i].instance.cardIndex = i;
-
-      this.cards[i].instance.upArrow = i !== 0;
-      this.cards[i].instance.downArrow = this.cards.length - 1 !== i;
-      this.cards[i].instance.trashCan = this.cards.length > 1;
-    }
-  }
-
   addCard(opts: {
     id?: string;
     isSaved: boolean;
     index?: number;
-    originalIndex?: number;
     editingEnabled: boolean;
-    upArrow?: boolean;
-    downArrow?: boolean;
-    trashCan?: boolean;
     term?: string;
     definition?: string;
   }) {
-    const card = this.cardsContainer.createComponent<CardComponent>(CardComponent);
+    this.cards.update((cards) => [
+      ...cards,
+      {
+        uid: crypto.randomUUID(),
+        id: opts.id,
+        isSaved: opts.isSaved,
+        editingEnabled: opts.editingEnabled,
+        term: opts.term ? opts.term : "",
+        definition: opts.definition ? opts.definition : ""
+      }
+    ]);
+  }
 
-    card.instance.cardId = opts.id ? opts.id : "";
-    card.instance.isSaved = opts.isSaved;
-    card.instance.cardIndex = opts.index ? opts.index : this.cards.length;
-    card.instance.originalIndex = opts.originalIndex ? opts.originalIndex : this.cards.length;
-    card.instance.editingEnabled = opts.editingEnabled;
-    card.instance.upArrow = opts.upArrow ? opts.upArrow : false;
-    card.instance.downArrow = opts.downArrow ? opts.downArrow : false;
-    card.instance.trashCan = opts.trashCan ? opts.trashCan : false;
-    card.instance.term = opts.term ? opts.term : "";
-    card.instance.definition = opts.definition ? opts.definition : "";
+  deleteCard(uid: string) {
+    if (this.cards().length > 1) {
+      this.cards.update((cards) => cards.filter((card) => card.uid !== uid));
+    }
+  }
 
-    this.cardSubscriptions.push(
-        card.instance.deleteCardEvent.subscribe((e) => {
-          if (this.destroyed) return;
-          if (this.cardsContainer.length > 1) {
-            this.cardsContainer.get(e)?.destroy();
+  moveCard(event: { uid: string, direction: number }) {
+    if (this.cards().length > 1) {
+      this.cards.update((cards) => {
+        const from = cards.findIndex((card) => card.uid === event.uid);
+        if (from === -1) return cards;
 
-            this.cards.splice(this.cards.map((c) => c.instance.cardIndex).indexOf(e), 1);
+        const to = from + event.direction;
+        if (to < 0 || to >= cards.length) return cards;
 
-            this.updateCardIndices();
-          }
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.moveCardEvent.subscribe((e) => {
-          if (this.destroyed) return;
-          if (this.cardsContainer.length > 1) {
-            this.cards.splice(card.instance.cardIndex + e.direction, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
-
-            this.cardsContainer.move(card.hostView, e.index + e.direction);
-            card.instance.cardIndex = e.index + e.direction;
-
-            this.updateCardIndices();
-          }
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.indexChangeEvent.subscribe((e) => {
-          if (this.destroyed) return;
-          if (this.cards.length > 1) {
-            this.cards.splice(e.newIndex, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
-
-            this.cardsContainer.move(card.hostView, e.newIndex);
-            card.instance.cardIndex = e.newIndex;
-
-            this.updateCardIndices();
-          }
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.addCardEvent.subscribe(() => {
-          this.addCard({ editingEnabled: true, isSaved: false });
-        })
-    );
-
-    this.cards.push(card);
-    this.updateCardIndices();
+        const next = [...cards];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    }
   }
 
   editCards() {
     this.isEditing.set(true);
 
-    for (const [i, card] of this.cards.entries()) {
-      card.instance.editingEnabled = true;
-      card.instance.cardIndex = i;
-
-      card.instance.upArrow = i !== 0;
-      card.instance.downArrow = this.cards.length - 1 !== i;
-      card.instance.trashCan = this.cards.length > 1;
-    }
+    this.cards.update((cards) => cards.map((card) => ({ ...card, editingEnabled: true })));
   }
 
   async saveCards() {
@@ -269,16 +223,17 @@ export class StudySetComponent implements OnInit, OnDestroy {
 
     this.saveInProgress.set(true);
 
-    for (const card of this.cards) {
-      if (card.instance.term.length < 1 || card.instance.definition.length < 1) {
+    const views = this.cardViews();
+    for (let i = 0; i < this.cards().length; i++) {
+      const card = this.cards()[i];
+      if (card.term.length < 1 || card.definition.length < 1) {
         this.saveInProgress.set(false);
-        return card.instance.notifyEmptyInput();
+        views[i]?.notifyEmptyInput();
+        return;
       }
     }
 
-    for (const card of this.cards) {
-      card.instance.editingEnabled = false;
-    }
+    this.cards.update((cards) => cards.map((card) => ({ ...card, editingEnabled: false })));
 
     this.set()!.description = this.editDescription.nativeElement.value;
 
@@ -287,20 +242,18 @@ export class StudySetComponent implements OnInit, OnDestroy {
       title: this.editTitle.nativeElement.value,
       description: this.editDescription.nativeElement.value,
       private: this.privateCheck.nativeElement.checked,
-      cards: this.cards.map((c) => {
+      cards: this.cards().map((card, index) => {
         return {
-          id: c.instance.cardId,
-          index: c.instance.cardIndex,
-          term: c.instance.term,
-          definition: c.instance.definition
+          id: card.id ? card.id : "",
+          index,
+          term: card.term,
+          definition: card.definition
         };
       })
     });
 
     if (updated === "tooLarge") {
-      for (const card of this.cards) {
-        card.instance.editingEnabled = true;
-      }
+      this.cards.update((cards) => cards.map((card) => ({ ...card, editingEnabled: true })));
 
       this.isEditing.set(true);
       this.uploadTooLarge.set(true);
@@ -309,9 +262,7 @@ export class StudySetComponent implements OnInit, OnDestroy {
     }
 
     if (!updated) {
-      for (const card of this.cards) {
-        card.instance.editingEnabled = true;
-      }
+      this.cards.update((cards) => cards.map((card) => ({ ...card, editingEnabled: true })));
 
       this.isEditing.set(true);
       this.saveInProgress.set(false);
@@ -319,8 +270,7 @@ export class StudySetComponent implements OnInit, OnDestroy {
     }
     this.set.set(updated);
 
-    this.cards = [];
-    this.cardsContainer.clear();
+    this.cards.set([]);
 
     this.isEditing.set(false);
     this.saveInProgress.set(false);
@@ -331,10 +281,7 @@ export class StudySetComponent implements OnInit, OnDestroy {
     this.isEditing.set(false);
 
     // if viewCards is called because page is loading
-    if (this.cards.length === 0) {
-      this.cards = [];
-      this.cardsContainer.clear();
-
+    if (this.cards().length === 0) {
       if (this.set()) {
         // sort the cards by index
         for (const card of this.set()!.cards.sort((a, b) => {
@@ -351,41 +298,31 @@ export class StudySetComponent implements OnInit, OnDestroy {
         }
       }
     } else {
-      // if viewCards is called because editing was canceled
-      for (let i = this.cards.length - 1; i >= 0; i--) {
-        if (!this.cards[i].instance.isSaved) {
-          this.cards[i].destroy();
-          this.cards.splice(i, 1);
-          continue;
-        }
+      // if viewCards is called because editing was canceled, restore the saved cards
+      // (unsaved cards are dropped, terms/definitions reset, and order reverts to the
+      // original index so the cancel returns the set to its saved state).
+      const saved = this.set()!.cards.sort((a, b) => a.index - b.index);
 
-        const index = this.set()!.cards.findIndex((c) => c.index === this.cards[i].instance.originalIndex);
-
-        this.cards[i].instance.term = this.set()!.cards[index].term;
-        this.cards[i].instance.definition = this.set()!.cards[index].definition;
-
-        if (this.cards[i].instance.cardIndex !== this.cards[i].instance.originalIndex) {
-          this.cards[i].instance.indexChangeEvent.emit({ newIndex: this.cards[i].instance.originalIndex });
-        }
-
-        this.cards[i].instance.editingEnabled = false;
-      }
-
-      this.updateCardIndices();
+      this.cards.set(
+          saved.map((savedCard) => {
+            // look up the matching draft card to keep unsaved cards filtered out
+            const draft = this.cards().find((card) => card.isSaved && card.id === savedCard.id);
+            return {
+              uid: draft ? draft.uid : crypto.randomUUID(),
+              id: savedCard.id,
+              isSaved: true,
+              editingEnabled: false,
+              term: savedCard.term,
+              definition: savedCard.definition
+            };
+          })
+      );
     }
   }
 
   async deleteSet() {
     await this.setsService.deleteSet(this.set()!.id);
     await this.router.navigate(["homepage"]);
-  }
-
-  ngOnDestroy() {
-    this.destroyed = true;
-    for (const sub of this.cardSubscriptions) {
-      sub.unsubscribe();
-    }
-    this.cardSubscriptions = [];
   }
 
   async ngOnInit(): Promise<void> {

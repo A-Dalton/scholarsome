@@ -46,7 +46,24 @@
         </div>
       </div>
       <div class="row mx-3">
-        <ng-template #cardContainer></ng-template>
+        @for (card of draftCards(); track card.uid) {
+          <scholarsome-card
+            [cardIndex]="$index"
+            [editingEnabled]="true"
+            [upArrow]="$index !== 0"
+            [downArrow]="$index !== draftCards().length - 1"
+            [trashCan]="draftCards().length > 1"
+            [term]="card.term"
+            [definition]="card.definition"
+            [uid]="card.uid"
+            (deleteCardEvent)="removeCard($event)"
+            (moveCardEvent)="moveCard($event)"
+            (addCardEvent)="addCard()"
+            (editCardEvent)="saveProgress()"
+            (termChange)="draftCards.update((list) => list.map((c) => c.uid === card.uid ? { ...c, term: $event } : c))"
+            (definitionChange)="draftCards.update((list) => list.map((c) => c.uid === card.uid ? { ...c, definition: $event } : c))">
+          </scholarsome-card>
+        }
       </div>
       <div class="row mx-4">
         <div class="card my-3 bg-white">

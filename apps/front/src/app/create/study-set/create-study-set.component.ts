@@ -2,16 +2,13 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  ComponentRef,
   ElementRef,
-  OnDestroy,
   OnInit,
   TemplateRef,
   ViewChild,
-  ViewContainerRef,
+  viewChildren,
   signal
 } from "@angular/core";
-import { Subscription } from "rxjs";
 import { Router } from "@angular/router";
 import { SetsService } from "../../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
@@ -24,24 +21,21 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
+interface DraftCard {
+  uid: string;
+  term: string;
+  definition: string;
+}
+
 @Component({
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
   styleUrls: ["./create-study-set.component.scss"],
-  imports: [CommonModule, FormsModule, FontAwesomeModule]
+  imports: [CommonModule, FormsModule, FontAwesomeModule, CardComponent]
 })
-export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy {
-  // Track per-card subscriptions so they can be cleaned up when cards or the
-  // component are destroyed (the dynamically created cards emit from EventEmitters,
-  // which would otherwise leak).
-  protected cardSubscriptions: Subscription[] = [];
-
-  // Whether the component is no longer active. Guards async callbacks so they
-  // don't mutate destroyed component state.
-  private destroyed = false;
-
+export class CreateStudySetComponent implements OnInit, AfterViewInit {
   constructor(
     private readonly router: Router,
     private readonly sets: SetsService,
@@ -53,9 +47,15 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
     this.metaService.addTag({ name: "description", content: "Create a free new Scholarsome study set. Scholarsome is the way studying was meant to be." });
   }
 
-  @ViewChild("cardContainer", { static: true, read: ViewContainerRef }) cardContainer: ViewContainerRef;
   @ViewChild("descriptionElement") descriptionInput: ElementRef;
   @ViewChild("restoreProgressModal") restoreProgressModal: TemplateRef<HTMLElement>;
+
+  // Cards are rendered declaratively with `@for` over this signal.
+  protected draftCards = signal<DraftCard[]>([]);
+
+  // Only needed to call `notifyEmptyInput()` on a specific card instance during save
+  // validation; everything else flows through inputs/outputs.
+  protected readonly cardViews = viewChildren(CardComponent);
 
   protected title = "";
   protected description = "";
@@ -75,14 +75,6 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faSquarePlus = faSquarePlus;
 
-  // index starts at 0
-  protected cardComponents: { component: ComponentRef<CardComponent>, index: number }[] = [];
-  protected cards: {
-    cardIndexRef(): number;
-    termRef(): string;
-    definitionRef(): string;
-  }[] = [];
-
   saveProgress() {
     if (this.existingSet) return;
 
@@ -90,9 +82,9 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
       !this.title &&
       !this.description &&
       !this.privateCheck &&
-      this.cards.length === 1 &&
-      !this.cards[0].termRef() &&
-      !this.cards[0].definitionRef()
+      this.draftCards().length === 1 &&
+      !this.draftCards()[0].term &&
+      !this.draftCards()[0].definition
     ) {
       this.deleteProgress();
       return;
@@ -103,11 +95,11 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
           title: this.title,
           description: this.description,
           private: this.privateCheck,
-          cards: this.cards.map((c) => {
+          cards: this.draftCards().map((card, index) => {
             return {
-              index: c.cardIndexRef(),
-              term: c.termRef(),
-              definition: c.definitionRef()
+              index,
+              term: card.term,
+              definition: card.definition
             };
           })
         }
@@ -130,17 +122,9 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
     this.description = set.description;
     this.privateCheck = set.private;
 
-    this.cardComponents[0].component.destroy();
-    this.cardComponents.pop();
-    this.cards.pop();
-
-    for (const card of set.cards) {
-      this.addCard({
-        index: card.index,
-        term: card.term,
-        definition: card.definition
-      });
-    }
+    this.draftCards.set(
+        set.cards.map((card) => ({ uid: crypto.randomUUID(), term: card.term, definition: card.definition }))
+    );
 
     this.existingSet = false;
   }
@@ -157,15 +141,17 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
       this.titleTouched.set(false);
     }
 
-    for (const card of this.cardComponents) {
-      if (card.component.instance.term.length !== 0 && card.component.instance.definition.length !== 0) {
+    const views = this.cardViews();
+    for (let i = 0; i < this.draftCards().length; i++) {
+      const card = this.draftCards()[i];
+      if (card.term.length !== 0 && card.definition.length !== 0) {
         cards.push({
-          index: card.component.instance.cardIndex,
-          term: card.component.instance.term,
-          definition: card.component.instance.definition
+          index: i,
+          term: card.term,
+          definition: card.definition
         });
       } else {
-        card.component.instance.notifyEmptyInput();
+        views[i]?.notifyEmptyInput();
         return;
       }
     }
@@ -188,100 +174,40 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  updateCardIndices() {
-    for (let i = 0; i < this.cardComponents.length; i++) {
-      this.cardComponents[i].component.instance.cardIndex = i;
-      this.cardComponents[i].index = i;
-
-      this.cardComponents[i].component.instance.upArrow = i !== 0;
-      this.cardComponents[i].component.instance.downArrow = this.cardComponents.length - 1 !== i;
-      this.cardComponents[i].component.instance.trashCan = this.cardComponents.length > 1;
-    }
-
-    this.saveProgress();
-  }
-
   addCard(config?: {
-    index?: number;
     term?: string;
     definition?: string;
   }) {
-    const card = this.cardContainer.createComponent<CardComponent>(CardComponent);
+    const term = config?.term ? config.term : "";
+    const definition = config?.definition ? config.definition : "";
 
-    card.instance.cardIndex = config?.index ? config.index : this.cardContainer.length - 1;
-    card.instance.term = config?.term ? config.term : "";
-    card.instance.definition = config?.definition ? config.definition : "";
-    card.instance.editingEnabled = true;
-
-    this.cardSubscriptions.push(
-        card.instance.deleteCardEvent.subscribe((e) => {
-          if (this.destroyed) return;
-          if (this.cardContainer.length > 1) {
-            const index = this.cardComponents.map((c) => c.index).indexOf(e);
-
-            this.cardContainer.get(e)?.destroy();
-
-            this.cardComponents.splice(index, 1);
-
-            this.cards = this.cards.filter((c) => c.cardIndexRef() !== index);
-
-            this.updateCardIndices();
-          }
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.moveCardEvent.subscribe((e) => {
-          if (this.destroyed) return;
-          if (this.cardContainer.length > 1) {
-            const cardIndex = this.cardComponents.map((c) => c.index).indexOf(e.index);
-
-            this.cardContainer.move(this.cardComponents[cardIndex].component.hostView, e.index + e.direction);
-
-            this.cardComponents[this.cardComponents.map((c) => c.index).indexOf(e.index + e.direction)].index = e.index;
-            this.cardComponents[cardIndex].index = e.index + e.direction;
-
-            this.cardComponents.sort((a, b) => a.index - b.index);
-
-            this.updateCardIndices();
-          }
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.editCardEvent.subscribe(() => {
-          this.saveProgress();
-        })
-    );
-
-    this.cardSubscriptions.push(
-        card.instance.addCardEvent.subscribe(() => {
-          this.addCard();
-        })
-    );
-
-    this.cardComponents.push({
-      component: card,
-      index: this.cardContainer.length - 1
-    });
-
-    this.cards.push({
-      cardIndexRef: () => card.instance.cardIndex,
-      termRef: () => card.instance.term ? card.instance.term : "",
-      definitionRef: () => card.instance.definition ? card.instance.definition : ""
-    });
-
-    this.saveProgress();
-
-    this.updateCardIndices();
+    this.draftCards.update((cards) => [
+      ...cards,
+      { uid: crypto.randomUUID(), term, definition }
+    ]);
   }
 
-  ngOnDestroy() {
-    this.destroyed = true;
-    for (const sub of this.cardSubscriptions) {
-      sub.unsubscribe();
+  removeCard(uid: string) {
+    if (this.draftCards().length > 1) {
+      this.draftCards.update((cards) => cards.filter((card) => card.uid !== uid));
     }
-    this.cardSubscriptions = [];
+  }
+
+  moveCard(event: { uid: string, direction: number }) {
+    if (this.draftCards().length > 1) {
+      this.draftCards.update((cards) => {
+        const from = cards.findIndex((card) => card.uid === event.uid);
+        if (from === -1) return cards;
+
+        const to = from + event.direction;
+        if (to < 0 || to >= cards.length) return cards;
+
+        const next = [...cards];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    }
   }
 
   ngOnInit() {

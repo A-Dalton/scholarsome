@@ -3,15 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  ElementRef,
+  effect,
   EventEmitter,
-  Input,
+  input,
   OnInit,
   Output,
+  signal,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef,
-  signal
+  ViewChild
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AlertComponent } from "../alert/alert.component";
@@ -32,7 +31,7 @@ import Quill from "quill";
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"],
-  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent]
+  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent, AlertComponent]
 })
 export class CardComponent implements OnInit, AfterViewInit {
   constructor(
@@ -41,87 +40,57 @@ export class CardComponent implements OnInit, AfterViewInit {
     private readonly deviceService: DeviceDetectorService,
     private readonly destroyRef: DestroyRef,
     public readonly sanitizer: DomSanitizer
-  ) {}
-
-  protected changingTerm: string;
-  protected changingDefinition: string;
-
-  // These inputs are mutated imperatively by parent components via
-  // `ViewContainerRef.createComponent<CardComponent>()`. Under zoneless + OnPush change
-  // detection, plain `@Input` assignments don't re-render the template, so each one is
-  // backed by a signal. The getter/setter form keeps the parent assignment API
-  // (`instance.editingEnabled = true`) working while the signal schedules re-renders.
-  protected editingEnabledSignal = signal(false);
-  protected cardIndexSignal = signal(0);
-  protected upArrowSignal = signal(true);
-  protected downArrowSignal = signal(true);
-  protected trashCanSignal = signal(true);
-
-  @Input()
-  get editingEnabled(): boolean {
-    return this.editingEnabledSignal();
-  }
-  set editingEnabled(value: boolean) {
-    this.editingEnabledSignal.set(value);
+  ) {
+    // Sync the committed display values from the `term`/`definition` inputs whenever
+    // the parent rebinds them (e.g. on cancel/restore). Changes made inside the edit
+    // modal are kept in `changingTerm`/`changingDefinition` and only committed to
+    // `actualTerm`/`actualDefinition` when the modal closes, so typing doesn't update
+    // the card behind the modal while editing.
+    effect(() => {
+      this.changingTerm = this.term();
+      this.actualTerm.set(this.term());
+    });
+    effect(() => {
+      this.changingDefinition = this.definition();
+      this.actualDefinition.set(this.definition());
+    });
   }
 
-  @Input() cardId: string;
-
-  @Input()
-  get cardIndex(): number {
-    return this.cardIndexSignal();
-  }
-  set cardIndex(value: number) {
-    this.cardIndexSignal.set(value);
-  }
-
-  @Input() originalIndex: number;
-  @Input() isSaved: boolean;
-
-  @Input()
-  get upArrow(): boolean {
-    return this.upArrowSignal();
-  }
-  set upArrow(value: boolean) {
-    this.upArrowSignal.set(value);
-  }
-
-  @Input()
-  get downArrow(): boolean {
-    return this.downArrowSignal();
-  }
-  set downArrow(value: boolean) {
-    this.downArrowSignal.set(value);
-  }
-
-  @Input()
-  get trashCan(): boolean {
-    return this.trashCanSignal();
-  }
-  set trashCan(value: boolean) {
-    this.trashCanSignal.set(value);
-  }
-
-  @Output() addCardEvent = new EventEmitter();
-  @Output() deleteCardEvent = new EventEmitter<number>();
-  @Output() moveCardEvent = new EventEmitter<{ index: number, direction: number }>();
-  @Output() indexChangeEvent = new EventEmitter<{ newIndex: number }>();
-  @Output() editCardEvent = new EventEmitter();
-
-  @ViewChild("card", { static: false }) cardElement: Element;
-  @ViewChild("termDiv", { static: false }) termElement: ElementRef;
-  @ViewChild("definitionDiv", { static: false }) definitionElement: ElementRef;
-  @ViewChild("inputsContainer", { static: false, read: ViewContainerRef }) inputsContainer: ViewContainerRef;
-
-  @ViewChild("editModal") modal: TemplateRef<HTMLElement>;
-
-  // these two vars exist so that we can prevent the main card
-  // from updating while a card is being edited
-  // Signals so that changes made in async modal events are picked up under zoneless change detection.
+  // The working copy shown in the card body. Kept separate from the `term`/`definition`
+  // inputs so edits made in the edit modal only appear on the card once it closes.
   protected actualTerm = signal("");
   protected actualDefinition = signal("");
 
-  protected emptyCardAlert = false;
+  // Working copy bound to the quill editors while the edit modal is open.
+  protected changingTerm = "";
+  protected changingDefinition = "";
+
+  // Declared as signal inputs so parent components bind them directly (`[term]="..."`)
+  // instead of mutating `ComponentRef.instance` imperatively. Under zoneless + OnPush
+  // change detection, this keeps template re-rendering correct.
+  readonly editingEnabled = input(false);
+  readonly cardIndex = input(0);
+  readonly upArrow = input(false);
+  readonly downArrow = input(false);
+  readonly trashCan = input(false);
+  readonly term = input("");
+  readonly definition = input("");
+  // Stable identity used by parent `@for` structures so cards can be identified across
+  // re-renders without relying on a mutable index.
+  readonly uid = input("");
+
+  @Output() addCardEvent = new EventEmitter();
+  @Output() deleteCardEvent = new EventEmitter<string>();
+  @Output() moveCardEvent = new EventEmitter<{ uid: string, direction: number }>();
+  @Output() editCardEvent = new EventEmitter();
+  // Emitted when the edit modal closes so parents can capture the committed value into
+  // their own card model (replacing the old `ComponentRef.instance.term` read-back).
+  @Output() termChange = new EventEmitter<string>();
+  @Output() definitionChange = new EventEmitter<string>();
+
+  @ViewChild("editModal") modal: TemplateRef<HTMLElement>;
+
+  protected emptyCardAlert = signal(false);
 
   protected isMobile = false;
 
@@ -129,9 +98,6 @@ export class CardComponent implements OnInit, AfterViewInit {
   protected readonly faPenToSquare = faPenToSquare;
 
   ngOnInit() {
-    this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
-    this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
-
     this.isMobile = this.deviceService.isMobile();
   }
 
@@ -154,40 +120,26 @@ export class CardComponent implements OnInit, AfterViewInit {
         .subscribe(() => {
           this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
           this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
+
+          // Let the owning parent store the committed values in its own card model.
+          this.termChange.emit(this.changingTerm);
+          this.definitionChange.emit(this.changingDefinition);
         });
 
     // scroll to bottom of cards list
-    if (this.editingEnabled) {
+    if (this.editingEnabled()) {
       this.vps.scrollToPosition([0, document.body.scrollHeight]);
     }
 
     // open the edit modal when new cards are added
     if (
-      this.editingEnabled &&
-      !this.changingTerm &&
-      !this.changingDefinition &&
-      (this.upArrow || this.downArrow)
+      this.editingEnabled() &&
+      !this.term() &&
+      !this.definition() &&
+      (this.upArrow() || this.downArrow())
     ) {
       this.openEditModal();
     }
-  }
-
-  @Input()
-  get term(): string {
-    return this.actualTerm();
-  }
-  set term(value: string) {
-    this.changingTerm = value;
-    this.actualTerm.set(value);
-  }
-
-  @Input()
-  get definition(): string {
-    return this.actualDefinition();
-  }
-  set definition(value: string) {
-    this.changingDefinition = value;
-    this.actualDefinition.set(value);
   }
 
   openEditModal() {
@@ -195,24 +147,18 @@ export class CardComponent implements OnInit, AfterViewInit {
   }
 
   deleteCard() {
-    this.deleteCardEvent.emit(this.cardIndex);
+    this.deleteCardEvent.emit(this.uid());
   }
 
   notifyEmptyInput() {
-    if (!this.emptyCardAlert) {
-      const alert = this.inputsContainer.createComponent<AlertComponent>(AlertComponent);
-
-      alert.instance.message = "Both fields cannot be empty";
-      alert.instance.type = "danger";
-      alert.instance.spacingClass = "mt-4";
-
-      this.emptyCardAlert = true;
-      setTimeout(() => this.emptyCardAlert = false, 3000);
+    if (!this.emptyCardAlert()) {
+      this.emptyCardAlert.set(true);
+      setTimeout(() => this.emptyCardAlert.set(false), 3000);
     }
   }
 
   moveCard(direction: number) {
-    this.moveCardEvent.emit({ index: this.cardIndex, direction });
+    this.moveCardEvent.emit({ uid: this.uid(), direction });
   }
 
   // Set cursor position to end
