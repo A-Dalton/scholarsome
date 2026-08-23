@@ -2,19 +2,22 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnIn
 import { FoldersService } from "../shared/http/folders.service";
 import { Folder } from "@scholarsome/shared";
 import { Set, Folder as PrismaFolder } from "@scholarsome/prisma";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { faFolder, faClone, faFolderTree, faPencil, faCancel, faSave, faArrowUp, faTrashCan, faUser } from "@fortawesome/free-solid-svg-icons";
 import { UsersService } from "../shared/http/users.service";
-import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SetsService } from "../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-folder",
   templateUrl: "./folder.component.html",
-  styleUrls: ["./folder.component.scss"]
+  styleUrls: ["./folder.component.scss"],
+  imports: [CommonModule, FontAwesomeModule, RouterLink, ReactiveFormsModule]
 })
 export class FolderComponent implements OnInit {
   constructor(

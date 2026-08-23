@@ -7,13 +7,16 @@ import { faUpRightFromSquare, faArrowRight } from "@fortawesome/free-solid-svg-i
 import { Location } from "@angular/common";
 import { Meta, Title } from "@angular/platform-browser";
 import { SharedService } from "../shared/shared.service";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-landing",
   templateUrl: "./landing.component.html",
-  styleUrls: ["./landing.component.scss"]
+  styleUrls: ["./landing.component.scss"],
+  imports: [CommonModule, FontAwesomeModule]
 })
 export class LandingComponent implements OnInit {
   constructor(

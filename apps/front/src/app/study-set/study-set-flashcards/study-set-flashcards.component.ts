@@ -1,20 +1,23 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
 import { SetsService } from "../../shared/http/sets.service";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Card } from "@scholarsome/prisma";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { faThumbsUp, faCake } from "@fortawesome/free-solid-svg-icons";
 import { DomSanitizer, Meta, Title } from "@angular/platform-browser";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { CardMistakesService } from "../../shared/http/card-mistakes.service";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
-  styleUrls: ["./study-set-flashcards.component.scss"]
+  styleUrls: ["./study-set-flashcards.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterLink]
 })
 export class StudySetFlashcardsComponent implements OnInit {
   constructor(

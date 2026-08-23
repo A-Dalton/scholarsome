@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
+import { CommonModule } from "@angular/common";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-change-password-settings",
   templateUrl: "./change-password-settings.component.html",
-  styleUrls: ["./change-password-settings.component.scss"]
+  styleUrls: ["./change-password-settings.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class ChangePasswordSettingsComponent {
   constructor(

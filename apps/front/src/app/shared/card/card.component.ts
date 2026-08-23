@@ -18,14 +18,19 @@ import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ViewportScroller } from "@angular/common";
 import { DeviceDetectorService } from "ngx-device-detector";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { QuillEditorComponent } from "ngx-quill";
 import Quill from "quill";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
-  styleUrls: ["./card.component.scss"]
+  styleUrls: ["./card.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent]
 })
 export class CardComponent implements OnInit, AfterViewInit {
   constructor(

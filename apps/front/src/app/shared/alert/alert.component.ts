@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild } from "@angular/core";
+import { AlertComponent as NgxAlertComponent } from "ngx-bootstrap/alert";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-alert",
   templateUrl: "./alert.component.html",
-  styleUrls: ["./alert.component.css"]
+  styleUrls: ["./alert.component.css"],
+  imports: [NgxAlertComponent]
 })
 export class AlertComponent implements OnInit {
   @Input() type: string;

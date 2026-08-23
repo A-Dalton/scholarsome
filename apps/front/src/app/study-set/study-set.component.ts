@@ -8,7 +8,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Set } from "@scholarsome/shared";
 import { SetsService } from "../shared/http/sets.service";
 import { CardComponent } from "../shared/card/card.component";
@@ -18,13 +18,16 @@ import { QuizletExportModalComponent } from "./quizlet-export-modal/quizlet-expo
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faFileExport, faShareFromSquare, faPencil, faSave, faCancel, faTrashCan, faClipboard, faStar, faQ, faFileCsv, faImages } from "@fortawesome/free-solid-svg-icons";
 import { ConvertingService } from "../shared/http/converting.service";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set",
   templateUrl: "./study-set.component.html",
-  styleUrls: ["./study-set.component.scss"]
+  styleUrls: ["./study-set.component.scss"],
+  imports: [CommonModule, FontAwesomeModule, RouterLink, QuizletExportModalComponent]
 })
 export class StudySetComponent implements OnInit {
   constructor(

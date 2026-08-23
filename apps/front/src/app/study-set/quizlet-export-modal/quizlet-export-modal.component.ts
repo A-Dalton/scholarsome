@@ -2,16 +2,19 @@ import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@ang
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { Set } from "@scholarsome/shared";
 import { ConvertingService } from "../../shared/http/converting.service";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-quizlet-export-modal",
   templateUrl: "./quizlet-export-modal.component.html",
-  styleUrls: ["./quizlet-export-modal.component.scss"]
+  styleUrls: ["./quizlet-export-modal.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
 export class QuizletExportModalComponent {
   constructor(

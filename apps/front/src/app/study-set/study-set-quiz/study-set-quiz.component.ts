@@ -1,19 +1,23 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
-import { FormBuilder, FormGroup, NgForm } from "@angular/forms";
+import { FormBuilder, FormGroup, NgForm, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SetsService } from "../../shared/http/sets.service";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { QuizQuestion, Set } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { compareTwoStrings } from "string-similarity";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { StudySetQuizQuestionComponent } from "./study-set-quiz-question/study-set-quiz-question.component";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-study-set-quiz",
   templateUrl: "./study-set-quiz.component.html",
-  styleUrls: ["./study-set-quiz.component.scss"]
+  styleUrls: ["./study-set-quiz.component.scss"],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, FontAwesomeModule, RouterLink, StudySetQuizQuestionComponent]
 })
 export class StudySetQuizComponent implements OnInit {
   constructor(

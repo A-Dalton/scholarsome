@@ -1,16 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, RouterLink, Router } from "@angular/router";
 import { UsersService } from "../shared/http/users.service";
 import { DomSanitizer, Meta, SafeResourceUrl, Title } from "@angular/platform-browser";
 import { User } from "@scholarsome/shared";
 import { faFolder, faClone } from "@fortawesome/free-solid-svg-icons";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-profile",
   templateUrl: "./profile.component.html",
-  styleUrls: ["./profile.component.scss"]
+  styleUrls: ["./profile.component.scss"],
+  imports: [CommonModule, FontAwesomeModule, RouterLink]
 })
 export class ProfileComponent implements OnInit {
   constructor(

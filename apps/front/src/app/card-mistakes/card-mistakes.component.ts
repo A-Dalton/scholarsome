@@ -4,15 +4,20 @@ import { Meta, Title } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { SetsService } from "../shared/http/sets.service";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { faCheck, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { AlertComponent } from "../shared/alert/alert.component";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-card-mistakes",
   templateUrl: "./card-mistakes.component.html",
-  styleUrls: ["./card-mistakes.component.scss"]
+  styleUrls: ["./card-mistakes.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterLink, AlertComponent]
 })
 export class CardMistakesComponent implements OnInit {
   @ViewChild("container", { static: true }) container: ElementRef;

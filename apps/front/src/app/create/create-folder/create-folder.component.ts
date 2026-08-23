@@ -7,13 +7,17 @@ import { Router } from "@angular/router";
 import { Meta, Title } from "@angular/platform-browser";
 import { UsersService } from "../../shared/http/users.service";
 import { Set, Folder } from "@scholarsome/prisma";
+import { CommonModule } from "@angular/common";
+import { ReactiveFormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-create-folder",
   templateUrl: "./create-folder.component.html",
-  styleUrls: ["./create-folder.component.scss"]
+  styleUrls: ["./create-folder.component.scss"],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule]
 })
 export class CreateFolderComponent implements OnInit {
   constructor(

@@ -2,13 +2,16 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from "@
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { SharedService } from "../../shared/shared.service";
 import { UsersService } from "../../shared/http/users.service";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-avatar-settings",
   templateUrl: "./avatar-settings.component.html",
-  styleUrls: ["./avatar-settings.component.scss"]
+  styleUrls: ["./avatar-settings.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class AvatarSettingsComponent implements OnInit {
   constructor(

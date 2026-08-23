@@ -3,13 +3,17 @@ import { User } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { UsersService } from "../shared/http/users.service";
 import { faPlus, faClone, faFolder } from "@fortawesome/free-solid-svg-icons";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { RouterLink } from "@angular/router";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-view",
   templateUrl: "./homepage.component.html",
-  styleUrls: ["./homepage.component.scss"]
+  styleUrls: ["./homepage.component.scss"],
+  imports: [CommonModule, FontAwesomeModule, RouterLink]
 })
 export class HomepageComponent implements OnInit {
   constructor(

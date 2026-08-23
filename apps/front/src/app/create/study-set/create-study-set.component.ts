@@ -17,13 +17,17 @@ import { faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { SavedSet } from "@scholarsome/shared";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
-  standalone: false,
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
-  styleUrls: ["./create-study-set.component.scss"]
+  styleUrls: ["./create-study-set.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
 export class CreateStudySetComponent implements OnInit, AfterViewInit {
   constructor(
