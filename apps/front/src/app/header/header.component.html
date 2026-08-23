@@ -1,10 +1,10 @@
 <scholarsome-resend-email
-  *ngIf="this.verificationResult === false && this.signedIn"
-  [hidden]="hidden"
+  *ngIf="this.verificationResult() === false && this.signedIn()"
+  [hidden]="hidden()"
 ></scholarsome-resend-email>
 <nav
   class="navbar navbar-expand-sm sticky-top bg-white fs-5 shadow-sm"
-  [hidden]="hidden"
+  [hidden]="hidden()"
 >
   <div class="container-fluid">
     <a [routerLink]="this.cookieService.get('authenticated') ? '/homepage' : ''"
@@ -32,8 +32,8 @@
           <a
             class="nav-link text-black"
             aria-current="page"
-            [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-            [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+            [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+            [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
             [routerLink]="
               this.cookieService.get('authenticated') ? '/homepage' : ''
             "
@@ -47,8 +47,8 @@
           <a
             class="nav-link text-black"
             aria-current="page"
-            [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-            [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+            [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+            [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
             (click)="
               !this.cookieService.get('authenticated')
                 ? (this.modalRef = loginModal.open())
@@ -77,9 +77,9 @@
             <li>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
                 [attr.data-bs-target]="
-                  isMobile ? '#navbarSupportedContent' : ''
+                  isMobile() ? '#navbarSupportedContent' : ''
                 "
                 (click)="
                   !this.cookieService.get('authenticated')
@@ -96,9 +96,9 @@
             <li>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
                 [attr.data-bs-target]="
-                  isMobile ? '#navbarSupportedContent' : ''
+                  isMobile() ? '#navbarSupportedContent' : ''
                 "
                 (click)="
                   !this.cookieService.get('authenticated')
@@ -115,9 +115,9 @@
             <li>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
                 [attr.data-bs-target]="
-                  isMobile ? '#navbarSupportedContent' : ''
+                  isMobile() ? '#navbarSupportedContent' : ''
                 "
                 (click)="
                   this.cookieService.get('authenticated')
@@ -130,9 +130,9 @@
             <li>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
                 [attr.data-bs-target]="
-                  isMobile ? '#navbarSupportedContent' : ''
+                  isMobile() ? '#navbarSupportedContent' : ''
                 "
                 (click)="
                   this.cookieService.get('authenticated')
@@ -146,9 +146,9 @@
             <li>
               <a
                 class="dropdown-item ms-1"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
                 [attr.data-bs-target]="
-                  isMobile ? '#navbarSupportedContent' : ''
+                  isMobile() ? '#navbarSupportedContent' : ''
                 "
                 (click)="
                   this.cookieService.get('authenticated')
@@ -165,9 +165,9 @@
       <div class="d-flex align-items-baseline">
         <a
           *ngIf="
-            window.location.hostname !== 'scholarsome.com' && updateAvailable
+            window.location.hostname !== 'scholarsome.com' && updateAvailable()
           "
-          [href]="releaseUrl"
+          [href]="releaseUrl()"
           target="_blank"
         ><small
           class="d-inline-flex px-2 py-1 fw-semibold bg-warning text-bg-warning border border-warning-s rounded-2 text-decoration-underline me-2"
@@ -182,7 +182,7 @@
           class="github"
         ><fa-icon [icon]="faGithub"></fa-icon></a
         ></span>
-        <div *ngIf="!signedIn">
+        <div *ngIf="!signedIn()">
           <button
             type="button"
             class="btn btn-outline-primary pr-6"
@@ -198,54 +198,54 @@
             Sign up
           </button>
         </div>
-        <ul class="nav navbar-nav" *ngIf="signedIn">
+        <ul class="nav navbar-nav" *ngIf="signedIn()">
           <li class="nav-item dropdown">
             <a
-              *ngIf="!avatarUrl"
+              *ngIf="!avatarUrl()"
               class="nav-link dropdown-toggle text-black text-left"
               data-bs-toggle="dropdown"
             >
               <fa-icon [icon]="faUser"></fa-icon>
             </a>
             <a
-              *ngIf="avatarUrl"
+              *ngIf="avatarUrl()"
               class="navbar-brand dropdown-toggle"
               data-bs-toggle="dropdown"
             >
-              <img *ngIf="avatarUrl" [src]="avatarUrl" class="avatar">
+              <img *ngIf="avatarUrl()" [src]="avatarUrl()" class="avatar">
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <a
-                *ngIf="user"
+                *ngIf="user()"
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-                [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
-                [routerLink]="'profile/' + user.id">
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+                [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
+                [routerLink]="'profile/' + user()!.id">
                 <fa-icon [icon]="faUser"></fa-icon> Profile
               </a>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-                [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+                [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
                 [routerLink]="'settings'">
                 <fa-icon [icon]="faGear"></fa-icon> Settings
               </a>
               <a
                 class="dropdown-item theme-dropdown-toggle"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-                [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+                [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
                 (click)="toggleTheme()">
-                <fa-icon [icon]="darkMode ? faSun : faMoon"></fa-icon> Dark mode
+                <fa-icon [icon]="darkMode() ? faSun : faMoon"></fa-icon> Dark mode
                 <span class="theme-toggle-wrap">
-                  <span class="theme-toggle" [ngClass]="{ 'theme-toggle-on': darkMode }">
+                  <span class="theme-toggle" [ngClass]="{ 'theme-toggle-on': darkMode() }">
                     <span class="theme-toggle-thumb"></span>
                   </span>
                 </span>
               </a>
               <a
                 class="dropdown-item"
-                [attr.data-bs-toggle]="isMobile ? 'collapse' : ''"
-                [attr.data-bs-target]="isMobile ? '#navbarSupportedContent' : ''"
+                [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
+                [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
                 (click)="submitLogout()"
               >
                 <fa-icon [icon]="faArrowRightFromBracket"></fa-icon> Logout

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, signal } from "@angular/core";
 import { ModalService } from "../shared/modal.service";
 import { CookieService } from "ngx-cookie";
 import { Router } from "@angular/router";
@@ -12,7 +12,7 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-landing",
   templateUrl: "./landing.component.html",
   styleUrls: ["./landing.component.scss"],
@@ -26,14 +26,13 @@ export class LandingComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     public readonly modalService: ModalService,
-    public readonly sharedService: SharedService,
-    private readonly cdr: ChangeDetectorRef
+    public readonly sharedService: SharedService
   ) {
     this.titleService.setTitle("Studying done the correct way — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Scholarsome is the way studying was meant to be. No monthly fees or upsells to get between you and your study tools. Just flashcards." });
   }
 
-  protected stargazers = 0;
+  protected stargazers = signal(0);
   protected readonly faGithub = faGithub;
   protected readonly faUpRightFromSquare = faUpRightFromSquare;
   protected readonly faArrowRight = faArrowRight;
@@ -57,10 +56,6 @@ export class LandingComponent implements OnInit {
       this.modalService.modal.next("set-password-open");
     }
 
-    this.stargazers = await this.sharedService.getStargazers();
-
-    // The stargazers value is loaded asynchronously, so mark the view for change
-    // detection to ensure the landing page re-renders with the loaded value.
-    this.cdr.markForCheck();
+    this.stargazers.set(await this.sharedService.getStargazers());
   }
 }

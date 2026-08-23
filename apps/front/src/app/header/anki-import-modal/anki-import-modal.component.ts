@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
 import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -9,7 +9,7 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-anki-import-modal",
   templateUrl: "./anki-import-modal.component.html",
   styleUrls: ["./anki-import-modal.component.scss"],
@@ -22,19 +22,19 @@ export class AnkiImportModalComponent {
     private readonly router: Router
   ) {
     this.bsModalService.onHide.subscribe(() => {
-      this.file = null;
-      this.response = "";
-      this.clicked = false;
+      this.file.set(null);
+      this.response.set("");
+      this.clicked.set(false);
     });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected submitted = false;
-  protected uploading = false;
-  protected clicked = false;
-  protected response: string;
-  protected file: File | null = null;
+  protected submitted = signal(false);
+  protected uploading = signal(false);
+  protected clicked = signal(false);
+  protected response = signal("");
+  protected file = signal<File | null>(null);
 
   protected modalRef?: BsModalRef;
   protected readonly faQuestionCircle = faQuestionCircle;
@@ -45,36 +45,36 @@ export class AnkiImportModalComponent {
   }
 
   protected async submit(form: NgForm) {
-    this.clicked = true;
-    this.response = "";
-    this.submitted = false;
+    this.clicked.set(true);
+    this.response.set("");
+    this.submitted.set(false);
 
-    if (!this.file) return;
+    if (!this.file()) return;
 
     setTimeout(() => {
-      if (this.response !== "incompatible" && !this.submitted) this.uploading = true;
+      if (this.response() !== "incompatible" && !this.submitted()) this.uploading.set(true);
     }, 3000);
 
     const set = await this.convertingService.importSetFromAnkiApkg({
       title: form.value["title"],
       description: form.value["description"],
       private: form.value["privateCheck"] === true,
-      file: this.file
+      file: this.file()!
     });
 
     if (set) {
       this.router.navigateByUrl("/", { skipLocationChange: true }).then(() => {
         this.router.navigate(["/study-set", set.id]);
       });
-      this.uploading = false;
-      this.clicked = false;
-      this.file = null;
-      this.submitted = true;
+      this.uploading.set(false);
+      this.clicked.set(false);
+      this.file.set(null);
+      this.submitted.set(true);
     } else {
-      this.response = "incompatible";
-      this.clicked = false;
-      this.file = null;
-      this.uploading = false;
+      this.response.set("incompatible");
+      this.clicked.set(false);
+      this.file.set(null);
+      this.uploading.set(false);
       return;
     }
   }
@@ -83,7 +83,7 @@ export class AnkiImportModalComponent {
     const files = (event.target as HTMLInputElement).files;
 
     if (files) {
-      this.file = files[0];
+      this.file.set(files[0]);
     }
   }
 }

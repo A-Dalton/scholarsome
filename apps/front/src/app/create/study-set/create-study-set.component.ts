@@ -6,9 +6,9 @@ import {
   ElementRef, OnInit,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  signal
 } from "@angular/core";
-import { AlertComponent } from "../../shared/alert/alert.component";
 import { Router } from "@angular/router";
 import { SetsService } from "../../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
@@ -23,7 +23,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
   styleUrls: ["./create-study-set.component.scss"],
@@ -42,7 +42,6 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
   }
 
   @ViewChild("cardContainer", { static: true, read: ViewContainerRef }) cardContainer: ViewContainerRef;
-  @ViewChild("titleElement", { static: false, read: ViewContainerRef }) titleInput: ViewContainerRef;
   @ViewChild("descriptionElement") descriptionInput: ElementRef;
   @ViewChild("restoreProgressModal") restoreProgressModal: TemplateRef<HTMLElement>;
 
@@ -50,9 +49,13 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
   protected description = "";
   protected privateCheck = false;
 
-  protected formDisabled = false;
-  protected emptyTitleAlert = false;
-  protected errorEncountered = false;
+  protected formDisabled = signal(false);
+  protected errorEncountered = signal(false);
+
+  // Track whether the user has attempted to submit without a title, so the
+  // inline validation error below the title field is only shown after an attempt
+  // (matching the behavior of the folder creation page).
+  protected titleTouched = signal(false);
 
   protected modalRef?: BsModalRef;
   protected existingSet = true;
@@ -133,21 +136,14 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
   async createSet() {
     const cards: { index: number; term: string; definition: string; }[] = [];
 
-    this.errorEncountered = false;
+    this.errorEncountered.set(false);
 
-    if (!this.title && !this.emptyTitleAlert) {
-      const alert = this.titleInput.createComponent<AlertComponent>(AlertComponent);
-
-      alert.instance.message = "Title must not be empty";
-      alert.instance.type = "danger";
-      alert.instance.dismiss = true;
-      alert.instance.spacingClass = "mt-3";
-
-      this.emptyTitleAlert = true;
-      setTimeout(() => this.emptyTitleAlert = false, 3000);
-
+    if (!this.title) {
+      this.titleTouched.set(true);
       return;
-    } else if (!this.title) return;
+    } else {
+      this.titleTouched.set(false);
+    }
 
     for (const card of this.cardComponents) {
       if (card.component.instance.term.length !== 0 && card.component.instance.definition.length !== 0) {
@@ -162,7 +158,7 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
       }
     }
 
-    this.formDisabled = true;
+    this.formDisabled.set(true);
 
     const set = await this.sets.createSet({
       title: this.title,
@@ -175,8 +171,8 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
       this.deleteProgress();
       await this.router.navigate(["/study-set/" + set?.id]);
     } else {
-      this.formDisabled = false;
-      this.errorEncountered = true;
+      this.formDisabled.set(false);
+      this.errorEncountered.set(true);
     }
   }
 

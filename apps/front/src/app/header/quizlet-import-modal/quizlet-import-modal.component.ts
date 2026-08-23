@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
 import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -10,7 +10,7 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-quizlet-import-modal",
   templateUrl: "./quizlet-import-modal.component.html",
   styleUrls: ["./quizlet-import-modal.component.scss"],
@@ -23,15 +23,15 @@ export class QuizletImportModalComponent {
     private readonly router: Router
   ) {
     this.bsModalService.onHide.subscribe(() => {
-      this.clicked = false;
-      this.response = "";
+      this.clicked.set(false);
+      this.response.set("");
     });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected clicked = false;
-  protected response: string;
+  protected clicked = signal(false);
+  protected response = signal("");
 
   protected modalRef?: BsModalRef;
 
@@ -44,8 +44,8 @@ export class QuizletImportModalComponent {
   }
 
   protected async submit(form: NgForm) {
-    this.clicked = true;
-    this.response = "";
+    this.clicked.set(true);
+    this.response.set("");
 
     const set = await this.convertingService.importSetFromQuizletTxt({
       title: form.value["title"],
@@ -61,8 +61,8 @@ export class QuizletImportModalComponent {
         this.router.navigate(["/study-set", set.id]);
       });
     } else {
-      this.response = "pattern";
-      this.clicked = false;
+      this.response.set("pattern");
+      this.clicked.set(false);
       return;
     }
   }

@@ -4,7 +4,7 @@ import { RouterLink } from "@angular/router";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-notfound",
   templateUrl: "./notfound.component.html",
   styleUrls: ["./notfound.component.scss"],

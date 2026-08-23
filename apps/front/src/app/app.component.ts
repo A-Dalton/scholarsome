@@ -30,7 +30,7 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-root",
   templateUrl: "./app.component.html",
   imports: [

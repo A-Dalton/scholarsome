@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-resend-email",
   templateUrl: "./resend-email.component.html",
   styleUrls: ["./resend-email.component.scss"],
@@ -14,13 +14,13 @@ import { CommonModule } from "@angular/common";
 export class ResendEmailComponent {
   constructor(private authService: AuthService) {}
 
-  protected clicked: boolean;
-  protected response: ApiResponseOptions;
+  protected clicked = signal(false);
+  protected response = signal<ApiResponseOptions | undefined>(undefined);
   protected readonly ApiResponseOptions = ApiResponseOptions;
 
   async onClick() {
-    this.clicked = true;
-    this.response = await this.authService.resendVerificationEmail();
-    this.clicked = false;
+    this.clicked.set(true);
+    this.response.set(await this.authService.resendVerificationEmail());
+    this.clicked.set(false);
   }
 }

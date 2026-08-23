@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from "@angular/core";
 import { SetsService } from "../../shared/http/sets.service";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Card } from "@scholarsome/prisma";
@@ -13,7 +13,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
   styleUrls: ["./study-set-flashcards.component.scss"],
@@ -27,8 +27,7 @@ export class StudySetFlashcardsComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     public readonly sanitizer: DomSanitizer,
-    private readonly cardMistakesService: CardMistakesService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cardMistakesService: CardMistakesService
   ) {}
 
   @ViewChild("flashcardsConfig") configModal: TemplateRef<HTMLElement>;
@@ -57,9 +56,9 @@ export class StudySetFlashcardsComponent implements OnInit {
   // The current side being shown
   protected side: string;
   // The text being shown to the user
-  protected sideText = "";
+  protected sideText = signal("");
   // Displayed in bottom right showing the progress
-  protected remainingCards = "";
+  protected remainingCards = signal("");
 
   // Whether the card has been flipped or not
   protected flipped = false;
@@ -110,7 +109,7 @@ export class StudySetFlashcardsComponent implements OnInit {
   }
 
   updateIndex() {
-    this.remainingCards = `${this.index + 1}/${this.cards.length}`;
+    this.remainingCards.set(`${this.index + 1}/${this.cards.length}`);
   }
 
   incrementLearntCount(): void {
@@ -133,17 +132,12 @@ export class StudySetFlashcardsComponent implements OnInit {
     // delayed to occur when text is the least visible during animation
     setTimeout(() => {
       if (this.side === "term") {
-        this.sideText = this.cards[this.index].definition;
+        this.sideText.set(this.cards[this.index].definition);
         this.side = "definition";
       } else {
-        this.sideText = this.cards[this.index].term;
+        this.sideText.set(this.cards[this.index].term);
         this.side = "term";
       }
-
-      // The text swap happens inside a timer callback, which runs outside the
-      // change-detection cycle, so the view would otherwise not re-render with the
-      // new sideText. Mark the view for change detection to refresh it.
-      this.cdr.markForCheck();
     }, 150);
   }
 
@@ -180,7 +174,7 @@ export class StudySetFlashcardsComponent implements OnInit {
 
         // reset the side to the prompt side for the next round
         this.side = this.answer === "definition" ? "term" : "definition";
-        this.sideText = this.cards[0][this.side as keyof Card] as string;
+        this.sideText.set(this.cards[0][this.side as keyof Card] as string);
       }
 
       this.flipped = false;
@@ -202,8 +196,9 @@ export class StudySetFlashcardsComponent implements OnInit {
       this.side = "definition";
     }
 
-    this.sideText =
-      this.answer === "definition" ? this.cards[this.index].term : this.cards[this.index].definition;
+    this.sideText.set(
+      this.answer === "definition" ? this.cards[this.index].term : this.cards[this.index].definition
+    );
   }
 
   beginFlashcards(form: NgForm) {
@@ -216,7 +211,7 @@ export class StudySetFlashcardsComponent implements OnInit {
       this.shufflingEnabled = true;
     }
 
-    this.sideText = this.cards[0][this.side as keyof Card] as string;
+    this.sideText.set(this.cards[0][this.side as keyof Card] as string);
     this.currentCard = this.cards[0];
   }
 
@@ -248,9 +243,5 @@ export class StudySetFlashcardsComponent implements OnInit {
     });
 
     this.updateIndex();
-
-    // The cards above are loaded asynchronously. Mark the view for change detection
-    // so it re-renders with the loaded card data.
-    this.cdr.markForCheck();
   }
 }

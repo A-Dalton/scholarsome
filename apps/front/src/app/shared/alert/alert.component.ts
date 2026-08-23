@@ -3,7 +3,7 @@ import { AlertComponent as NgxAlertComponent } from "ngx-bootstrap/alert";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-alert",
   templateUrl: "./alert.component.html",
   styleUrls: ["./alert.component.css"],

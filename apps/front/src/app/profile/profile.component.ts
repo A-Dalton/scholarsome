@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
 import { ActivatedRoute, RouterLink, Router } from "@angular/router";
 import { UsersService } from "../shared/http/users.service";
 import { DomSanitizer, Meta, SafeResourceUrl, Title } from "@angular/platform-browser";
@@ -9,7 +9,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-profile",
   templateUrl: "./profile.component.html",
   styleUrls: ["./profile.component.scss"],
@@ -22,15 +22,14 @@ export class ProfileComponent implements OnInit {
     private readonly router: Router,
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    private readonly sanitizer: DomSanitizer,
-    private readonly cdr: ChangeDetectorRef
+    private readonly sanitizer: DomSanitizer
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
 
-  user: User | null;
-  avatarUrl?: SafeResourceUrl;
-  registrationDate: string;
+  user = signal<User | null>(null);
+  avatarUrl = signal<SafeResourceUrl | undefined>(undefined);
+  registrationDate = signal<string>("");
 
   protected readonly faFolder = faFolder;
   protected readonly faClone = faClone;
@@ -45,33 +44,31 @@ export class ProfileComponent implements OnInit {
     const avatar = await this.usersService.getAvatar(userId, 128, 128);
 
     if (avatar) {
-      this.avatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(avatar));
+      this.avatarUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(avatar)));
     }
 
-    this.user = await this.usersService.user(userId);
-    if (!this.user) {
+    const user = await this.usersService.user(userId);
+    if (!user) {
       await this.router.navigate(["404"]);
       return;
     }
 
-    this.user.sets.forEach((s) => {
+    user.sets.forEach((s) => {
       s.updatedAt = new Date(s.updatedAt);
     });
-    this.user.sets = this.user.sets.sort((a, b) => {
+    user.sets = user.sets.sort((a, b) => {
       return new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf();
     });
 
     this.spinner.nativeElement.remove();
 
-    this.titleService.setTitle(this.user.username + " — Scholarsome");
+    this.titleService.setTitle(user.username + " — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Scholarsome is the way studying was meant to be. No monthly fees or upsells to get between you and your study tools. Just flashcards." });
 
-    this.user.createdAt = new Date(this.user.createdAt);
+    user.createdAt = new Date(user.createdAt);
 
-    this.registrationDate = this.user.createdAt.toLocaleString("en-us", { month: "long", day: "numeric", year: "numeric" } );
+    this.registrationDate.set(user.createdAt.toLocaleString("en-us", { month: "long", day: "numeric", year: "numeric" }));
 
-    // The profile data above is loaded asynchronously. Mark the view for change
-    // detection so it re-renders with the loaded user data.
-    this.cdr.markForCheck();
+    this.user.set(user);
   }
 }

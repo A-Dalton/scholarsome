@@ -1,9 +1,9 @@
 <ng-template #modal>
   <div class="modal-header bg-white">
-    <h4 class="modal-title pull-left" *ngIf="publicAppEnv">
+    <h4 class="modal-title pull-left" *ngIf="publicAppEnv()">
       Log in
     </h4>
-    <div class="modal-title w-100 text-center" *ngIf="!publicAppEnv">
+    <div class="modal-title w-100 text-center" *ngIf="!publicAppEnv()">
       <img
         class="navbar-brand img-fluid mt-1"
         src="assets/header/scholarsome-logo-purple-lowercase.svg"
@@ -11,9 +11,9 @@
         width="75%"
         height="75%"
       />
-      <p class="text-secondary mt-3 mb-n1 mx-auto w-75">Login to the Scholarsome instance running at {{appUrl}}</p>
+      <p class="text-secondary mt-3 mb-n1 mx-auto w-75">Login to the Scholarsome instance running at {{appUrl()}}</p>
     </div>
-    <button type="button" class="btn-close close pull-right" aria-label="Close" *ngIf="publicAppEnv" (click)="modalRef?.hide()">
+    <button type="button" class="btn-close close pull-right" aria-label="Close" *ngIf="publicAppEnv()" (click)="modalRef?.hide()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
   </div>
@@ -22,9 +22,9 @@
       <div class="mb-3">
         <label for="login-email" class="form-label">Email address</label>
         <input type="email" class="form-control" id="login-email" name="email" required ngModel>
-        <div *ngIf="response === ApiResponseOptions.Error" class="form-text text-danger">There was an issue with login.</div>
-        <div *ngIf="response === ApiResponseOptions.Incorrect" class="form-text text-danger">The email or password is incorrect.</div>
-        <div *ngIf="response === ApiResponseOptions.Ratelimit" class="form-text text-danger">You are being rate limited.</div>
+        <div *ngIf="response() === ApiResponseOptions.Error" class="form-text text-danger">There was an issue with login.</div>
+        <div *ngIf="response() === ApiResponseOptions.Incorrect" class="form-text text-danger">The email or password is incorrect.</div>
+        <div *ngIf="response() === ApiResponseOptions.Ratelimit" class="form-text text-danger">You are being rate limited.</div>
       </div>
       <div class="mb-3">
         <div class="d-flex justify-content-between">
@@ -32,14 +32,14 @@
           <a class="form-text" (click)="modalRef?.hide(); modalService.modal.next('forgot-password-open')">Forgot?</a>
         </div>
         <input type="password" class="form-control" id="login-password" name="password" required ngModel>
-        <div class="form-text recaptcha-text" *ngIf="recaptchaEnabled">This site is protected by reCAPTCHA and the Google
+        <div class="form-text recaptcha-text" *ngIf="recaptchaEnabled()">This site is protected by reCAPTCHA and the Google
           <a href="https://policies.google.com/privacy">Privacy Policy</a> and
           <a href="https://policies.google.com/terms">Terms of Service</a> apply.</div>
       </div>
       <div class="form-text text-center mb-3">Don't have an account? <a [routerLink]="[]" (click)="modalRef?.hide(); modalService.modal.next('register-open')" class="text-primary">Sign up.</a></div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary" [disabled]="clicked">
-          <span *ngIf="clicked" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" class="btn btn-primary" [disabled]="clicked()">
+          <span *ngIf="clicked()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           Log in</button>
       </div>
     </form>

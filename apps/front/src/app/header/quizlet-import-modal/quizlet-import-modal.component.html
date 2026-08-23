@@ -18,28 +18,28 @@
     <hr>
     <form class="mt-3" (ngSubmit)="submit(form)" #form="ngForm" ngNativeValidate>
       <div class="mb-3">
-        <input type="text" class="form-control" placeholder="Enter a title for your study set..." maxlength="255" name="title" [disabled]="clicked" ngModel required>
+        <input type="text" class="form-control" placeholder="Enter a title for your study set..." maxlength="255" name="title" [disabled]="clicked()" ngModel required>
       </div>
       <div class="mb-3">
-        <textarea class="form-control" name="description" placeholder="Add a description..." [disabled]="clicked" ngModel ngDefaultControl></textarea>
+        <textarea class="form-control" name="description" placeholder="Add a description..." [disabled]="clicked()" ngModel ngDefaultControl></textarea>
       </div>
       <div class="mb-3">
-        <input class="form-control" name="termDefinitionDiscriminator" placeholder="Type your term and definition discriminator..." [disabled]="clicked" ngModel required>
+        <input class="form-control" name="termDefinitionDiscriminator" placeholder="Type your term and definition discriminator..." [disabled]="clicked()" ngModel required>
       </div>
       <div class="mb-3">
-        <input class="form-control" name="rowDiscriminator" placeholder="Type your row discriminator..." [disabled]="clicked" ngModel required>
+        <input class="form-control" name="rowDiscriminator" placeholder="Type your row discriminator..." [disabled]="clicked()" ngModel required>
       </div>
       <div class="form-check mb-3">
-        <input type="checkbox" class="form-check-input" id="quizletImportPrivateCheck" name="privateCheck" [disabled]="clicked" ngModel>
+        <input type="checkbox" class="form-check-input" id="quizletImportPrivateCheck" name="privateCheck" [disabled]="clicked()" ngModel>
         <label class="form-check-label" for="quizletImportPrivateCheck">Viewable only to me</label>
       </div>
       <div class="mb-3">
-        <textarea class="form-control" rows="6" name="set" placeholder="Paste in your exported set here..." [disabled]="clicked" ngModel ngDefaultControl required></textarea>
-        <div *ngIf="response === 'pattern'" class="form-text text-danger">Your exported set is not correctly formatted.</div>
+        <textarea class="form-control" rows="6" name="set" placeholder="Paste in your exported set here..." [disabled]="clicked()" ngModel ngDefaultControl required></textarea>
+        <div *ngIf="response() === 'pattern'" class="form-text text-danger">Your exported set is not correctly formatted.</div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary" [disabled]="clicked">
-          <span *ngIf="clicked" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Import</button>
+        <button type="submit" class="btn btn-primary" [disabled]="clicked()">
+          <span *ngIf="clicked()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Import</button>
       </div>
     </form>
   </div>

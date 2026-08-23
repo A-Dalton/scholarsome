@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
 import { CardMistake } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -13,7 +13,7 @@ import { AlertComponent } from "../shared/alert/alert.component";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-card-mistakes",
   templateUrl: "./card-mistakes.component.html",
   styleUrls: ["./card-mistakes.component.scss"],
@@ -23,13 +23,13 @@ export class CardMistakesComponent implements OnInit {
   @ViewChild("container", { static: true }) container: ElementRef;
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
 
-  mistakes: CardMistake[] | null = null;
+  mistakes = signal<CardMistake[] | null>(null);
 
   // IDs of the selected mistakes, used to create a study set
   selected = new Set<string>();
-  protected title = "";
-  protected creating = false;
-  protected errorEncountered = false;
+  title = "";
+  creating = signal(false);
+  errorEncountered = signal(false);
 
   protected readonly faHistory = faHistory;
   protected readonly faSquarePlus = faSquarePlus;
@@ -41,28 +41,25 @@ export class CardMistakesComponent implements OnInit {
     private readonly router: Router,
     private readonly titleService: Title,
     private readonly metaService: Meta,
-    public readonly sanitizer: DomSanitizer,
-    private readonly cdr: ChangeDetectorRef
+    public readonly sanitizer: DomSanitizer
   ) {
     this.titleService.setTitle("Previous mistakes — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Review the flashcards you previously did not know on Scholarsome." });
   }
 
   async ngOnInit(): Promise<void> {
-    this.mistakes = await this.cardMistakesService.mistakes();
+    const mistakes = await this.cardMistakesService.mistakes();
 
-    if (this.mistakes) {
-      this.mistakes.forEach((m) => {
+    if (mistakes) {
+      mistakes.forEach((m) => {
         m.createdAt = new Date(m.createdAt);
       });
     }
 
+    this.mistakes.set(mistakes);
+
     this.spinner.nativeElement.remove();
     this.container.nativeElement.removeAttribute("hidden");
-
-    // The mistakes are loaded asynchronously. Mark the view for change detection so
-    // it re-renders with the loaded mistakes data.
-    this.cdr.markForCheck();
   }
 
   /**
@@ -93,24 +90,24 @@ export class CardMistakesComponent implements OnInit {
    * Creates a new study set from the currently selected mistakes
    */
   async createStudySet() {
-    if (this.creating) return;
+    if (this.creating()) return;
 
     if (this.selected.size === 0 || !this.title) {
-      this.errorEncountered = true;
-      setTimeout(() => this.errorEncountered = false, 3000);
+      this.errorEncountered.set(true);
+      setTimeout(() => this.errorEncountered.set(false), 3000);
       return;
     }
 
-    this.creating = true;
-    this.errorEncountered = false;
+    this.creating.set(true);
+    this.errorEncountered.set(false);
 
-    if (!this.mistakes) {
-      this.creating = false;
-      this.errorEncountered = true;
+    if (!this.mistakes()) {
+      this.creating.set(false);
+      this.errorEncountered.set(true);
       return;
     }
 
-    const cards = this.mistakes
+    const cards = this.mistakes()!
         .filter((m) => this.selected.has(m.id))
         .map((m, index) => ({
           index,
@@ -127,8 +124,8 @@ export class CardMistakesComponent implements OnInit {
     if (set && set.id) {
       await this.router.navigate(["/study-set/" + set.id]);
     } else {
-      this.creating = false;
-      this.errorEncountered = true;
+      this.creating.set(false);
+      this.errorEncountered.set(true);
     }
   }
 }

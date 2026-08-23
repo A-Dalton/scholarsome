@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild, signal } from "@angular/core";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { NgForm, FormsModule } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
@@ -9,7 +9,7 @@ import { ModalService } from "../../shared/modal.service";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-login-modal",
   templateUrl: "./login-modal.component.html",
   styleUrls: ["./login-modal.component.scss"],
@@ -23,8 +23,8 @@ export class LoginModalComponent {
     public readonly modalService: ModalService
   ) {
     this.bsModalService.onHide.subscribe(() => {
-      this.response = null;
-      this.clicked = false;
+      this.response.set(null);
+      this.clicked.set(false);
     });
   }
 
@@ -32,38 +32,38 @@ export class LoginModalComponent {
 
   @Output() loginEvent = new EventEmitter();
 
-  protected response: ApiResponseOptions | null;
-  protected clicked = false;
+  protected response = signal<ApiResponseOptions | null>(null);
+  protected clicked = signal(false);
 
-  protected publicAppEnv = false;
-  protected onLandingPage = false;
-  protected recaptchaEnabled = false;
-  protected appUrl = "";
+  protected publicAppEnv = signal(false);
+  protected onLandingPage = signal(false);
+  protected recaptchaEnabled = signal(false);
+  protected appUrl = signal("");
 
   protected modalRef?: BsModalRef;
 
   protected readonly ApiResponseOptions = ApiResponseOptions;
 
   public open(): BsModalRef {
-    this.publicAppEnv = import.meta.env.NODE_ENV === "public";
-    this.onLandingPage = this.router.url === "/";
-    this.recaptchaEnabled = !import.meta.env.SCHOLARSOME_RECAPTCHA_SECRET || !import.meta.env.SCHOLARSOME_RECAPTCHA_SITE;
-    this.appUrl = window.location.host;
+    this.publicAppEnv.set(import.meta.env.NODE_ENV === "public");
+    this.onLandingPage.set(this.router.url === "/");
+    this.recaptchaEnabled.set(!import.meta.env.SCHOLARSOME_RECAPTCHA_SECRET || !import.meta.env.SCHOLARSOME_RECAPTCHA_SITE);
+    this.appUrl.set(window.location.host);
 
-    this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv && this.onLandingPage });
+    this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv() && this.onLandingPage() });
     return this.modalRef;
   }
 
   protected async submit(form: NgForm) {
-    this.response = null;
-    this.clicked = true;
-    this.response = await this.authService.login(form.value);
+    this.response.set(null);
+    this.clicked.set(true);
+    this.response.set(await this.authService.login(form.value));
 
-    if (this.response === ApiResponseOptions.Success) {
+    if (this.response() === ApiResponseOptions.Success) {
       await this.router.navigate(["/homepage"]);
       this.loginEvent.emit();
     } else {
-      this.clicked = false;
+      this.clicked.set(false);
     }
   }
 }

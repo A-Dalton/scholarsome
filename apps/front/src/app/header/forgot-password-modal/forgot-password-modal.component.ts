@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
 import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -9,7 +9,7 @@ import { CommonModule } from "@angular/common";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-forgot-password-modal",
   templateUrl: "./forgot-password-modal.component.html",
   styleUrls: ["./forgot-password-modal.component.scss"],
@@ -23,33 +23,33 @@ export class ForgotPasswordModalComponent {
     public readonly modalService: ModalService
   ) {
     this.bsModalService.onHide.subscribe(() => {
-      this.response = null;
-      this.clicked = false;
+      this.response.set(null);
+      this.clicked.set(false);
     });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected clicked = false;
-  protected response: ApiResponseOptions | null;
+  protected clicked = signal(false);
+  protected response = signal<ApiResponseOptions | null>(null);
 
-  protected publicAppEnv = false;
-  protected onLandingPage = false;
+  protected publicAppEnv = signal(false);
+  protected onLandingPage = signal(false);
 
   protected readonly ApiResponseOptions = ApiResponseOptions;
   protected modalRef?: BsModalRef;
 
   public open(): BsModalRef {
-    this.publicAppEnv = import.meta.env.NODE_ENV === "public";
-    this.onLandingPage = this.router.url === "/";
+    this.publicAppEnv.set(import.meta.env.NODE_ENV === "public");
+    this.onLandingPage.set(this.router.url === "/");
 
-    this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv });
+    this.modalRef = this.bsModalService.show(this.modal, { ignoreBackdropClick: !this.publicAppEnv() });
     return this.modalRef;
   }
 
   protected async submit(form: NgForm) {
-    this.clicked = true;
-    this.response = await this.authService.sendPasswordReset(form.value);
-    this.clicked = false;
+    this.clicked.set(true);
+    this.response.set(await this.authService.sendPasswordReset(form.value));
+    this.clicked.set(false);
   }
 }

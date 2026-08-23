@@ -116,8 +116,7 @@
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "winston": "^3.10.0",
-    "xmlbuilder2": "^3.1.1",
-    "zone.js": "^0.15.1"
+    "xmlbuilder2": "^3.1.1"
   },
   "devDependencies": {
     "@angular-eslint/eslint-plugin": "^21.4.0",

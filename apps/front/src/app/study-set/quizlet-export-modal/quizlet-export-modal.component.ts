@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
@@ -10,7 +10,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-quizlet-export-modal",
   templateUrl: "./quizlet-export-modal.component.html",
   styleUrls: ["./quizlet-export-modal.component.scss"],
@@ -22,15 +22,15 @@ export class QuizletExportModalComponent {
     private readonly convertingService: ConvertingService
   ) {
     this.bsModalService.onHide.subscribe(() => {
-      this.clicked = false;
-      this.error = false;
+      this.clicked.set(false);
+      this.error.set(false);
     });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected clicked = false;
-  protected error = false;
+  protected clicked = signal(false);
+  protected error = signal(false);
 
   protected set: Set;
 
@@ -47,8 +47,8 @@ export class QuizletExportModalComponent {
   }
 
   public async submit(form: NgForm) {
-    this.clicked = true;
-    this.error = false;
+    this.clicked.set(true);
+    this.error.set(false);
 
     const sideDiscriminator = form.controls["sideDiscriminator"].value;
     const cardDiscriminator = form.controls["cardDiscriminator"].value;
@@ -60,7 +60,7 @@ export class QuizletExportModalComponent {
     );
 
     if (!file) {
-      this.error = true;
+      this.error.set(true);
       return;
     }
 
@@ -73,7 +73,7 @@ export class QuizletExportModalComponent {
 
     document.body.removeChild(link);
 
-    this.clicked = false;
+    this.clicked.set(false);
     this.modalRef?.hide();
   }
 }

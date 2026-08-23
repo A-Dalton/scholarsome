@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, TemplateRef, ViewChild, ViewContainerRef, signal } from "@angular/core";
 import { FormBuilder, FormGroup, NgForm, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { SetsService } from "../../shared/http/sets.service";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -13,7 +13,7 @@ import { StudySetQuizQuestionComponent } from "./study-set-quiz-question/study-s
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set-quiz",
   templateUrl: "./study-set-quiz.component.html",
   styleUrls: ["./study-set-quiz.component.scss"],
@@ -26,8 +26,7 @@ export class StudySetQuizComponent implements OnInit {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly titleService: Title,
-    private readonly metaService: Meta,
-    private readonly cdr: ChangeDetectorRef
+    private readonly metaService: Meta
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -37,11 +36,11 @@ export class StudySetQuizComponent implements OnInit {
 
   writtenSelected = true;
   trueOrFalseSelected = true;
-  multipleChoiceSelected = true;
+  multipleChoiceSelected = signal(true);
 
-  loaded = false;
-  created = false;
-  submitted = false;
+  loaded = signal(false);
+  created = signal(false);
+  submitted = signal(false);
 
   quizForm: FormGroup;
 
@@ -49,7 +48,7 @@ export class StudySetQuizComponent implements OnInit {
   set: Set;
   questions: QuizQuestion[];
 
-  percentCorrect: number;
+  percentCorrect = signal<number>(-1);
 
   modalRef?: BsModalRef;
 
@@ -85,7 +84,7 @@ export class StudySetQuizComponent implements OnInit {
     const typePercentage = 1 / questionTypes.filter((t) => t.enabled).length;
     let generatedQuestions = 0;
 
-    this.created = true;
+    this.created.set(true);
     this.modalRef?.hide();
 
     for (const questionType of questionTypes) {
@@ -110,7 +109,6 @@ export class StudySetQuizComponent implements OnInit {
       // if (questionType.type === "written") {
       //   let removals = 0;
       //   let filteredIndices = [...unusedIndices];
-      //
       //   for (const index of indices) {
       //     if (((this.set.cards[index] as any)[answerWith].replace(/<[^>]+src="([^">]+)">/g, "").length === 0)) {
       //       indices = indices.filter((i) => i !== index);
@@ -118,7 +116,6 @@ export class StudySetQuizComponent implements OnInit {
       //       removals++;
       //     }
       //   }
-      //
       //   indices.push(...[...unusedIndices].sort(() => 0.5 - Math.random()).splice(0, removals));
       // }
 
@@ -202,10 +199,10 @@ export class StudySetQuizComponent implements OnInit {
             }
           ];
 
-          let generatedQuestions = 3;
-          if (3 > this.set.cards.length) generatedQuestions = this.set.cards.length - 1;
+          let generatedOptions = 3;
+          if (3 > this.set.cards.length) generatedOptions = this.set.cards.length - 1;
 
-          for (let i = 0; i < generatedQuestions; i++) {
+          for (let i = 0; i < generatedOptions; i++) {
             let option: { option: string; correct: boolean; };
 
             do {
@@ -245,7 +242,7 @@ export class StudySetQuizComponent implements OnInit {
   }
 
   submitQuiz(form: FormGroup, questions: QuizQuestion[]) {
-    this.submitted = true;
+    this.submitted.set(true);
     window.scroll({
       top: 0,
       left: 0,
@@ -296,7 +293,7 @@ export class StudySetQuizComponent implements OnInit {
       }
     }
 
-    this.percentCorrect = Math.floor(100 / questions.length * count);
+    this.percentCorrect.set(Math.floor(100 / questions.length * count));
   }
 
   reloadPage() {
@@ -306,7 +303,7 @@ export class StudySetQuizComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.percentCorrect = -1;
+    this.percentCorrect.set(-1);
     this.setId = this.route.snapshot.paramMap.get("setId");
     if (!this.setId) {
       await this.router.navigate(["/404"]);
@@ -324,16 +321,12 @@ export class StudySetQuizComponent implements OnInit {
     this.metaService.addTag({ name: "description", content: "Start a quiz for the " + set.title + " study set on Scholarsome. Improve your memorization skills by taking a quiz." });
 
     if (set.cards.length < 4) {
-      this.multipleChoiceSelected = false;
+      this.multipleChoiceSelected.set(false);
     }
 
     this.set = set;
 
     this.spinner.nativeElement.remove();
-    this.loaded = true;
-
-    // The set above is loaded asynchronously. Mark the view for change detection so
-    // it re-renders with the loaded set data.
-    this.cdr.markForCheck();
+    this.loaded.set(true);
   }
 }

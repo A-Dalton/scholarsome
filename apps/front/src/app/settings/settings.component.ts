@@ -7,7 +7,7 @@ import { ChangeEmailSettingsComponent } from "./change-email-settings/change-ema
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-settings",
   templateUrl: "./settings.component.html",
   styleUrls: ["./settings.component.scss"],

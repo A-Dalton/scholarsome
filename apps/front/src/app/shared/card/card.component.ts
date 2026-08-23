@@ -1,7 +1,6 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -10,7 +9,8 @@ import {
   Output,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  signal
 } from "@angular/core";
 import { AlertComponent } from "../alert/alert.component";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
@@ -26,7 +26,7 @@ import Quill from "quill";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"],
@@ -37,24 +37,67 @@ export class CardComponent implements OnInit, AfterViewInit {
     private readonly bsModalService: BsModalService,
     private readonly vps: ViewportScroller,
     private readonly deviceService: DeviceDetectorService,
-    private readonly cdr: ChangeDetectorRef,
     public readonly sanitizer: DomSanitizer
   ) {}
 
   protected changingTerm: string;
   protected changingDefinition: string;
 
-  @Input() editingEnabled = false;
+  // These inputs are mutated imperatively by parent components via
+  // `ViewContainerRef.createComponent<CardComponent>()`. Under zoneless + OnPush change
+  // detection, plain `@Input` assignments don't re-render the template, so each one is
+  // backed by a signal. The getter/setter form keeps the parent assignment API
+  // (`instance.editingEnabled = true`) working while the signal schedules re-renders.
+  protected editingEnabledSignal = signal(false);
+  protected cardIndexSignal = signal(0);
+  protected upArrowSignal = signal(true);
+  protected downArrowSignal = signal(true);
+  protected trashCanSignal = signal(true);
+
+  @Input()
+  get editingEnabled(): boolean {
+    return this.editingEnabledSignal();
+  }
+  set editingEnabled(value: boolean) {
+    this.editingEnabledSignal.set(value);
+  }
 
   @Input() cardId: string;
-  @Input() cardIndex: number;
+
+  @Input()
+  get cardIndex(): number {
+    return this.cardIndexSignal();
+  }
+  set cardIndex(value: number) {
+    this.cardIndexSignal.set(value);
+  }
 
   @Input() originalIndex: number;
   @Input() isSaved: boolean;
 
-  @Input() upArrow = true;
-  @Input() downArrow = true;
-  @Input() trashCan = true;
+  @Input()
+  get upArrow(): boolean {
+    return this.upArrowSignal();
+  }
+  set upArrow(value: boolean) {
+    this.upArrowSignal.set(value);
+  }
+
+  @Input()
+  get downArrow(): boolean {
+    return this.downArrowSignal();
+  }
+  set downArrow(value: boolean) {
+    this.downArrowSignal.set(value);
+  }
+
+  @Input()
+  get trashCan(): boolean {
+    return this.trashCanSignal();
+  }
+  set trashCan(value: boolean) {
+    this.trashCanSignal.set(value);
+  }
 
   @Output() addCardEvent = new EventEmitter();
   @Output() deleteCardEvent = new EventEmitter<number>();
@@ -71,8 +114,9 @@ export class CardComponent implements OnInit, AfterViewInit {
 
   // these two vars exist so that we can prevent the main card
   // from updating while a card is being edited
-  protected actualTerm: string;
-  protected actualDefinition: string;
+  // Signals so that changes made in async modal events are picked up under zoneless change detection.
+  protected actualTerm = signal("");
+  protected actualDefinition = signal("");
 
   protected emptyCardAlert = false;
 
@@ -82,8 +126,8 @@ export class CardComponent implements OnInit, AfterViewInit {
   protected readonly faPenToSquare = faPenToSquare;
 
   ngOnInit() {
-    this.actualTerm = this.changingTerm ? this.changingTerm : "";
-    this.actualDefinition = this.changingDefinition ? this.changingDefinition : "";
+    this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
+    this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
 
     this.isMobile = this.deviceService.isMobile();
   }
@@ -96,19 +140,13 @@ export class CardComponent implements OnInit, AfterViewInit {
     otherwise it's distracting to see changes in the background while typing
      */
     this.bsModalService.onShow.subscribe(() => {
-      this.actualTerm = String(this.actualTerm) as string;
-      this.actualDefinition = String(this.actualDefinition) as string;
-      // Modal hide/show events fire asynchronously. Mark the view for change detection
-      // so the card's display refreshes with the latest text.
-      this.cdr.markForCheck();
+      this.actualTerm.set(String(this.actualTerm()));
+      this.actualDefinition.set(String(this.actualDefinition()));
     });
 
     this.bsModalService.onHide.subscribe(() => {
-      this.actualTerm = this.changingTerm ? this.changingTerm : "";
-      this.actualDefinition = this.changingDefinition ? this.changingDefinition : "";
-      // Modal hide/show events fire asynchronously. Mark the view for change detection
-      // so the card's display refreshes with the latest text.
-      this.cdr.markForCheck();
+      this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
+      this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
     });
 
     // scroll to bottom of cards list
@@ -129,20 +167,20 @@ export class CardComponent implements OnInit, AfterViewInit {
 
   @Input()
   get term(): string {
-    return this.actualTerm;
+    return this.actualTerm();
   }
   set term(value: string) {
     this.changingTerm = value;
-    this.actualTerm = value;
+    this.actualTerm.set(value);
   }
 
   @Input()
   get definition(): string {
-    return this.actualDefinition;
+    return this.actualDefinition();
   }
   set definition(value: string) {
     this.changingDefinition = value;
-    this.actualDefinition = value;
+    this.actualDefinition.set(value);
   }
 
   openEditModal() {
@@ -159,7 +197,6 @@ export class CardComponent implements OnInit, AfterViewInit {
 
       alert.instance.message = "Both fields cannot be empty";
       alert.instance.type = "danger";
-      alert.instance.dismiss = true;
       alert.instance.spacingClass = "mt-4";
 
       this.emptyCardAlert = true;

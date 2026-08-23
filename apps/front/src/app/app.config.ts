@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
 import { provideHttpClient } from "@angular/common/http";
 import { provideRouter, withPreloading } from "@angular/router";
 import { provideAnimations } from "@angular/platform-browser/animations";
@@ -56,7 +56,7 @@ const quillConfig = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection(),
+    provideZonelessChangeDetection(),
     provideHttpClient(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideAnimations(),

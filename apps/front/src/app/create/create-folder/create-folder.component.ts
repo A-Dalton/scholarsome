@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faClone, faFolderPlus, faArrowUp, faFolderTree } from "@fortawesome/free-solid-svg-icons";
 import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
@@ -13,7 +13,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-create-folder",
   templateUrl: "./create-folder.component.html",
   styleUrls: ["./create-folder.component.scss"],
@@ -25,8 +25,7 @@ export class CreateFolderComponent implements OnInit {
     private readonly foldersService: FoldersService,
     private readonly router: Router,
     private readonly titleService: Title,
-    private readonly metaService: Meta,
-    private readonly cdr: ChangeDetectorRef
+    private readonly metaService: Meta
   ) {
     this.titleService.setTitle("Create a folder — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Create a new Scholarsome folder to contain your study sets. Scholarsome is the way studying was meant to be." });
@@ -44,11 +43,11 @@ export class CreateFolderComponent implements OnInit {
     subfolders: new FormGroup({})
   });
 
-  sets: Set[] = [];
-  folders: Folder[] = [];
+  sets = signal<Set[]>([]);
+  folders = signal<Folder[]>([]);
 
-  submitted = false;
-  loading = true;
+  submitted = signal(false);
+  loading = signal(true);
 
   protected readonly faClone = faClone;
   protected readonly faArrowUp = faArrowUp;
@@ -111,7 +110,7 @@ export class CreateFolderComponent implements OnInit {
     }
 
     this.createFolderForm.disable();
-    this.submitted = true;
+    this.submitted.set(true);
     this.createFolderForm.setErrors(null);
 
     const selectedSets: string[] = [];
@@ -147,7 +146,7 @@ export class CreateFolderComponent implements OnInit {
     } else {
       this.createFolderForm.enable();
       this.createFolderForm.setErrors({ httpError: true });
-      this.submitted = false;
+      this.submitted.set(false);
     }
   }
 
@@ -175,15 +174,11 @@ export class CreateFolderComponent implements OnInit {
         this.createFolderForm.setControl("subfolders", formSubfolders);
       }
 
-      this.sets = user.sets;
-      this.folders = user.folders;
+      this.sets.set(user.sets);
+      this.folders.set(user.folders);
 
-      this.loading = false;
+      this.loading.set(false);
       this.spinner.nativeElement.remove();
     }
-
-    // The user's sets and folders are loaded asynchronously. Mark the view for change
-    // detection so it re-renders with the loaded data.
-    this.cdr.markForCheck();
   }
 }

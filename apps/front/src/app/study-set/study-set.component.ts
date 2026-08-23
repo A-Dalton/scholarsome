@@ -1,12 +1,12 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ComponentRef,
   ElementRef,
   OnInit,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Set } from "@scholarsome/shared";
@@ -23,7 +23,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set",
   templateUrl: "./study-set.component.html",
   styleUrls: ["./study-set.component.scss"],
@@ -37,8 +37,7 @@ export class StudySetComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     private readonly setsService: SetsService,
-    private readonly convertingService: ConvertingService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly convertingService: ConvertingService
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -51,21 +50,21 @@ export class StudySetComponent implements OnInit {
 
   @ViewChild("quizletExportModal") quizletExportModal: QuizletExportModalComponent;
 
-  protected userIsAuthor = false;
-  protected isEditing = false;
+  protected userIsAuthor = signal(false);
+  protected isEditing = signal(false);
   protected setId: string | null;
 
-  protected author: string;
+  protected author = signal("");
 
   protected cards: ComponentRef<CardComponent>[] = [];
-  protected set: Set;
+  protected set = signal<Set | undefined>(undefined);
 
-  protected saveInProgress = false;
-  protected ankiExportInProgress = false;
-  protected csvExportInProgress = false;
-  protected mediaExportInProgress = false;
-  protected uploadTooLarge = false;
-  protected deleteClicked = false;
+  protected saveInProgress = signal(false);
+  protected ankiExportInProgress = signal(false);
+  protected csvExportInProgress = signal(false);
+  protected mediaExportInProgress = signal(false);
+  protected uploadTooLarge = signal(false);
+  protected deleteClicked = signal(false);
 
   // to disable clipboard button in share dropdown on non https
   protected isHttps = true;
@@ -86,67 +85,73 @@ export class StudySetComponent implements OnInit {
   protected readonly navigator = navigator;
   protected readonly window = window;
 
-  async exportSetToAnkiApkg() {
-    this.ankiExportInProgress = true;
+  openQuizletExport() {
+    if (this.set()) {
+      this.quizletExportModal.open(this.set()!);
+    }
+  }
 
-    const file = await this.convertingService.exportSetToAnkiApkg(this.set.id);
+  async exportSetToAnkiApkg() {
+    this.ankiExportInProgress.set(true);
+
+    const file = await this.convertingService.exportSetToAnkiApkg(this.set()!.id);
     if (!file) {
-      this.ankiExportInProgress = false;
+      this.ankiExportInProgress.set(false);
       return;
     }
 
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(file);
-    link.download = this.set.title + ".apkg";
+    link.download = this.set()!.title + ".apkg";
 
     document.body.appendChild(link);
     link.click();
 
     document.body.removeChild(link);
 
-    this.ankiExportInProgress = false;
+    this.ankiExportInProgress.set(false);
   }
 
   async exportSetToCsv() {
-    this.csvExportInProgress = true;
+    this.csvExportInProgress.set(true);
 
-    const file = await this.convertingService.exportSetToCsv(this.set.id);
+    const file = await this.convertingService.exportSetToCsv(this.set()!.id);
     if (!file) {
-      this.csvExportInProgress = false;
+      this.csvExportInProgress.set(false);
       return;
     }
 
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(file);
-    link.download = this.set.title + ".csv";
+    link.download = this.set()!.title + ".csv";
 
     document.body.appendChild(link);
     link.click();
 
     document.body.removeChild(link);
 
-    this.csvExportInProgress = false;
+    this.csvExportInProgress.set(false);
   }
 
   async exportSetMedia() {
-    this.mediaExportInProgress = true;
+    this.mediaExportInProgress.set(true);
 
-    const file = await this.convertingService.exportSetMedia(this.set.id);
+    const file = await this.convertingService.exportSetMedia(this.set()!.id);
     if (!file) {
-      this.mediaExportInProgress = false;
+      this.mediaExportInProgress.set(false);
       return;
     }
 
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(file);
-    link.download = this.set.title + ".zip";
+    link.download = this.set()!.title + ".zip";
 
     document.body.appendChild(link);
     link.click();
 
     document.body.removeChild(link);
 
-    this.mediaExportInProgress = false;
+    this.mediaExportInProgress.set(false);
   }
 
   updateCardIndices() {
@@ -225,7 +230,7 @@ export class StudySetComponent implements OnInit {
   }
 
   editCards() {
-    this.isEditing = true;
+    this.isEditing.set(true);
 
     for (const [i, card] of this.cards.entries()) {
       card.instance.editingEnabled = true;
@@ -238,13 +243,13 @@ export class StudySetComponent implements OnInit {
   }
 
   async saveCards() {
-    if (!this.set) return;
+    if (!this.set()) return;
 
-    this.saveInProgress = true;
+    this.saveInProgress.set(true);
 
     for (const card of this.cards) {
       if (card.instance.term.length < 1 || card.instance.definition.length < 1) {
-        this.saveInProgress = false;
+        this.saveInProgress.set(false);
         return card.instance.notifyEmptyInput();
       }
     }
@@ -253,10 +258,10 @@ export class StudySetComponent implements OnInit {
       card.instance.editingEnabled = false;
     }
 
-    this.set.description = this.editDescription.nativeElement.value;
+    this.set()!.description = this.editDescription.nativeElement.value;
 
     const updated = await this.setsService.updateSet({
-      id: this.set.id,
+      id: this.set()!.id,
       title: this.editTitle.nativeElement.value,
       description: this.editDescription.nativeElement.value,
       private: this.privateCheck.nativeElement.checked,
@@ -275,9 +280,9 @@ export class StudySetComponent implements OnInit {
         card.instance.editingEnabled = true;
       }
 
-      this.isEditing = true;
-      this.uploadTooLarge = true;
-      this.saveInProgress = false;
+      this.isEditing.set(true);
+      this.uploadTooLarge.set(true);
+      this.saveInProgress.set(false);
       return;
     }
 
@@ -286,31 +291,31 @@ export class StudySetComponent implements OnInit {
         card.instance.editingEnabled = true;
       }
 
-      this.isEditing = true;
-      this.saveInProgress = false;
+      this.isEditing.set(true);
+      this.saveInProgress.set(false);
       return;
     }
-    this.set = updated;
+    this.set.set(updated);
 
     this.cards = [];
     this.cardsContainer.clear();
 
-    this.isEditing = false;
-    this.saveInProgress = false;
+    this.isEditing.set(false);
+    this.saveInProgress.set(false);
     this.viewCards();
   }
 
   viewCards() {
-    this.isEditing = false;
+    this.isEditing.set(false);
 
     // if viewCards is called because page is loading
     if (this.cards.length === 0) {
       this.cards = [];
       this.cardsContainer.clear();
 
-      if (this.set) {
+      if (this.set()) {
         // sort the cards by index
-        for (const card of this.set.cards.sort((a, b) => {
+        for (const card of this.set()!.cards.sort((a, b) => {
           return a.index - b.index;
         })) {
           this.addCard({
@@ -332,10 +337,10 @@ export class StudySetComponent implements OnInit {
           continue;
         }
 
-        const index = this.set.cards.findIndex((c) => c.index === this.cards[i].instance.originalIndex);
+        const index = this.set()!.cards.findIndex((c) => c.index === this.cards[i].instance.originalIndex);
 
-        this.cards[i].instance.term = this.set.cards[index].term;
-        this.cards[i].instance.definition = this.set.cards[index].definition;
+        this.cards[i].instance.term = this.set()!.cards[index].term;
+        this.cards[i].instance.definition = this.set()!.cards[index].definition;
 
         if (this.cards[i].instance.cardIndex !== this.cards[i].instance.originalIndex) {
           this.cards[i].instance.indexChangeEvent.emit({ newIndex: this.cards[i].instance.originalIndex });
@@ -346,15 +351,10 @@ export class StudySetComponent implements OnInit {
 
       this.updateCardIndices();
     }
-
-    // Re-rendering the cards and switching out of edit mode happens after
-    // the async save request resolves. Mark the view for change detection so
-    // the spinner is reset and the set/card data refresh is displayed.
-    this.cdr.markForCheck();
   }
 
   async deleteSet() {
-    await this.setsService.deleteSet(this.set.id);
+    await this.setsService.deleteSet(this.set()!.id);
     await this.router.navigate(["homepage"]);
   }
 
@@ -385,9 +385,9 @@ export class StudySetComponent implements OnInit {
 
     const user = await this.users.myUser();
 
-    this.set = set;
+    this.set.set(set);
 
-    if (user && user.id === set.authorId) this.userIsAuthor = true;
+    if (user && user.id === set.authorId) this.userIsAuthor.set(true);
 
     if (window.location.href.slice(0, 5) !== "https") {
       this.isHttps = false;
@@ -395,14 +395,9 @@ export class StudySetComponent implements OnInit {
 
     this.spinner.nativeElement.remove();
 
-    this.author = this.set.author.username;
+    this.author.set(this.set()!.author.username);
     this.container.nativeElement.removeAttribute("hidden");
 
     this.viewCards();
-
-    // The data above is loaded and assigned asynchronously. Mark the view for change
-    // detection so the next tick re-renders with the loaded data and the check passes
-    // without throwing ExpressionChangedAfterItHasBeenChecked.
-    this.cdr.markForCheck();
   }
 }

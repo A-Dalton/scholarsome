@@ -8,7 +8,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set-quiz-question",
   templateUrl: "./study-set-quiz-question.component.html",
   styleUrls: ["./study-set-quiz-question.component.scss"],

@@ -1,4 +1,4 @@
-<form [formGroup]="createFolderForm" [hidden]="loading" (ngSubmit)="submit()">
+<form [formGroup]="createFolderForm" [hidden]="loading()" (ngSubmit)="submit()">
   <div class="py-4 mx-md-5 mx-2">
     <div class="d-flex justify-content-between text-nowrap">
       <h1>
@@ -7,8 +7,8 @@
       </h1>
       <div>
         <a href="/handbook/usage/folders/creating-folders" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5 me-2"></fa-icon></a>
-        <button type="submit" class="btn btn-primary" [disabled]="submitted">
-          <span *ngIf="submitted" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <button type="submit" class="btn btn-primary" [disabled]="submitted()">
+          <span *ngIf="submitted()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           Create
         </button>
       </div>
@@ -23,7 +23,7 @@
               *ngIf="
               !createFolderForm.controls.name.valid &&
               !createFolderForm.disabled &&
-              (createFolderForm.controls.name.dirty || createFolderForm.controls.name.touched || submitted)"
+              (createFolderForm.controls.name.dirty || createFolderForm.controls.name.touched || submitted())"
             >You must provide a title for your folder.</div>
             <div
               class="form-text text-danger"
@@ -53,9 +53,9 @@
       </h2>
       <p>Select the folder that this folder should be placed within.</p>
     </div>
-    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="folders">
-      <p class="text-secondary" *ngIf="folders.length === 0">You currently do not have any folders.</p>
-      <div class="col-md-3 col-12" *ngFor="let folder of folders; let i = index;">
+    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="folders()">
+      <p class="text-secondary" *ngIf="folders().length === 0">You currently do not have any folders.</p>
+      <div class="col-md-3 col-12" *ngFor="let folder of folders(); let i = index;">
         <div
           class="card shadow-sm" role="button"
           (click)="toggleParentFolderSelection(folder.id)"
@@ -84,9 +84,9 @@
       </h2>
       <p>Select which folders should be placed within this folder.</p>
     </div>
-    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="folders">
-      <p class="text-secondary" *ngIf="folders.length === 0">You currently do not have any folders.</p>
-      <div class="col-md-3 col-12" *ngFor="let folder of folders; let i = index;">
+    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="folders()">
+      <p class="text-secondary" *ngIf="folders().length === 0">You currently do not have any folders.</p>
+      <div class="col-md-3 col-12" *ngFor="let folder of folders(); let i = index;">
         <div
           class="card shadow-sm" role="button"
           (click)="toggleSubfolderSelection(folder.id)"
@@ -115,9 +115,9 @@
       </h2>
       <p>Select which sets should be placed within this folder.</p>
     </div>
-    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="sets">
-      <p class="text-secondary" *ngIf="sets.length === 0">You currently do not have any sets.</p>
-      <div class="col-md-3 col-12" *ngFor="let set of sets; let i = index;">
+    <div class="row row-cols-1 row-cols-md-4 g-4 pb-4 pt-2" *ngIf="sets()">
+      <p class="text-secondary" *ngIf="sets().length === 0">You currently do not have any sets.</p>
+      <div class="col-md-3 col-12" *ngFor="let set of sets(); let i = index;">
         <div
           class="card shadow-sm" role="button"
           (click)="toggleSetSelection(set.id)"
@@ -142,8 +142,8 @@
       </div>
     </div>
     <div class="d-flex justify-content-end">
-      <button type="submit" class="btn btn-primary" [disabled]="submitted">
-        <span *ngIf="submitted" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <button type="submit" class="btn btn-primary" [disabled]="submitted()">
+        <span *ngIf="submitted()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Create
       </button>
     </div>

@@ -13,8 +13,8 @@
       </div>
       <div class="navbar-nav ms-auto mt-3 mt-md-0">
         <a href="https://github.com/hwgilbert16/scholarsome" target="_blank" class="d-flex align-items-center text-decoration-none text-black">
-          <div *ngIf="stargazers !== 0" class="fs-6 me-4 mb-2 mb-md-0 github">
-            <fa-icon [icon]="faGithub"></fa-icon>&nbsp;&nbsp;{{stargazers}} stars
+          <div *ngIf="stargazers() !== 0" class="fs-6 me-4 mb-2 mb-md-0 github">
+            <fa-icon [icon]="faGithub"></fa-icon>&nbsp;&nbsp;{{stargazers()}} stars
           </div>
         </a>
         <div>

@@ -6,7 +6,7 @@
 
 <div class="container-fluid set-view overflow-hidden" #container hidden>
   <div class="d-flex justify-content-center mt-2">
-    <h1 *ngIf="set">{{this.set.title}}</h1>
+    <h1 *ngIf="set()">{{this.set()!.title}}</h1>
   </div>
   <div class="d-flex justify-content-evenly">
     <div class="row-cols-sm-4 col-md-6 m-auto w-50">
@@ -17,22 +17,22 @@
       <a [routerLink]="['/study-set', setId, 'quiz']"><button type="button" class="btn btn-lg btn-light bg-white w-100 my-2 shadow-sm"><fa-icon [icon]="['far', 'pen-to-square']"></fa-icon> Quiz</button></a>
     </div>
   </div>
-  <div class="mt-4 d-flex justify-content-between align-items-center" *ngIf="set">
+  <div class="mt-4 d-flex justify-content-between align-items-center" *ngIf="set()">
     <div class="d-flex align-items-center">
-      <a [routerLink]="['/profile', set.authorId]"><button type="button" class="btn btn-light bg-white shadow-sm"><fa-icon [icon]="['far', 'user']"></fa-icon> Created by <span class="fw-bold">{{author}}</span></button></a>
-      <fa-icon *ngIf="set.private" [icon]="['far', 'eye-slash']" class="fs-5 ms-3"></fa-icon>
+      <a [routerLink]="['/profile', set()!.authorId]"><button type="button" class="btn btn-light bg-white shadow-sm"><fa-icon [icon]="['far', 'user']"></fa-icon> Created by <span class="fw-bold">{{author()}}</span></button></a>
+      <fa-icon *ngIf="set()!.private" [icon]="['far', 'eye-slash']" class="fs-5 ms-3"></fa-icon>
     </div>
     <p class="fs-5 fw-semibold mt-3">{{this.cards.length}} term{{this.cards.length > 1 ? 's' : ''}} in this set</p>
   </div>
-  <div *ngIf="set">
-    <p class="text-secondary text-wrap text-break">{{set.description}}</p>
+  <div *ngIf="set()">
+    <p class="text-secondary text-wrap text-break">{{set()!.description}}</p>
   </div>
   <hr>
   <div class="container-fluid">
     <div class="d-flex justify-content-end align-items-center">
       <div>
-        <div class="btn-group me-1" *ngIf="set" [hidden]="isEditing">
-          <button [disabled]="set.private" type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+        <div class="btn-group me-1" *ngIf="set()" [hidden]="isEditing()">
+          <button [disabled]="set()!.private" type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
             <fa-icon [icon]="faShareFromSquare"></fa-icon>
             Share
           </button>
@@ -50,7 +50,7 @@
             </div>
           </div>
         </div>
-        <div class="btn-group me-1" [hidden]="isEditing">
+        <div class="btn-group me-1" [hidden]="isEditing()">
           <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
             <fa-icon [icon]="faFileExport"></fa-icon>
             Export
@@ -60,70 +60,70 @@
               <fa-icon [icon]="faQuestionCircle" class="ms-3 fs-5"></fa-icon>
             </a>
             <div class="dropdown-divider"></div>
-            <li><a class="dropdown-item" (click)="this.quizletExportModal.open(set)">
+            <li><a class="dropdown-item" (click)="openQuizletExport()">
               <fa-icon [icon]="faQ" class="quizlet-color"></fa-icon>
               To Quizlet (.txt)
             </a></li>
-            <li><a class="dropdown-item" [ngClass]="{'disabled': ankiExportInProgress}" (click)="exportSetToAnkiApkg()">
-              <span *ngIf="ankiExportInProgress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            <li><a class="dropdown-item" [ngClass]="{'disabled': ankiExportInProgress()}" (click)="exportSetToAnkiApkg()">
+              <span *ngIf="ankiExportInProgress()" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
               <fa-icon [icon]="faStar" class="anki-color"></fa-icon>
               To Anki (.apkg)
             </a></li>
-            <li><a class="dropdown-item csv-dropdown" [ngClass]="{'disabled': csvExportInProgress}" (click)="exportSetToCsv()">
-              <span *ngIf="csvExportInProgress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            <li><a class="dropdown-item csv-dropdown" [ngClass]="{'disabled': csvExportInProgress()}" (click)="exportSetToCsv()">
+              <span *ngIf="csvExportInProgress()" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
               <fa-icon [icon]="faFileCsv"></fa-icon>
               <span class="csv-dropdown-text">To CSV (.csv)</span>
             </a></li>
-            <li><a class="dropdown-item" [ngClass]="{'disabled': mediaExportInProgress}" (click)="exportSetMedia()">
-              <span *ngIf="mediaExportInProgress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            <li><a class="dropdown-item" [ngClass]="{'disabled': mediaExportInProgress()}" (click)="exportSetMedia()">
+              <span *ngIf="mediaExportInProgress()" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
               <fa-icon [icon]="faImages"></fa-icon>
               Media (.zip)
             </a></li>
           </ul>
         </div>
-        <button type="submit" class="btn btn-primary" [hidden]="isEditing || !userIsAuthor" (click)="editCards()">
+        <button type="submit" class="btn btn-primary" [hidden]="isEditing() || !userIsAuthor()" (click)="editCards()">
           <fa-icon [icon]="faPencil"></fa-icon>
           Edit
         </button>
         <div class="d-flex align-items-center">
-          <div class="text-danger" *ngIf="uploadTooLarge">The upload size cannot exceed 30 megabytes.</div>
-          <button type="submit" class="btn btn-primary me-2" *ngIf="isEditing" [disabled]="saveInProgress" (click)="saveCards()">
-            <span *ngIf="saveInProgress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+          <div class="text-danger" *ngIf="uploadTooLarge()">The upload size cannot exceed 30 megabytes.</div>
+          <button type="submit" class="btn btn-primary me-2" *ngIf="isEditing()" [disabled]="saveInProgress()" (click)="saveCards()">
+            <span *ngIf="saveInProgress()" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
             <fa-icon [icon]="faSave"></fa-icon>
             Save
           </button>
-          <button type="submit" class="btn btn-secondary" *ngIf="isEditing" [disabled]="saveInProgress" (click)="viewCards(); deleteClicked = false; uploadTooLarge = false;">
+          <button type="submit" class="btn btn-secondary" *ngIf="isEditing()" [disabled]="saveInProgress()" (click)="viewCards(); deleteClicked.set(false); uploadTooLarge.set(false);">
             <fa-icon [icon]="faCancel"></fa-icon>
             Cancel
           </button>
         </div>
       </div>
     </div>
-    <div *ngIf="set" [hidden]="!isEditing">
+    <div *ngIf="set()" [hidden]="!isEditing()">
       <div class="w-50 mt-3">
         <label for="edit-title" class="form-label">Title</label>
-        <input type="text" class="form-control" id="edit-title" [value]="set.title" #editTitle>
+        <input type="text" class="form-control" id="edit-title" [value]="set()!.title" #editTitle>
       </div>
       <div class="w-50 mt-3">
         <label for="edit-description" class="form-label">Description</label>
-        <textarea class="form-control" id="edit-description" [value]="set.description" #editDescription></textarea>
+        <textarea class="form-control" id="edit-description" [value]="set()!.description" #editDescription></textarea>
       </div>
       <div class="mb-2 form-check mt-3">
-        <input type="checkbox" class="form-check-input" id="privateCheck" [checked]="set.private" #privateCheck>
+        <input type="checkbox" class="form-check-input" id="privateCheck" [checked]="set()!.private" #privateCheck>
         <label class="form-check-label" for="privateCheck">Private set</label>
       </div>
       <div class="mt-3 mb-5">
-        <button type="button" class="btn btn-danger" [hidden]="deleteClicked" (click)="deleteClicked = true">
+        <button type="button" class="btn btn-danger" [hidden]="deleteClicked()" (click)="deleteClicked.set(true)">
           <fa-icon [icon]="faTrashCan"></fa-icon>
           Delete this set
         </button>
-        <div [hidden]="!deleteClicked">
+        <div [hidden]="!deleteClicked()">
           <div class="d-flex">
             <button type="button" class="btn btn-danger me-2" (click)="deleteSet()">
               <fa-icon [icon]="faTrashCan"></fa-icon>
               Confirm
             </button>
-            <button type="button" class="btn btn-outline-secondary" (click)="deleteClicked = false">
+            <button type="button" class="btn btn-outline-secondary" (click)="deleteClicked.set(false)">
               <fa-icon [icon]="faCancel"></fa-icon>
               Cancel
             </button>
@@ -132,7 +132,7 @@
       </div>
     </div>
     <div>
-      <div class="container-fluid" [hidden]="!isEditing">
+      <div class="container-fluid" [hidden]="!isEditing()">
         <div class="row">
           <div class="card bg-white">
             <div class="card-body d-flex justify-content-center mt-2 fs-4 new-card" (click)="addCard({ editingEnabled: true, isSaved: false })">
@@ -142,7 +142,7 @@
         </div>
       </div>
       <div #cardsContainer></div>
-      <div class="container-fluid" [hidden]="!isEditing">
+      <div class="container-fluid" [hidden]="!isEditing()">
         <div class="row">
           <div class="card my-3 bg-white">
             <div class="card-body d-flex justify-content-center mt-2 fs-4 new-card" (click)="addCard({ editingEnabled: true, isSaved: false })">
