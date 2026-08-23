@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
 import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -20,12 +21,15 @@ export class QuizletImportModalComponent {
   constructor(
     private readonly bsModalService: BsModalService,
     private readonly convertingService: ConvertingService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.clicked.set(false);
-      this.response.set("");
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.clicked.set(false);
+          this.response.set("");
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;

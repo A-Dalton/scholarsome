@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
@@ -19,12 +20,15 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 export class QuizletExportModalComponent {
   constructor(
     private readonly bsModalService: BsModalService,
-    private readonly convertingService: ConvertingService
+    private readonly convertingService: ConvertingService,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.clicked.set(false);
-      this.error.set(false);
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.clicked.set(false);
+          this.error.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;

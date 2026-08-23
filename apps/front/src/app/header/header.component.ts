@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, signal } from "@angular/core";
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, OnInit, ViewChild, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { RouterLinkWithHref } from "@angular/router";
@@ -12,6 +12,7 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { DeviceDetectorService } from "ngx-device-detector";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { faQ, faArrowRightFromBracket, faStar, faFileCsv, faGear, faFolder, faClone, faUser, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { SharedService } from "../shared/shared.service";
 import { ThemeService } from "../shared/theme.service";
@@ -53,7 +54,7 @@ import { ResendEmailComponent } from "./resend-email/resend-email.component";
     CsvImportModalComponent
   ]
 })
-export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HeaderComponent implements OnInit, AfterViewInit {
   @ViewChild("ankiImport") ankiImportModal: AnkiImportModalComponent;
   @ViewChild("quizletImport") quizletImportModal: QuizletImportModalComponent;
   @ViewChild("setPassword") setPasswordModal: SetPasswordModalComponent;
@@ -117,6 +118,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly sanitizer: DomSanitizer,
     private readonly usersService: UsersService,
     private readonly themeService: ThemeService,
+    private readonly destroyRef: DestroyRef,
     public readonly cookieService: CookieService
   ) {}
 
@@ -159,44 +161,51 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
         .then((r) => this.updateAvailable.set(r));
     this.sharedService.getReleaseUrl().then((r) => this.releaseUrl.set(r));
 
-    this.router.events.subscribe(async (e) => {
-      if (e instanceof NavigationEnd) {
-        this.hidden.set(this.router.url === "/" || this.router.url === "/reset");
+    this.router.events
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(async (e) => {
+          if (e instanceof NavigationEnd) {
+            this.hidden.set(this.router.url === "/" || this.router.url === "/reset");
 
-        if (!this.hidden() && this.signedIn()) {
-          const user = await this.usersService.myUser();
+            if (!this.hidden() && this.signedIn()) {
+              const user = await this.usersService.myUser();
 
-          // if this user was authenticated and is now no longer authenticated, sign them out
-          if (this.user() && !user) {
-            await this.authService.logout();
-            await this.router.navigate([""]);
-          } else if (user) {
-            this.user.set(user);
+              // if this user was authenticated and is now no longer authenticated, sign them out
+              if (this.user() && !user) {
+                await this.authService.logout();
+                await this.router.navigate([""]);
+              } else if (user) {
+                this.user.set(user);
+              }
+            }
           }
+        });
 
-          this.sharedService.avatarUpdateEvent.asObservable().subscribe(async () => {
-            await this.viewAvatar();
-          });
-        }
-      }
-    });
+    // Keep the avatar fresh when it changes elsewhere (e.g. after the user edits it).
+    // Subscribed once here rather than re-subscribing on every navigation (which would
+    // leak/accumulate subscriptions).
+    this.sharedService.avatarUpdateEvent
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.viewAvatar());
 
-    this.modalService.modal.subscribe((e) => {
-      switch (e) {
-        case "register-open":
-          this.modalRef = this.registerModal.open();
-          break;
-        case "login-open":
-          this.modalRef = this.loginModal.open();
-          break;
-        case "set-password-open":
-          this.modalRef = this.setPasswordModal.open();
-          break;
-        case "forgot-password-open":
-          this.modalRef = this.forgotPasswordModal.open();
-          break;
-      }
-    });
+    this.modalService.modal
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((e) => {
+          switch (e) {
+            case "register-open":
+              this.modalRef = this.registerModal.open();
+              break;
+            case "login-open":
+              this.modalRef = this.loginModal.open();
+              break;
+            case "set-password-open":
+              this.modalRef = this.setPasswordModal.open();
+              break;
+            case "forgot-password-open":
+              this.modalRef = this.forgotPasswordModal.open();
+              break;
+          }
+        });
 
     this.checkIfVerifiedInCookie();
 
@@ -210,22 +219,29 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // module preloading (PreloadAllModules), which would otherwise close the login dialog
     // right after it opens on first load. Only react to actual navigations.
     this.router.events
-        .pipe(filter((event) => event instanceof NavigationEnd))
+        .pipe(
+            filter((event) => event instanceof NavigationEnd),
+            takeUntilDestroyed(this.destroyRef)
+        )
         .subscribe(() => this.modalRef?.hide());
   }
 
   ngAfterViewInit() {
-    this.loginModal.loginEvent.subscribe(async () => {
-      this.signedIn.set(true);
-      this.checkIfVerifiedInCookie();
-      await this.viewAvatar();
-    });
+    this.loginModal.loginEvent
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(async () => {
+          this.signedIn.set(true);
+          this.checkIfVerifiedInCookie();
+          await this.viewAvatar();
+        });
 
-    this.registerModal.registerEvent.subscribe(async () => {
-      this.signedIn.set(true);
-      this.checkIfVerifiedInCookie();
-      await this.viewAvatar();
-    });
+    this.registerModal.registerEvent
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(async () => {
+          this.signedIn.set(true);
+          this.checkIfVerifiedInCookie();
+          await this.viewAvatar();
+        });
   }
 
   checkIfVerifiedInCookie() {
@@ -236,13 +252,5 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       this.verificationResult.set(cookie.includes("true"));
     }
-
-    this.sharedService.avatarUpdateEvent.subscribe(() => {
-      this.viewAvatar();
-    });
-  }
-
-  ngOnDestroy() {
-    this.modalService.modal.unsubscribe();
   }
 }

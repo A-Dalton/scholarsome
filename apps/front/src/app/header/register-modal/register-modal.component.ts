@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, TemplateRef, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, EventEmitter, Output, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
@@ -20,12 +21,15 @@ export class RegisterModalComponent {
     private readonly router: Router,
     private readonly authService: AuthService,
     private readonly bsModalService: BsModalService,
+    private readonly destroyRef: DestroyRef,
     public readonly modalService: ModalService
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.response.set(null);
-      this.clicked.set(false);
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.response.set(null);
+          this.clicked.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;

@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   Input,
@@ -12,6 +13,7 @@ import {
   ViewContainerRef,
   signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AlertComponent } from "../alert/alert.component";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -37,6 +39,7 @@ export class CardComponent implements OnInit, AfterViewInit {
     private readonly bsModalService: BsModalService,
     private readonly vps: ViewportScroller,
     private readonly deviceService: DeviceDetectorService,
+    private readonly destroyRef: DestroyRef,
     public readonly sanitizer: DomSanitizer
   ) {}
 
@@ -139,15 +142,19 @@ export class CardComponent implements OnInit, AfterViewInit {
 
     otherwise it's distracting to see changes in the background while typing
      */
-    this.bsModalService.onShow.subscribe(() => {
-      this.actualTerm.set(String(this.actualTerm()));
-      this.actualDefinition.set(String(this.actualDefinition()));
-    });
+    this.bsModalService.onShow
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.actualTerm.set(String(this.actualTerm()));
+          this.actualDefinition.set(String(this.actualDefinition()));
+        });
 
-    this.bsModalService.onHide.subscribe(() => {
-      this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
-      this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
+          this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
+        });
 
     // scroll to bottom of cards list
     if (this.editingEnabled) {

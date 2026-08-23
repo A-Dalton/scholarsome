@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -17,12 +18,15 @@ export class SetPasswordModalComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly bsModalService: BsModalService,
-    private readonly modalService: ModalService
+    private readonly modalService: ModalService,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.notMatching.set(false);
-      this.clicked.set(false);
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.notMatching.set(false);
+          this.clicked.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;

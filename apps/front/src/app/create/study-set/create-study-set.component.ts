@@ -3,12 +3,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   ComponentRef,
-  ElementRef, OnInit,
+  ElementRef,
+  OnDestroy,
+  OnInit,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
   signal
 } from "@angular/core";
+import { Subscription } from "rxjs";
 import { Router } from "@angular/router";
 import { SetsService } from "../../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
@@ -29,7 +32,16 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
   styleUrls: ["./create-study-set.component.scss"],
   imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
-export class CreateStudySetComponent implements OnInit, AfterViewInit {
+export class CreateStudySetComponent implements OnInit, AfterViewInit, OnDestroy {
+  // Track per-card subscriptions so they can be cleaned up when cards or the
+  // component are destroyed (the dynamically created cards emit from EventEmitters,
+  // which would otherwise leak).
+  protected cardSubscriptions: Subscription[] = [];
+
+  // Whether the component is no longer active. Guards async callbacks so they
+  // don't mutate destroyed component state.
+  private destroyed = false;
+
   constructor(
     private readonly router: Router,
     private readonly sets: SetsService,
@@ -201,42 +213,52 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
     card.instance.definition = config?.definition ? config.definition : "";
     card.instance.editingEnabled = true;
 
-    card.instance.deleteCardEvent.subscribe((e) => {
-      if (this.cardContainer.length > 1) {
-        const index = this.cardComponents.map((c) => c.index).indexOf(e);
+    this.cardSubscriptions.push(
+        card.instance.deleteCardEvent.subscribe((e) => {
+          if (this.destroyed) return;
+          if (this.cardContainer.length > 1) {
+            const index = this.cardComponents.map((c) => c.index).indexOf(e);
 
-        this.cardContainer.get(e)?.destroy();
+            this.cardContainer.get(e)?.destroy();
 
-        this.cardComponents.splice(index, 1);
+            this.cardComponents.splice(index, 1);
 
-        this.cards = this.cards.filter((c) => c.cardIndexRef() !== index);
+            this.cards = this.cards.filter((c) => c.cardIndexRef() !== index);
 
-        this.updateCardIndices();
-      }
-    });
+            this.updateCardIndices();
+          }
+        })
+    );
 
-    card.instance.moveCardEvent.subscribe((e) => {
-      if (this.cardContainer.length > 1) {
-        const cardIndex = this.cardComponents.map((c) => c.index).indexOf(e.index);
+    this.cardSubscriptions.push(
+        card.instance.moveCardEvent.subscribe((e) => {
+          if (this.destroyed) return;
+          if (this.cardContainer.length > 1) {
+            const cardIndex = this.cardComponents.map((c) => c.index).indexOf(e.index);
 
-        this.cardContainer.move(this.cardComponents[cardIndex].component.hostView, e.index + e.direction);
+            this.cardContainer.move(this.cardComponents[cardIndex].component.hostView, e.index + e.direction);
 
-        this.cardComponents[this.cardComponents.map((c) => c.index).indexOf(e.index + e.direction)].index = e.index;
-        this.cardComponents[cardIndex].index = e.index + e.direction;
+            this.cardComponents[this.cardComponents.map((c) => c.index).indexOf(e.index + e.direction)].index = e.index;
+            this.cardComponents[cardIndex].index = e.index + e.direction;
 
-        this.cardComponents.sort((a, b) => a.index - b.index);
+            this.cardComponents.sort((a, b) => a.index - b.index);
 
-        this.updateCardIndices();
-      }
-    });
+            this.updateCardIndices();
+          }
+        })
+    );
 
-    card.instance.editCardEvent.subscribe(() => {
-      this.saveProgress();
-    });
+    this.cardSubscriptions.push(
+        card.instance.editCardEvent.subscribe(() => {
+          this.saveProgress();
+        })
+    );
 
-    card.instance.addCardEvent.subscribe(() => {
-      this.addCard();
-    });
+    this.cardSubscriptions.push(
+        card.instance.addCardEvent.subscribe(() => {
+          this.addCard();
+        })
+    );
 
     this.cardComponents.push({
       component: card,
@@ -252,6 +274,14 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
     this.saveProgress();
 
     this.updateCardIndices();
+  }
+
+  ngOnDestroy() {
+    this.destroyed = true;
+    for (const sub of this.cardSubscriptions) {
+      sub.unsubscribe();
+    }
+    this.cardSubscriptions = [];
   }
 
   ngOnInit() {

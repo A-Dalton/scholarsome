@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, TemplateRef, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NgForm, FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
@@ -19,13 +20,16 @@ export class AnkiImportModalComponent {
   constructor(
     private readonly bsModalService: BsModalService,
     private readonly convertingService: ConvertingService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.file.set(null);
-      this.response.set("");
-      this.clicked.set(false);
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.file.set(null);
+          this.response.set("");
+          this.clicked.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;

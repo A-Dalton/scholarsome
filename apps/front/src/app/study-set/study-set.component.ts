@@ -3,11 +3,13 @@ import {
   Component,
   ComponentRef,
   ElementRef,
+  OnDestroy,
   OnInit,
   ViewChild,
   ViewContainerRef,
   signal
 } from "@angular/core";
+import { Subscription } from "rxjs";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Set } from "@scholarsome/shared";
 import { SetsService } from "../shared/http/sets.service";
@@ -29,7 +31,16 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
   styleUrls: ["./study-set.component.scss"],
   imports: [CommonModule, FontAwesomeModule, RouterLink, QuizletExportModalComponent]
 })
-export class StudySetComponent implements OnInit {
+export class StudySetComponent implements OnInit, OnDestroy {
+  // Track per-card subscriptions so they can be cleaned up when cards or the
+  // component are destroyed (the dynamically created cards emit from EventEmitters,
+  // which would otherwise leak).
+  protected cardSubscriptions: Subscription[] = [];
+
+  // Whether the component is no longer active. Guards async callbacks so they
+  // don't mutate destroyed component state.
+  private destroyed = false;
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly users: UsersService,
@@ -189,41 +200,52 @@ export class StudySetComponent implements OnInit {
     card.instance.term = opts.term ? opts.term : "";
     card.instance.definition = opts.definition ? opts.definition : "";
 
-    card.instance.deleteCardEvent.subscribe((e) => {
-      if (this.cardsContainer.length > 1) {
-        this.cardsContainer.get(e)?.destroy();
+    this.cardSubscriptions.push(
+        card.instance.deleteCardEvent.subscribe((e) => {
+          if (this.destroyed) return;
+          if (this.cardsContainer.length > 1) {
+            this.cardsContainer.get(e)?.destroy();
 
-        this.cards.splice(this.cards.map((c) => c.instance.cardIndex).indexOf(e), 1);
+            this.cards.splice(this.cards.map((c) => c.instance.cardIndex).indexOf(e), 1);
 
-        this.updateCardIndices();
-      }
-    });
+            this.updateCardIndices();
+          }
+        })
+    );
 
-    card.instance.moveCardEvent.subscribe((e) => {
-      if (this.cardsContainer.length > 1) {
-        this.cards.splice(card.instance.cardIndex + e.direction, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
+    this.cardSubscriptions.push(
+        card.instance.moveCardEvent.subscribe((e) => {
+          if (this.destroyed) return;
+          if (this.cardsContainer.length > 1) {
+            this.cards.splice(card.instance.cardIndex + e.direction, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
 
-        this.cardsContainer.move(card.hostView, e.index + e.direction);
-        card.instance.cardIndex = e.index + e.direction;
+            this.cardsContainer.move(card.hostView, e.index + e.direction);
+            card.instance.cardIndex = e.index + e.direction;
 
-        this.updateCardIndices();
-      }
-    });
+            this.updateCardIndices();
+          }
+        })
+    );
 
-    card.instance.indexChangeEvent.subscribe((e) => {
-      if (this.cards.length > 1) {
-        this.cards.splice(e.newIndex, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
+    this.cardSubscriptions.push(
+        card.instance.indexChangeEvent.subscribe((e) => {
+          if (this.destroyed) return;
+          if (this.cards.length > 1) {
+            this.cards.splice(e.newIndex, 0, this.cards.splice(card.instance.cardIndex, 1)[0]);
 
-        this.cardsContainer.move(card.hostView, e.newIndex);
-        card.instance.cardIndex = e.newIndex;
+            this.cardsContainer.move(card.hostView, e.newIndex);
+            card.instance.cardIndex = e.newIndex;
 
-        this.updateCardIndices();
-      }
-    });
+            this.updateCardIndices();
+          }
+        })
+    );
 
-    card.instance.addCardEvent.subscribe(() => {
-      this.addCard({ editingEnabled: true, isSaved: false });
-    });
+    this.cardSubscriptions.push(
+        card.instance.addCardEvent.subscribe(() => {
+          this.addCard({ editingEnabled: true, isSaved: false });
+        })
+    );
 
     this.cards.push(card);
     this.updateCardIndices();
@@ -356,6 +378,14 @@ export class StudySetComponent implements OnInit {
   async deleteSet() {
     await this.setsService.deleteSet(this.set()!.id);
     await this.router.navigate(["homepage"]);
+  }
+
+  ngOnDestroy() {
+    this.destroyed = true;
+    for (const sub of this.cardSubscriptions) {
+      sub.unsubscribe();
+    }
+    this.cardSubscriptions = [];
   }
 
   async ngOnInit(): Promise<void> {

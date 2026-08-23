@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, OnDestroy, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FoldersService } from "../shared/http/folders.service";
 import { Folder } from "@scholarsome/shared";
 import { Set, Folder as PrismaFolder } from "@scholarsome/prisma";
@@ -19,7 +20,10 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
   styleUrls: ["./folder.component.scss"],
   imports: [CommonModule, FontAwesomeModule, RouterLink, ReactiveFormsModule]
 })
-export class FolderComponent implements OnInit {
+export class FolderComponent implements OnInit, OnDestroy {
+  // Whether the component is no longer active. Guards async callbacks so they
+  // don't mutate destroyed component state.
+  private destroyed = false;
   constructor(
     private readonly foldersService: FoldersService,
     private readonly usersService: UsersService,
@@ -27,7 +31,8 @@ export class FolderComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly metaService: Meta,
-    private readonly titleService: Title
+    private readonly titleService: Title,
+    private readonly destroyRef: DestroyRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
@@ -285,31 +290,39 @@ export class FolderComponent implements OnInit {
 
     // for when someone clicks on a folder from within another folder
     // we need to manually trigger the change in the page
-    this.route.url.subscribe(async () => {
-      if (this.router.getCurrentNavigation()?.previousNavigation) {
-        this.loading.set(true);
+    this.route.url
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(async () => {
+          if (this.destroyed) return;
 
-        const folderId = this.route.snapshot.paramMap.get("folderId");
-        if (!folderId) {
-          await this.router.navigate(["404"]);
-          return;
-        }
+          if (this.router.getCurrentNavigation()?.previousNavigation) {
+            this.loading.set(true);
 
-        this.folderId = folderId;
-        this.username.set(this.folder()!.author.username);
+            const folderId = this.route.snapshot.paramMap.get("folderId");
+            if (!folderId) {
+              await this.router.navigate(["404"]);
+              return;
+            }
 
-        await this.view();
+            this.folderId = folderId;
+            this.username.set(this.folder()!.author.username);
 
-        this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
-        this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
+            await this.view();
 
-        this.loading.set(false);
-      }
-    });
+            this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
+            this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
+
+            this.loading.set(false);
+          }
+        });
 
     this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
     this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
 
     this.loading.set(false);
+  }
+
+  ngOnDestroy() {
+    this.destroyed = true;
   }
 }
