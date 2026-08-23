@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { CookieService } from "ngx-cookie";
+import { CookieService } from "ngx-cookie-service";
 
 export type Theme = "light" | "dark";
 
@@ -25,7 +25,7 @@ export class ThemeService {
    */
   applyTheme(theme: Theme): void {
     // persist the choice
-    this.cookieService.put(this.themeCookie, theme);
+    this.cookieService.set(this.themeCookie, theme);
 
     const root = document.documentElement;
 

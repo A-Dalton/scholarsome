@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, signal } from "@angular/core";
 import { ModalService } from "../shared/modal.service";
-import { CookieService } from "ngx-cookie";
+import { CookieService } from "ngx-cookie-service";
 import { Router } from "@angular/router";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faUpRightFromSquare, faArrowRight } from "@fortawesome/free-solid-svg-icons";
