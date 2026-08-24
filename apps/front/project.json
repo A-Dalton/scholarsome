@@ -4,11 +4,13 @@
   "projectType": "application",
   "sourceRoot": "apps/front/src",
   "prefix": "scholarsome",
+  "tags": ["scope:client"],
   "targets": {
     "build": {
       "executor": "@ngx-env/builder:application",
       "builder": "@ngx-env/builder:application",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/front",
         "index": "apps/front/src/index.html",
@@ -61,11 +63,15 @@
           "sourceMap": true,
           "namedChunks": true
         }
-      },
-      "defaultConfiguration": "production"
+      }
     },
     "serve": {
       "executor": "@ngx-env/builder:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "front:build:development",
+        "proxyConfig": "apps/front/proxy.conf.json"
+      },
       "configurations": {
         "production": {
           "buildTarget": "front:build:production"
@@ -73,11 +79,6 @@
         "development": {
           "buildTarget": "front:build:development"
         }
-      },
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "front:build:development",
-        "proxyConfig": "apps/front/proxy.conf.json"
       }
     },
     "extract-i18n": {
@@ -97,6 +98,5 @@
         "passWithNoTests": true
       }
     }
-  },
-  "tags": ["scope:client"]
+  }
 }

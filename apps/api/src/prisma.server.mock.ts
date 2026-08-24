@@ -5,6 +5,5 @@
 // is always mocked), so a minimal stub is sufficient here.
 
 export class PrismaClient {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
