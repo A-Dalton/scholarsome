@@ -85,7 +85,7 @@
     "ioredis": "^5.3.1",
     "joi": "^17.13.4",
     "katex": "^0.16.10",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.2.0",
     "nest-winston": "^1.10.2",
     "ng-recaptcha": "^13.2.1",
     "ngx-bootstrap": "^22.0.0",
