@@ -29,6 +29,11 @@
           "prefix": "SCHOLARSOME_",
           "define": "import.meta.env"
         },
+        "stylePreprocessorOptions": {
+          "sass": {
+            "silenceDeprecations": ["import", "if-function", "global-builtin", "color-functions"]
+          }
+        },
         "allowedCommonJsDependencies": ["@prisma/client", "validator"]
       },
       "configurations": {
