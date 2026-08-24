@@ -76,7 +76,7 @@ async function bootstrap() {
       })
   );
 
-  app.setGlobalPrefix("api", { exclude: ["assets/images/(.*)"] });
+  app.setGlobalPrefix("api", { exclude: ["assets/images/{*path}"] });
 
   app.use(cookieParser());
   app.use(compression());

@@ -33,7 +33,7 @@ import { TasksService } from "./providers/tasks.service";
         cacheControl: true,
         maxAge: 31536000
       },
-      exclude: ["/api/(.*)", "/handbook/(.*)", "/sitemaps/(.*)", "/sitemap.xml"]
+      exclude: ["/api/{*path}", "/handbook/{*path}", "/sitemaps/{*path}", "/sitemap.xml"]
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "docs"),
