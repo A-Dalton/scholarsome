@@ -11,6 +11,11 @@ RUN npm rebuild bcrypt --build-from-source
 RUN npm rebuild better-sqlite3 --build-from-source
 
 COPY . .
+
+# prisma generate requires DATABASE_URL to be resolvable via prisma.config.ts,
+# but the build stage never connects to a database, so a placeholder is sufficient.
+ENV DATABASE_URL="mysql://scholarsome:scholarsome@localhost:3306/scholarsome"
+
 RUN npm run generate
 RUN npm run build
 
