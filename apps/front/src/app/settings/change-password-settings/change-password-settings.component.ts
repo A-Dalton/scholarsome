@@ -1,36 +1,40 @@
-import { Component } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
+import { CommonModule } from "@angular/common";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-change-password-settings",
   templateUrl: "./change-password-settings.component.html",
-  styleUrls: ["./change-password-settings.component.scss"]
+  styleUrls: ["./change-password-settings.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class ChangePasswordSettingsComponent {
   constructor(
     private readonly authService: AuthService
   ) {}
 
-  protected clicked = false;
-  protected error = false;
-  protected invalidPassword = false;
-  protected notMatching = false;
-  protected rateLimit = false;
-  protected success = false;
+  protected clicked = signal(false);
+  protected error = signal(false);
+  protected invalidPassword = signal(false);
+  protected notMatching = signal(false);
+  protected rateLimit = signal(false);
+  protected success = signal(false);
 
   async submit(form: NgForm) {
-    this.clicked = true;
-    this.error = false;
-    this.invalidPassword = false;
-    this.notMatching = false;
-    this.rateLimit = false;
-    this.success = false;
+    this.clicked.set(true);
+    this.error.set(false);
+    this.invalidPassword.set(false);
+    this.notMatching.set(false);
+    this.rateLimit.set(false);
+    this.success.set(false);
 
     if (form.value["newPassword"] !== form.value["confirmNewPassword"]) {
-      this.notMatching = true;
-      this.clicked = false;
+      this.notMatching.set(true);
+      this.clicked.set(false);
       return;
     }
 
@@ -39,21 +43,21 @@ export class ChangePasswordSettingsComponent {
         form.value["newPassword"]
     );
 
-    this.clicked = false;
+    this.clicked.set(false);
 
     switch (response) {
       case ApiResponseOptions.Success:
-        this.success = true;
+        this.success.set(true);
         form.resetForm();
         break;
       case ApiResponseOptions.Ratelimit:
-        this.rateLimit = true;
+        this.rateLimit.set(true);
         break;
       case ApiResponseOptions.Incorrect:
-        this.invalidPassword = true;
+        this.invalidPassword.set(true);
         break;
       default:
-        this.error = true;
+        this.error.set(true);
         break;
     }
   }

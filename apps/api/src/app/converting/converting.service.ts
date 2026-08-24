@@ -6,8 +6,8 @@ import * as fs from "fs";
 import * as path from "path";
 import AdmZip = require("adm-zip");
 import { parse } from "csv-parse/sync";
-import * as Database from "better-sqlite3";
-import * as sharp from "sharp";
+import Database from "better-sqlite3";
+import sharp from "sharp";
 import { StorageService } from "../providers/storage/storage.service";
 
 @Injectable()
@@ -486,7 +486,7 @@ export class ConvertingService {
 
       try {
         mediaLegend = Object.entries(JSON.parse(zip.readFile("media").toString()));
-      } catch (e) {
+      } catch {
         mediaLegend = null;
       }
 
@@ -520,7 +520,7 @@ export class ConvertingService {
                     extension === "tiff" ||
                     extension === "webp"
                   ) {
-                    file = await sharp(zip.readFile(mediaLegend[x][0])).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer();
+                    file = Buffer.from(await sharp(zip.readFile(mediaLegend[x][0])).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer());
                     extension = ".jpeg";
                   } else {
                     extension = mediaLegend[x][1].split(".").pop();
@@ -565,7 +565,7 @@ export class ConvertingService {
     try {
       // eslint-disable-next-line camelcase
       parsed = parse(file.buffer.toString().replace(/\r\n/g, "\n"), { skip_empty_lines: false });
-    } catch (e) {
+    } catch {
       return false;
     }
 

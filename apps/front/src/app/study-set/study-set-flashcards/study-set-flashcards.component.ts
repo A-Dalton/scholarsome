@@ -1,18 +1,23 @@
-import { Component, HostListener, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from "@angular/core";
 import { SetsService } from "../../shared/http/sets.service";
-import { ActivatedRoute, Router } from "@angular/router";
-import { Card } from "@prisma/client";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { Card } from "@scholarsome/prisma";
 import { BsModalRef } from "ngx-bootstrap/modal";
 import { faThumbsUp, faCake } from "@fortawesome/free-solid-svg-icons";
 import { DomSanitizer, Meta, Title } from "@angular/platform-browser";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { CardMistakesService } from "../../shared/http/card-mistakes.service";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
-  styleUrls: ["./study-set-flashcards.component.scss"]
+  styleUrls: ["./study-set-flashcards.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterLink]
 })
 export class StudySetFlashcardsComponent implements OnInit {
   constructor(
@@ -51,9 +56,9 @@ export class StudySetFlashcardsComponent implements OnInit {
   // The current side being shown
   protected side: string;
   // The text being shown to the user
-  protected sideText = "";
+  protected sideText = signal("");
   // Displayed in bottom right showing the progress
-  protected remainingCards = "";
+  protected remainingCards = signal("");
 
   // Whether the card has been flipped or not
   protected flipped = false;
@@ -104,7 +109,7 @@ export class StudySetFlashcardsComponent implements OnInit {
   }
 
   updateIndex() {
-    this.remainingCards = `${this.index + 1}/${this.cards.length}`;
+    this.remainingCards.set(`${this.index + 1}/${this.cards.length}`);
   }
 
   incrementLearntCount(): void {
@@ -127,10 +132,10 @@ export class StudySetFlashcardsComponent implements OnInit {
     // delayed to occur when text is the least visible during animation
     setTimeout(() => {
       if (this.side === "term") {
-        this.sideText = this.cards[this.index].definition;
+        this.sideText.set(this.cards[this.index].definition);
         this.side = "definition";
       } else {
-        this.sideText = this.cards[this.index].term;
+        this.sideText.set(this.cards[this.index].term);
         this.side = "term";
       }
     }, 150);
@@ -169,7 +174,7 @@ export class StudySetFlashcardsComponent implements OnInit {
 
         // reset the side to the prompt side for the next round
         this.side = this.answer === "definition" ? "term" : "definition";
-        this.sideText = this.cards[0][this.side as keyof Card] as string;
+        this.sideText.set(this.cards[0][this.side as keyof Card] as string);
       }
 
       this.flipped = false;
@@ -191,8 +196,9 @@ export class StudySetFlashcardsComponent implements OnInit {
       this.side = "definition";
     }
 
-    this.sideText =
-      this.answer === "definition" ? this.cards[this.index].term : this.cards[this.index].definition;
+    this.sideText.set(
+      this.answer === "definition" ? this.cards[this.index].term : this.cards[this.index].definition
+    );
   }
 
   beginFlashcards(form: NgForm) {
@@ -205,7 +211,7 @@ export class StudySetFlashcardsComponent implements OnInit {
       this.shufflingEnabled = true;
     }
 
-    this.sideText = this.cards[0][this.side as keyof Card] as string;
+    this.sideText.set(this.cards[0][this.side as keyof Card] as string);
     this.currentCard = this.cards[0];
   }
 

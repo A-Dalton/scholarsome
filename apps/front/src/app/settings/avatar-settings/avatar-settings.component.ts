@@ -1,12 +1,17 @@
-import { Component, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, signal } from "@angular/core";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { SharedService } from "../../shared/shared.service";
 import { UsersService } from "../../shared/http/users.service";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-avatar-settings",
   templateUrl: "./avatar-settings.component.html",
-  styleUrls: ["./avatar-settings.component.scss"]
+  styleUrls: ["./avatar-settings.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class AvatarSettingsComponent implements OnInit {
   constructor(
@@ -15,23 +20,23 @@ export class AvatarSettingsComponent implements OnInit {
     private readonly sharedService: SharedService
   ) {}
 
-  protected changeClicked = false;
-  protected changeError = false;
+  protected changeClicked = signal(false);
+  protected changeError = signal(false);
 
-  protected deleteClicked = false;
+  protected deleteClicked = signal(false);
 
   protected newAvatar: File;
-  protected existingAvatarUrl: SafeResourceUrl | null;
+  protected existingAvatarUrl = signal<SafeResourceUrl | null>(null);
 
   async submit() {
-    this.changeClicked = true;
-    this.changeError = false;
+    this.changeClicked.set(true);
+    this.changeError.set(false);
 
     const response = await this.usersService.setMyAvatar(this.newAvatar);
 
-    this.changeError = !response;
+    this.changeError.set(!response);
 
-    this.changeClicked = false;
+    this.changeClicked.set(false);
 
     await this.viewAvatar();
     this.sharedService.avatarUpdateEvent.next();
@@ -41,20 +46,20 @@ export class AvatarSettingsComponent implements OnInit {
     const avatar = await this.usersService.getMyAvatar(128, 128);
 
     if (avatar) {
-      this.existingAvatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(avatar));
+      this.existingAvatarUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(avatar)));
     } else {
-      this.existingAvatarUrl = null;
+      this.existingAvatarUrl.set(null);
     }
   }
 
   async deleteAvatar() {
-    this.deleteClicked = true;
+    this.deleteClicked.set(true);
 
     await this.usersService.deleteMyAvatar();
     this.sharedService.avatarUpdateEvent.next();
 
-    this.existingAvatarUrl = null;
-    this.deleteClicked = false;
+    this.existingAvatarUrl.set(null);
+    this.deleteClicked.set(false);
   }
 
   protected onFileUpload(event: Event): void {

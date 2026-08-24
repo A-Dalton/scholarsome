@@ -4,14 +4,14 @@
   </div>
 </div>
 
-<div class="h-100 container-fluid profile-container mt-4" *ngIf="user">
+<div class="h-100 container-fluid profile-container mt-4" *ngIf="user()">
   <div>
     <div class="d-flex align-items-center text-wrap">
-      <fa-icon *ngIf="!avatarUrl" [icon]="['far', 'user']" class="display-2"></fa-icon>
-      <img *ngIf="avatarUrl" [src]="avatarUrl" class="avatar">
-      <div class="display-5 fw-bold ms-3 text-break">{{user.username}}</div>
+      <fa-icon *ngIf="!avatarUrl()" [icon]="['far', 'user']" class="display-2"></fa-icon>
+      <img *ngIf="avatarUrl()" [src]="avatarUrl()" class="avatar">
+      <div class="display-5 fw-bold ms-3 text-break">{{user()!.username}}</div>
     </div>
-    <p class="text-secondary fs-4 mt-4">Member since {{registrationDate}}</p>
+    <p class="text-secondary fs-4 mt-4">Member since {{registrationDate()}}</p>
   </div>
   <div class="mt-5 mb-4">
     <h2>
@@ -19,7 +19,7 @@
       Study sets
     </h2>
     <div class="row row-cols-1 row-cols-md-4 mt-3 g-4">
-      <div class="col-md-3" *ngFor="let set of user.sets;">
+      <div class="col-md-3" *ngFor="let set of user()!.sets;">
         <div class="mb-2 h-100" [routerLink]="['/study-set', set.id]">
           <div class="card shadow-sm h-100">
             <div class="card-body">
@@ -39,7 +39,7 @@
       Folders
     </h2>
     <div class="row row-cols-1 row-cols-md-4 mt-3 g-4">
-      <div class="col-md-3" *ngFor="let folder of user.folders;">
+      <div class="col-md-3" *ngFor="let folder of user()!.folders;">
         <div class="mb-2 h-100" [routerLink]="['/folder', folder.id]">
           <div class="card shadow-sm h-100">
             <div class="card-body">

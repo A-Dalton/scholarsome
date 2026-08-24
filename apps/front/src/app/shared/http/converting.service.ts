@@ -30,7 +30,7 @@ export class ConvertingService {
           "/" +
           encodeURIComponent(cardDiscriminator), { responseType: "blob" })
       );
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -49,7 +49,7 @@ export class ConvertingService {
 
     try {
       file = await lastValueFrom(this.http.get("/api/sets/converting/export/anki/" + setId, { responseType: "blob" }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -68,7 +68,7 @@ export class ConvertingService {
 
     try {
       file = await lastValueFrom(this.http.get("/api/sets/converting/export/csv/" + setId, { responseType: "blob" }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -87,7 +87,7 @@ export class ConvertingService {
 
     try {
       file = await lastValueFrom(this.http.get("/api/sets/converting/export/media/" + setId, { responseType: "blob" }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -125,7 +125,7 @@ export class ConvertingService {
         cardDiscriminator: body.cardDiscriminator,
         set: body.set
       }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -162,7 +162,7 @@ export class ConvertingService {
 
     try {
       set = await lastValueFrom(this.http.post<ApiResponse<Set>>("/api/sets/converting/import/apkg", formData));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -197,7 +197,7 @@ export class ConvertingService {
 
     try {
       set = await lastValueFrom(this.http.post<ApiResponse<Set>>("/api/sets/converting/import/csv", formData));
-    } catch (e) {
+    } catch {
       return null;
     }
 

@@ -1,13 +1,18 @@
-import { Component, Input, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input, OnInit } from "@angular/core";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { QuizQuestion } from "@scholarsome/shared";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-study-set-quiz-question",
   templateUrl: "./study-set-quiz-question.component.html",
-  styleUrls: ["./study-set-quiz-question.component.scss"]
+  styleUrls: ["./study-set-quiz-question.component.scss"],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule]
 })
 export class StudySetQuizQuestionComponent implements OnInit {
   constructor(public readonly sanitizer: DomSanitizer) {}

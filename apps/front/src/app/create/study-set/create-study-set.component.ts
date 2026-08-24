@@ -1,13 +1,14 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
-  ComponentRef,
-  ElementRef, OnInit,
+  ElementRef,
+  OnInit,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  viewChildren,
+  signal
 } from "@angular/core";
-import { AlertComponent } from "../../shared/alert/alert.component";
 import { Router } from "@angular/router";
 import { SetsService } from "../../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
@@ -15,12 +16,24 @@ import { CardComponent } from "../../shared/card/card.component";
 import { faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
-import { SavedSet } from "@scholarsome/shared";
+import { randomUUID, SavedSet } from "@scholarsome/shared";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+
+interface DraftCard {
+  uid: string;
+  term: string;
+  definition: string;
+}
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-create",
   templateUrl: "./create-study-set.component.html",
-  styleUrls: ["./create-study-set.component.scss"]
+  styleUrls: ["./create-study-set.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, CardComponent]
 })
 export class CreateStudySetComponent implements OnInit, AfterViewInit {
   constructor(
@@ -34,32 +47,33 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
     this.metaService.addTag({ name: "description", content: "Create a free new Scholarsome study set. Scholarsome is the way studying was meant to be." });
   }
 
-  @ViewChild("cardContainer", { static: true, read: ViewContainerRef }) cardContainer: ViewContainerRef;
-  @ViewChild("titleElement", { static: false, read: ViewContainerRef }) titleInput: ViewContainerRef;
   @ViewChild("descriptionElement") descriptionInput: ElementRef;
   @ViewChild("restoreProgressModal") restoreProgressModal: TemplateRef<HTMLElement>;
+
+  // Cards are rendered declaratively with `@for` over this signal.
+  protected draftCards = signal<DraftCard[]>([]);
+
+  // Only needed to call `notifyEmptyInput()` on a specific card instance during save
+  // validation; everything else flows through inputs/outputs.
+  protected readonly cardViews = viewChildren(CardComponent);
 
   protected title = "";
   protected description = "";
   protected privateCheck = false;
 
-  protected formDisabled = false;
-  protected emptyTitleAlert = false;
-  protected errorEncountered = false;
+  protected formDisabled = signal(false);
+  protected errorEncountered = signal(false);
+
+  // Track whether the user has attempted to submit without a title, so the
+  // inline validation error below the title field is only shown after an attempt
+  // (matching the behavior of the folder creation page).
+  protected titleTouched = signal(false);
 
   protected modalRef?: BsModalRef;
   protected existingSet = true;
 
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faSquarePlus = faSquarePlus;
-
-  // index starts at 0
-  protected cardComponents: { component: ComponentRef<CardComponent>, index: number }[] = [];
-  protected cards: {
-    cardIndexRef(): number;
-    termRef(): string;
-    definitionRef(): string;
-  }[] = [];
 
   saveProgress() {
     if (this.existingSet) return;
@@ -68,9 +82,9 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
       !this.title &&
       !this.description &&
       !this.privateCheck &&
-      this.cards.length === 1 &&
-      !this.cards[0].termRef() &&
-      !this.cards[0].definitionRef()
+      this.draftCards().length === 1 &&
+      !this.draftCards()[0].term &&
+      !this.draftCards()[0].definition
     ) {
       this.deleteProgress();
       return;
@@ -81,11 +95,11 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
           title: this.title,
           description: this.description,
           private: this.privateCheck,
-          cards: this.cards.map((c) => {
+          cards: this.draftCards().map((card, index) => {
             return {
-              index: c.cardIndexRef(),
-              term: c.termRef(),
-              definition: c.definitionRef()
+              index,
+              term: card.term,
+              definition: card.definition
             };
           })
         }
@@ -108,17 +122,9 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
     this.description = set.description;
     this.privateCheck = set.private;
 
-    this.cardComponents[0].component.destroy();
-    this.cardComponents.pop();
-    this.cards.pop();
-
-    for (const card of set.cards) {
-      this.addCard({
-        index: card.index,
-        term: card.term,
-        definition: card.definition
-      });
-    }
+    this.draftCards.set(
+        set.cards.map((card) => ({ uid: randomUUID(), term: card.term, definition: card.definition }))
+    );
 
     this.existingSet = false;
   }
@@ -126,36 +132,31 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
   async createSet() {
     const cards: { index: number; term: string; definition: string; }[] = [];
 
-    this.errorEncountered = false;
+    this.errorEncountered.set(false);
 
-    if (!this.title && !this.emptyTitleAlert) {
-      const alert = this.titleInput.createComponent<AlertComponent>(AlertComponent);
-
-      alert.instance.message = "Title must not be empty";
-      alert.instance.type = "danger";
-      alert.instance.dismiss = true;
-      alert.instance.spacingClass = "mt-3";
-
-      this.emptyTitleAlert = true;
-      setTimeout(() => this.emptyTitleAlert = false, 3000);
-
+    if (!this.title) {
+      this.titleTouched.set(true);
       return;
-    } else if (!this.title) return;
+    } else {
+      this.titleTouched.set(false);
+    }
 
-    for (const card of this.cardComponents) {
-      if (card.component.instance.term.length !== 0 && card.component.instance.definition.length !== 0) {
+    const views = this.cardViews();
+    for (let i = 0; i < this.draftCards().length; i++) {
+      const card = this.draftCards()[i];
+      if (card.term.length !== 0 && card.definition.length !== 0) {
         cards.push({
-          index: card.component.instance.cardIndex,
-          term: card.component.instance.term,
-          definition: card.component.instance.definition
+          index: i,
+          term: card.term,
+          definition: card.definition
         });
       } else {
-        card.component.instance.notifyEmptyInput();
+        views[i]?.notifyEmptyInput();
         return;
       }
     }
 
-    this.formDisabled = true;
+    this.formDisabled.set(true);
 
     const set = await this.sets.createSet({
       title: this.title,
@@ -168,87 +169,45 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
       this.deleteProgress();
       await this.router.navigate(["/study-set/" + set?.id]);
     } else {
-      this.formDisabled = false;
-      this.errorEncountered = true;
+      this.formDisabled.set(false);
+      this.errorEncountered.set(true);
     }
-  }
-
-  updateCardIndices() {
-    for (let i = 0; i < this.cardComponents.length; i++) {
-      this.cardComponents[i].component.instance.cardIndex = i;
-      this.cardComponents[i].index = i;
-
-      this.cardComponents[i].component.instance.upArrow = i !== 0;
-      this.cardComponents[i].component.instance.downArrow = this.cardComponents.length - 1 !== i;
-      this.cardComponents[i].component.instance.trashCan = this.cardComponents.length > 1;
-    }
-
-    this.saveProgress();
   }
 
   addCard(config?: {
-    index?: number;
     term?: string;
     definition?: string;
   }) {
-    const card = this.cardContainer.createComponent<CardComponent>(CardComponent);
+    const term = config?.term ? config.term : "";
+    const definition = config?.definition ? config.definition : "";
 
-    card.instance.cardIndex = config?.index ? config.index : this.cardContainer.length - 1;
-    card.instance.term = config?.term ? config.term : "";
-    card.instance.definition = config?.definition ? config.definition : "";
-    card.instance.editingEnabled = true;
+    this.draftCards.update((cards) => [
+      ...cards,
+      { uid: randomUUID(), term, definition }
+    ]);
+  }
 
-    card.instance.deleteCardEvent.subscribe((e) => {
-      if (this.cardContainer.length > 1) {
-        const index = this.cardComponents.map((c) => c.index).indexOf(e);
+  removeCard(uid: string) {
+    if (this.draftCards().length > 1) {
+      this.draftCards.update((cards) => cards.filter((card) => card.uid !== uid));
+    }
+  }
 
-        this.cardContainer.get(e)?.destroy();
+  moveCard(event: { uid: string, direction: number }) {
+    if (this.draftCards().length > 1) {
+      this.draftCards.update((cards) => {
+        const from = cards.findIndex((card) => card.uid === event.uid);
+        if (from === -1) return cards;
 
-        this.cardComponents.splice(index, 1);
+        const to = from + event.direction;
+        if (to < 0 || to >= cards.length) return cards;
 
-        this.cards = this.cards.filter((c) => c.cardIndexRef() !== index);
-
-        this.updateCardIndices();
-      }
-    });
-
-    card.instance.moveCardEvent.subscribe((e) => {
-      if (this.cardContainer.length > 1) {
-        const cardIndex = this.cardComponents.map((c) => c.index).indexOf(e.index);
-
-        this.cardContainer.move(this.cardComponents[cardIndex].component.hostView, e.index + e.direction);
-
-        this.cardComponents[this.cardComponents.map((c) => c.index).indexOf(e.index + e.direction)].index = e.index;
-        this.cardComponents[cardIndex].index = e.index + e.direction;
-
-        this.cardComponents.sort((a, b) => a.index - b.index);
-
-        this.updateCardIndices();
-      }
-    });
-
-    card.instance.editCardEvent.subscribe(() => {
-      this.saveProgress();
-    });
-
-    card.instance.addCardEvent.subscribe(() => {
-      this.addCard();
-    });
-
-    this.cardComponents.push({
-      component: card,
-      index: this.cardContainer.length - 1
-    });
-
-    this.cards.push({
-      cardIndexRef: () => card.instance.cardIndex,
-      termRef: () => card.instance.term ? card.instance.term : "",
-      definitionRef: () => card.instance.definition ? card.instance.definition : ""
-    });
-
-    this.saveProgress();
-
-    this.updateCardIndices();
+        const next = [...cards];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        return next;
+      });
+    }
   }
 
   ngOnInit() {

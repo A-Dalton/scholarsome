@@ -1,10 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../generated/prisma/browser";
 
-const userWithRelations = Prisma.validator<Prisma.UserArgs>()({
+export type User = Prisma.UserGetPayload<{
   include: {
     sets: true,
     folders: true
   }
-});
-
-export type User = Prisma.UserGetPayload<typeof userWithRelations>;
+}>;

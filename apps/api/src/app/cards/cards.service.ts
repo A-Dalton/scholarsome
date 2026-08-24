@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { Prisma, Card as PrismaCard, CardMedia as PrismaCardMedia } from "@prisma/client";
+import { Prisma, Card as PrismaCard, CardMedia as PrismaCardMedia } from "@scholarsome/prisma";
 import { Card, CardMedia } from "@scholarsome/shared";
-import * as sharp from "sharp";
+import sharp from "sharp";
 import * as crypto from "crypto";
 import { StorageService } from "../providers/storage/storage.service";
 
@@ -48,7 +48,7 @@ export class CardsService {
           split[0].includes("tiff") ||
           split[0].includes("webp")
         ) {
-          decoded = await sharp(decoded).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer();
+          decoded = Buffer.from(await sharp(decoded).jpeg({ progressive: true, force: true, quality: 80 }).toBuffer());
           extension = ".jpeg";
         }
 

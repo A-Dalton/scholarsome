@@ -6,10 +6,10 @@ import { HttpService } from "@nestjs/axios";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { createMock } from "@golevelup/ts-jest";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import { Request, Response } from "express";
 import { of } from "rxjs";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 
 describe("AuthService", () => {
   let authService: AuthService;

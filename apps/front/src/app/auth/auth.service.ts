@@ -10,7 +10,7 @@ import {
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http";
 import { lastValueFrom } from "rxjs";
 import { ReCaptchaV3Service } from "ng-recaptcha";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 
 @Injectable({
   providedIn: "root"
@@ -122,7 +122,7 @@ export class AuthService {
       ...loginForm
     };
 
-    if (process.env["SCHOLARSOME_RECAPTCHA_SECRET"]) {
+    if (import.meta.env.SCHOLARSOME_RECAPTCHA_SECRET) {
       body.recaptchaToken = await lastValueFrom(this.recaptchaV3Service.execute("login"));
     }
 
@@ -164,7 +164,7 @@ export class AuthService {
       ...registerForm
     };
 
-    if (process.env["SCHOLARSOME_RECAPTCHA_SECRET"]) {
+    if (import.meta.env.SCHOLARSOME_RECAPTCHA_SECRET) {
       body.recaptchaToken = await lastValueFrom(this.recaptchaV3Service.execute("register"));
     }
 

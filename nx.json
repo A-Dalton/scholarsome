@@ -31,7 +31,12 @@
       }
     },
     "@nx/eslint:lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/eslint.config.mjs",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
       "cache": true
     }
   },
@@ -39,7 +44,7 @@
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
-      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s",
@@ -66,5 +71,6 @@
     }
   },
   "defaultProject": "front",
-  "nxCloudAccessToken": "NGNiZjJlMDQtNTQyMC00ZjMyLTkxNGUtODFjYjAwZjZkZGFlfHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "NGNiZjJlMDQtNTQyMC00ZjMyLTkxNGUtODFjYjAwZjZkZGFlfHJlYWQtd3JpdGU=",
+  "analytics": false
 }

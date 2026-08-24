@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../generated/prisma/browser";
 
-const folderWithRelations = Prisma.validator<Prisma.FolderArgs>()({
+export type Folder = Prisma.FolderGetPayload<{
   include: {
     sets: true,
     subfolders: true,
@@ -13,6 +13,4 @@ const folderWithRelations = Prisma.validator<Prisma.FolderArgs>()({
       }
     }
   }
-});
-
-export type Folder = Prisma.FolderGetPayload<typeof folderWithRelations>;
+}>;

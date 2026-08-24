@@ -1,31 +1,40 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faQ } from "@fortawesome/free-solid-svg-icons";
-import { NgForm } from "@angular/forms";
+import { NgForm, FormsModule } from "@angular/forms";
 import { Set } from "@scholarsome/shared";
 import { ConvertingService } from "../../shared/http/converting.service";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-quizlet-export-modal",
   templateUrl: "./quizlet-export-modal.component.html",
-  styleUrls: ["./quizlet-export-modal.component.scss"]
+  styleUrls: ["./quizlet-export-modal.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule]
 })
 export class QuizletExportModalComponent {
   constructor(
     private readonly bsModalService: BsModalService,
-    private readonly convertingService: ConvertingService
+    private readonly convertingService: ConvertingService,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.clicked = false;
-      this.error = false;
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.clicked.set(false);
+          this.error.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected clicked = false;
-  protected error = false;
+  protected clicked = signal(false);
+  protected error = signal(false);
 
   protected set: Set;
 
@@ -42,8 +51,8 @@ export class QuizletExportModalComponent {
   }
 
   public async submit(form: NgForm) {
-    this.clicked = true;
-    this.error = false;
+    this.clicked.set(true);
+    this.error.set(false);
 
     const sideDiscriminator = form.controls["sideDiscriminator"].value;
     const cardDiscriminator = form.controls["cardDiscriminator"].value;
@@ -55,7 +64,7 @@ export class QuizletExportModalComponent {
     );
 
     if (!file) {
-      this.error = true;
+      this.error.set(true);
       return;
     }
 
@@ -68,7 +77,7 @@ export class QuizletExportModalComponent {
 
     document.body.removeChild(link);
 
-    this.clicked = false;
+    this.clicked.set(false);
     this.modalRef?.hide();
   }
 }

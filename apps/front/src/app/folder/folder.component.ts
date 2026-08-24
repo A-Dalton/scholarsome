@@ -1,20 +1,29 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, OnDestroy, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FoldersService } from "../shared/http/folders.service";
 import { Folder } from "@scholarsome/shared";
-import { Set, Folder as PrismaFolder } from "@prisma/client";
-import { ActivatedRoute, Router } from "@angular/router";
+import { Set, Folder as PrismaFolder } from "@scholarsome/prisma";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { faFolder, faClone, faFolderTree, faPencil, faCancel, faSave, faArrowUp, faTrashCan, faUser } from "@fortawesome/free-solid-svg-icons";
 import { UsersService } from "../shared/http/users.service";
-import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SetsService } from "../shared/http/sets.service";
 import { Meta, Title } from "@angular/platform-browser";
+import { CommonModule } from "@angular/common";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-folder",
   templateUrl: "./folder.component.html",
-  styleUrls: ["./folder.component.scss"]
+  styleUrls: ["./folder.component.scss"],
+  imports: [CommonModule, FontAwesomeModule, RouterLink, ReactiveFormsModule]
 })
-export class FolderComponent implements OnInit {
+export class FolderComponent implements OnInit, OnDestroy {
+  // Whether the component is no longer active. Guards async callbacks so they
+  // don't mutate destroyed component state.
+  private destroyed = false;
   constructor(
     private readonly foldersService: FoldersService,
     private readonly usersService: UsersService,
@@ -22,21 +31,22 @@ export class FolderComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly metaService: Meta,
-    private readonly titleService: Title
+    private readonly titleService: Title,
+    private readonly destroyRef: DestroyRef
   ) {}
 
   @ViewChild("spinner", { static: true }) spinner: ElementRef;
 
-  protected folder: Folder;
+  protected folder = signal<Folder | undefined>(undefined);
   protected folderId: string;
-  protected folderPath: { name: string; id: string; }[] = [];
+  protected folderPath = signal<{ name: string; id: string; }[]>([]);
 
-  protected subfolders: PrismaFolder[];
-  protected folderSets: Set[] = [];
+  protected subfolders = signal<PrismaFolder[]>([]);
+  protected folderSets = signal<Set[]>([]);
 
-  protected username: string;
-  protected userSets: Set[] = [];
-  protected userFolders: Folder[] = [];
+  protected username = signal("");
+  protected userSets = signal<Set[]>([]);
+  protected userFolders = signal<Folder[]>([]);
 
   protected saveForm = new FormGroup({
     name: new FormControl("", Validators.required),
@@ -47,14 +57,14 @@ export class FolderComponent implements OnInit {
     sets: new FormGroup({}),
     subfolders: new FormGroup({})
   });
-  protected saveInProgress = false;
+  protected saveInProgress = signal(false);
 
-  protected deleteClicked = false;
+  protected deleteClicked = signal(false);
 
-  protected userIsAuthor = false;
-  protected editing = false;
-  protected editingLoading = false;
-  protected loading = true;
+  protected userIsAuthor = signal(false);
+  protected editing = signal(false);
+  protected editingLoading = signal(false);
+  protected loading = signal(true);
 
   protected readonly faArrowUp = faArrowUp;
   protected readonly faFolder = faFolder;
@@ -115,7 +125,7 @@ export class FolderComponent implements OnInit {
   }
 
   async delete() {
-    await this.foldersService.deleteFolder(this.folder.id);
+    await this.foldersService.deleteFolder(this.folder()!.id);
     await this.router.navigate(["homepage"]);
   }
 
@@ -126,8 +136,8 @@ export class FolderComponent implements OnInit {
     }
 
     this.saveForm.disable();
-    this.saveInProgress = true;
-    this.deleteClicked = false;
+    this.saveInProgress.set(true);
+    this.deleteClicked.set(false);
 
     const selectedSets: string[] = [];
     const selectedSubfolders: string[] = [];
@@ -147,7 +157,7 @@ export class FolderComponent implements OnInit {
     // we know that these are valid
     /* eslint-disable */
     await this.foldersService.updateFolder({
-      id: this.folder.id,
+      id: this.folder()!.id,
       name: this.saveForm.controls.name.value!,
       description: this.saveForm.controls.description.value!,
       color: this.saveForm.controls.color.value!,
@@ -163,46 +173,46 @@ export class FolderComponent implements OnInit {
   }
 
   async edit() {
-    this.editing = true;
-    this.editingLoading = true;
+    this.editing.set(true);
+    this.editingLoading.set(true);
 
-    const userSets = await this.setsService.mySets();
-    const userFolders = await this.foldersService.myFolders();
+    const userSetsValue = await this.setsService.mySets();
+    const userFoldersValue = await this.foldersService.myFolders();
 
-    this.saveForm.controls.name.setValue(this.folder.name);
-    this.saveForm.controls.description.setValue(this.folder.description);
-    this.saveForm.controls.color.setValue(this.folder.color);
-    this.saveForm.controls.private.setValue(this.folder.private);
-    this.saveForm.controls.parentFolderId.setValue(this.folder.parentFolderId ? this.folder.parentFolderId : "");
+    this.saveForm.controls.name.setValue(this.folder()!.name);
+    this.saveForm.controls.description.setValue(this.folder()!.description);
+    this.saveForm.controls.color.setValue(this.folder()!.color);
+    this.saveForm.controls.private.setValue(this.folder()!.private);
+    this.saveForm.controls.parentFolderId.setValue(this.folder()!.parentFolderId ? this.folder()!.parentFolderId : "");
 
-    this.editingLoading = false;
+    this.editingLoading.set(false);
 
-    if (userSets && userSets.length > 0) {
-      this.userSets = userSets;
+    if (userSetsValue && userSetsValue.length > 0) {
+      this.userSets.set(userSetsValue);
 
       const formUserSets = new FormGroup({});
 
-      for (const set of this.userSets) {
+      for (const set of this.userSets()) {
         formUserSets.addControl(
             set.id,
-            new FormControl(this.folderSets.some((s) => s.id === set.id))
+            new FormControl(this.folderSets().some((s) => s.id === set.id))
         );
       }
 
       this.saveForm.setControl("sets", formUserSets);
     }
 
-    if (userFolders && userFolders.length > 0) {
-      this.userFolders = userFolders.filter((f) => f.id !== this.folder.id);
+    if (userFoldersValue && userFoldersValue.length > 0) {
+      this.userFolders.set(userFoldersValue.filter((f) => f.id !== this.folder()!.id));
 
       const formUserFolders = new FormGroup({});
 
-      for (const folder of this.userFolders) {
-        if (folder.id === this.folder.id) continue;
+      for (const folder of this.userFolders()) {
+        if (folder.id === this.folder()!.id) continue;
 
         formUserFolders.addControl(
             folder.id,
-            new FormControl(this.subfolders.some((f) => f.id === folder.id))
+            new FormControl(this.subfolders().some((f) => f.id === folder.id))
         );
       }
 
@@ -211,7 +221,7 @@ export class FolderComponent implements OnInit {
   }
 
   async view() {
-    this.deleteClicked = false;
+    this.deleteClicked.set(false);
 
     const folder = await this.foldersService.folder(this.folderId);
     if (!folder) {
@@ -219,8 +229,8 @@ export class FolderComponent implements OnInit {
       return;
     }
 
-    this.folder = folder;
-    this.folder.sets = this.folder.sets.map((f) => {
+    this.folder.set(folder);
+    this.folder()!.sets = this.folder()!.sets.map((f) => {
       return { ...f, updatedAt: new Date(f.updatedAt) };
     });
 
@@ -229,7 +239,7 @@ export class FolderComponent implements OnInit {
     const folderPath = [];
 
     if (user && folder.authorId === user.id) {
-      this.userIsAuthor = true;
+      this.userIsAuthor.set(true);
     }
 
     let parentFolderId = folder.parentFolderId;
@@ -254,15 +264,15 @@ export class FolderComponent implements OnInit {
       }
     }
 
-    this.folderPath = folderPath.reverse();
+    this.folderPath.set(folderPath.reverse());
 
-    this.editing = false;
-    this.saveInProgress = false;
-    this.userFolders = [];
-    this.userSets = [];
+    this.editing.set(false);
+    this.saveInProgress.set(false);
+    this.userFolders.set([]);
+    this.userSets.set([]);
 
-    this.folderSets = folder.sets;
-    this.subfolders = folder.subfolders;
+    this.folderSets.set(folder.sets);
+    this.subfolders.set(folder.subfolders);
   }
 
   async ngOnInit() {
@@ -276,35 +286,43 @@ export class FolderComponent implements OnInit {
 
     await this.view();
 
-    this.username = this.folder.author.username;
+    this.username.set(this.folder()!.author.username);
 
     // for when someone clicks on a folder from within another folder
     // we need to manually trigger the change in the page
-    this.route.url.subscribe(async () => {
-      if (this.router.getCurrentNavigation()?.previousNavigation) {
-        this.loading = true;
+    this.route.url
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(async () => {
+          if (this.destroyed) return;
 
-        const folderId = this.route.snapshot.paramMap.get("folderId");
-        if (!folderId) {
-          await this.router.navigate(["404"]);
-          return;
-        }
+          if (this.router.getCurrentNavigation()?.previousNavigation) {
+            this.loading.set(true);
 
-        this.folderId = folderId;
-        this.username = this.folder.author.username;
+            const folderId = this.route.snapshot.paramMap.get("folderId");
+            if (!folderId) {
+              await this.router.navigate(["404"]);
+              return;
+            }
 
-        await this.view();
+            this.folderId = folderId;
+            this.username.set(this.folder()!.author.username);
 
-        this.titleService.setTitle(this.folder.name + " Folder — Scholarsome");
-        this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder.name + " folder on Scholarsome." });
+            await this.view();
 
-        this.loading = false;
-      }
-    });
+            this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
+            this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
 
-    this.titleService.setTitle(this.folder.name + " Folder — Scholarsome");
-    this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder.name + " folder on Scholarsome." });
+            this.loading.set(false);
+          }
+        });
 
-    this.loading = false;
+    this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
+    this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
+
+    this.loading.set(false);
+  }
+
+  ngOnDestroy() {
+    this.destroyed = true;
   }
 }

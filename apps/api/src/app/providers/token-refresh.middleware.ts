@@ -3,8 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "../auth/auth.service";
-import { InjectRedis } from "@liaoliaots/nestjs-redis";
-import Redis from "ioredis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import * as jwt from "jsonwebtoken";
 import * as crypto from "crypto";
 
@@ -14,7 +13,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
-    @InjectRedis() private readonly redis: Redis
+    private readonly redisService: RedisService
   ) {}
 
   use(req: Request, res: Response, next: NextFunction) {
@@ -41,7 +40,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
       // if your access token is expired
       try {
         jwt.verify(req.cookies.access_token, this.configService.get<string>("JWT_SECRET"));
-      } catch (e) {
+      } catch {
         // and you have a refresh token
         if ("refresh_token" in req.cookies) {
           // renew your access token
@@ -60,12 +59,12 @@ export class TokenRefreshMiddleware implements NestMiddleware {
 
     try {
       refreshToken = jwt.verify(req.cookies["refresh_token"], this.configService.get<string>("JWT_SECRET")) as { id: string; sessionId: string; email: string; type: "refresh" };
-    } catch (e) {
+    } catch {
       this.authService.logout(req, res);
       return true;
     }
 
-    if (!refreshToken.sessionId || !this.redis.get(req.cookies["refresh_token"].sessionId)) {
+    if (!refreshToken.sessionId || !this.redisService.getClient("default").get(req.cookies["refresh_token"].sessionId)) {
       this.authService.logout(req, res);
       return true;
     }

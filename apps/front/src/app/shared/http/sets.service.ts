@@ -21,7 +21,7 @@ export class SetsService {
 
     try {
       set = await lastValueFrom(this.http.get<ApiResponse<Set>>("/api/sets/" + setId));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -42,7 +42,7 @@ export class SetsService {
 
     try {
       sets = await lastValueFrom(this.http.get<ApiResponse<Set[]>>("/api/sets/user" + userId));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -61,7 +61,7 @@ export class SetsService {
 
     try {
       sets = await lastValueFrom(this.http.get<ApiResponse<Set[]>>("/api/sets/user/me"));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -102,7 +102,7 @@ export class SetsService {
         private: body.private,
         cards: body.cards
       }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -147,7 +147,7 @@ export class SetsService {
         private: body.private,
         cards: body.cards
       }, { observe: "response" }));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -171,7 +171,7 @@ export class SetsService {
 
     try {
       set = await lastValueFrom(this.http.delete<ApiResponse<Set>>("/api/sets/" + setId));
-    } catch (e) {
+    } catch {
       return null;
     }
 

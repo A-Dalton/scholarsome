@@ -4,42 +4,40 @@
   "projectType": "application",
   "sourceRoot": "apps/front/src",
   "prefix": "scholarsome",
+  "tags": ["scope:client"],
   "targets": {
     "build": {
-      "executor": "@ngx-env/builder:browser",
-      "builder": "@ngx-env/builder:browser",
+      "executor": "@ngx-env/builder:application",
+      "builder": "@ngx-env/builder:application",
       "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/front",
         "index": "apps/front/src/index.html",
-        "main": "apps/front/src/main.ts",
-        "polyfills": "apps/front/src/polyfills.ts",
+        "browser": "apps/front/src/main.ts",
+        "polyfills": ["apps/front/src/polyfills.ts"],
         "tsConfig": "apps/front/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
           "apps/front/src/favicon.ico",
           "apps/front/src/assets",
-          "apps/front/src/robots.txt",
-          {
-            "glob": "**/*",
-            "input": "./node_modules/@kolkov/angular-editor/assets/",
-            "output": "./assets/fonts/"
-          }
+          "apps/front/src/robots.txt"
         ],
         "styles": ["apps/front/src/styles.scss"],
-        "scripts": [
-          "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-          "node_modules/quill/dist/quill.min.js",
-          "node_modules/katex/dist/katex.min.js"
-        ],
+        "scripts": [],
         "ngxEnv": {
-          "prefix": "SCHOLARSOME_"
+          "prefix": "SCHOLARSOME_",
+          "define": "import.meta.env"
+        },
+        "stylePreprocessorOptions": {
+          "sass": {
+            "silenceDeprecations": ["import", "if-function", "global-builtin", "color-functions"]
+          }
         },
         "allowedCommonJsDependencies": ["@prisma/client", "validator"]
       },
       "configurations": {
         "production": {
-          "buildOptimizer": true,
           "optimization": {
             "scripts": true,
             "fonts": true,
@@ -65,29 +63,27 @@
           "outputHashing": "all"
         },
         "development": {
-          "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
           "sourceMap": true,
           "namedChunks": true
         }
-      },
-      "defaultConfiguration": "production"
+      }
     },
     "serve": {
       "executor": "@ngx-env/builder:dev-server",
-      "configurations": {
-        "production": {
-          "browserTarget": "front:build:production"
-        },
-        "development": {
-          "browserTarget": "front:build:development"
-        }
-      },
       "defaultConfiguration": "development",
       "options": {
+        "buildTarget": "front:build:development",
         "proxyConfig": "apps/front/proxy.conf.json"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "front:build:production"
+        },
+        "development": {
+          "buildTarget": "front:build:development"
+        }
       }
     },
     "extract-i18n": {
@@ -100,13 +96,12 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@ngx-env/builder:karma",
+      "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/apps/front"],
       "options": {
         "jestConfig": "apps/front/jest.config.ts",
         "passWithNoTests": true
       }
     }
-  },
-  "tags": ["scope:client"]
+  }
 }

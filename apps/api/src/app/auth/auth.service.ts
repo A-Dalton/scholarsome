@@ -6,12 +6,11 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { lastValueFrom } from "rxjs";
 import { RecaptchaResponse, User as UserWithSets } from "@scholarsome/shared";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { User } from "@prisma/client";
-import { JwtPayload } from "jwt-decode";
+import { User } from "@scholarsome/prisma";
 import * as crypto from "crypto";
 
 @Injectable()
@@ -39,11 +38,11 @@ export class AuthService {
    */
   async getUserInfo(req: Request): Promise<{ id: string; email: string; } | false> {
     if (req.cookies["access_token"]) {
-      let decoded: string | JwtPayload;
+      let decoded: string | jwt.JwtPayload;
 
       try {
         decoded = jwt.verify(req.cookies["access_token"], this.configService.get<string>("JWT_SECRET"));
-      } catch (e) {
+      } catch {
         return false;
       }
 

@@ -1,70 +1,96 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
-  ElementRef,
+  DestroyRef,
+  effect,
   EventEmitter,
-  Input,
+  input,
   OnInit,
   Output,
+  signal,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewChild
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AlertComponent } from "../alert/alert.component";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { DomSanitizer } from "@angular/platform-browser";
 import { ViewportScroller } from "@angular/common";
 import { DeviceDetectorService } from "ngx-device-detector";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { QuillEditorComponent } from "ngx-quill";
 import Quill from "quill";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
-  styleUrls: ["./card.component.scss"]
+  styleUrls: ["./card.component.scss"],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent, AlertComponent]
 })
 export class CardComponent implements OnInit, AfterViewInit {
   constructor(
     private readonly bsModalService: BsModalService,
     private readonly vps: ViewportScroller,
     private readonly deviceService: DeviceDetectorService,
+    private readonly destroyRef: DestroyRef,
     public readonly sanitizer: DomSanitizer
-  ) {}
+  ) {
+    // Sync the committed display values from the `term`/`definition` inputs whenever
+    // the parent rebinds them (e.g. on cancel/restore). Changes made inside the edit
+    // modal are kept in `changingTerm`/`changingDefinition` and only committed to
+    // `actualTerm`/`actualDefinition` when the modal closes, so typing doesn't update
+    // the card behind the modal while editing.
+    effect(() => {
+      this.changingTerm = this.term();
+      this.actualTerm.set(this.term());
+    });
+    effect(() => {
+      this.changingDefinition = this.definition();
+      this.actualDefinition.set(this.definition());
+    });
+  }
 
-  protected changingTerm: string;
-  protected changingDefinition: string;
+  // The working copy shown in the card body. Kept separate from the `term`/`definition`
+  // inputs so edits made in the edit modal only appear on the card once it closes.
+  protected actualTerm = signal("");
+  protected actualDefinition = signal("");
 
-  @Input() editingEnabled = false;
+  // Working copy bound to the quill editors while the edit modal is open.
+  protected changingTerm = "";
+  protected changingDefinition = "";
 
-  @Input() cardId: string;
-  @Input() cardIndex: number;
-
-  @Input() originalIndex: number;
-  @Input() isSaved: boolean;
-
-  @Input() upArrow = true;
-  @Input() downArrow = true;
-  @Input() trashCan = true;
+  // Declared as signal inputs so parent components bind them directly (`[term]="..."`)
+  // instead of mutating `ComponentRef.instance` imperatively. Under zoneless + OnPush
+  // change detection, this keeps template re-rendering correct.
+  readonly editingEnabled = input(false);
+  readonly cardIndex = input(0);
+  readonly upArrow = input(false);
+  readonly downArrow = input(false);
+  readonly trashCan = input(false);
+  readonly term = input("");
+  readonly definition = input("");
+  // Stable identity used by parent `@for` structures so cards can be identified across
+  // re-renders without relying on a mutable index.
+  readonly uid = input("");
 
   @Output() addCardEvent = new EventEmitter();
-  @Output() deleteCardEvent = new EventEmitter<number>();
-  @Output() moveCardEvent = new EventEmitter<{ index: number, direction: number }>();
-  @Output() indexChangeEvent = new EventEmitter<{ newIndex: number }>();
+  @Output() deleteCardEvent = new EventEmitter<string>();
+  @Output() moveCardEvent = new EventEmitter<{ uid: string, direction: number }>();
   @Output() editCardEvent = new EventEmitter();
-
-  @ViewChild("card", { static: false }) cardElement: Element;
-  @ViewChild("termDiv", { static: false }) termElement: ElementRef;
-  @ViewChild("definitionDiv", { static: false }) definitionElement: ElementRef;
-  @ViewChild("inputsContainer", { static: false, read: ViewContainerRef }) inputsContainer: ViewContainerRef;
+  // Emitted when the edit modal closes so parents can capture the committed value into
+  // their own card model (replacing the old `ComponentRef.instance.term` read-back).
+  @Output() termChange = new EventEmitter<string>();
+  @Output() definitionChange = new EventEmitter<string>();
 
   @ViewChild("editModal") modal: TemplateRef<HTMLElement>;
 
-  // these two vars exist so that we can prevent the main card
-  // from updating while a card is being edited
-  protected actualTerm: string;
-  protected actualDefinition: string;
-
-  protected emptyCardAlert = false;
+  protected emptyCardAlert = signal(false);
 
   protected isMobile = false;
 
@@ -72,9 +98,6 @@ export class CardComponent implements OnInit, AfterViewInit {
   protected readonly faPenToSquare = faPenToSquare;
 
   ngOnInit() {
-    this.actualTerm = this.changingTerm ? this.changingTerm : "";
-    this.actualDefinition = this.changingDefinition ? this.changingDefinition : "";
-
     this.isMobile = this.deviceService.isMobile();
   }
 
@@ -85,48 +108,38 @@ export class CardComponent implements OnInit, AfterViewInit {
 
     otherwise it's distracting to see changes in the background while typing
      */
-    this.bsModalService.onShow.subscribe(() => {
-      this.actualTerm = String(this.actualTerm) as string;
-      this.actualDefinition = String(this.actualDefinition) as string;
-    });
+    this.bsModalService.onShow
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.actualTerm.set(String(this.actualTerm()));
+          this.actualDefinition.set(String(this.actualDefinition()));
+        });
 
-    this.bsModalService.onHide.subscribe(() => {
-      this.actualTerm = this.changingTerm ? this.changingTerm : "";
-      this.actualDefinition = this.changingDefinition ? this.changingDefinition : "";
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.actualTerm.set(this.changingTerm ? this.changingTerm : "");
+          this.actualDefinition.set(this.changingDefinition ? this.changingDefinition : "");
+
+          // Let the owning parent store the committed values in its own card model.
+          this.termChange.emit(this.changingTerm);
+          this.definitionChange.emit(this.changingDefinition);
+        });
 
     // scroll to bottom of cards list
-    if (this.editingEnabled) {
+    if (this.editingEnabled()) {
       this.vps.scrollToPosition([0, document.body.scrollHeight]);
     }
 
     // open the edit modal when new cards are added
     if (
-      this.editingEnabled &&
-      !this.changingTerm &&
-      !this.changingDefinition &&
-      (this.upArrow || this.downArrow)
+      this.editingEnabled() &&
+      !this.term() &&
+      !this.definition() &&
+      (this.upArrow() || this.downArrow())
     ) {
       this.openEditModal();
     }
-  }
-
-  @Input()
-  get term(): string {
-    return this.actualTerm;
-  }
-  set term(value: string) {
-    this.changingTerm = value;
-    this.actualTerm = value;
-  }
-
-  @Input()
-  get definition(): string {
-    return this.actualDefinition;
-  }
-  set definition(value: string) {
-    this.changingDefinition = value;
-    this.actualDefinition = value;
   }
 
   openEditModal() {
@@ -134,25 +147,18 @@ export class CardComponent implements OnInit, AfterViewInit {
   }
 
   deleteCard() {
-    this.deleteCardEvent.emit(this.cardIndex);
+    this.deleteCardEvent.emit(this.uid());
   }
 
   notifyEmptyInput() {
-    if (!this.emptyCardAlert) {
-      const alert = this.inputsContainer.createComponent<AlertComponent>(AlertComponent);
-
-      alert.instance.message = "Both fields cannot be empty";
-      alert.instance.type = "danger";
-      alert.instance.dismiss = true;
-      alert.instance.spacingClass = "mt-4";
-
-      this.emptyCardAlert = true;
-      setTimeout(() => this.emptyCardAlert = false, 3000);
+    if (!this.emptyCardAlert()) {
+      this.emptyCardAlert.set(true);
+      setTimeout(() => this.emptyCardAlert.set(false), 3000);
     }
   }
 
   moveCard(direction: number) {
-    this.moveCardEvent.emit({ index: this.cardIndex, direction });
+    this.moveCardEvent.emit({ uid: this.uid(), direction });
   }
 
   // Set cursor position to end

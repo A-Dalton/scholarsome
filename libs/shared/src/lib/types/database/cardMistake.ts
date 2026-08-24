@@ -1,10 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../generated/prisma/browser";
 
-const cardMistakeWithRelations = Prisma.validator<Prisma.CardMistakeArgs>()({
+export type CardMistake = Prisma.CardMistakeGetPayload<{
   include: {
     set: true,
     card: true
   }
-});
-
-export type CardMistake = Prisma.CardMistakeGetPayload<typeof cardMistakeWithRelations>;
+}>;

@@ -1,4 +1,4 @@
-const lightCodeTheme = require('prism-react-renderer/themes/github');
+const lightCodeTheme = require('prism-react-renderer').themes.github;
 require('dotenv').config();
 const path = require('path');
 const fs = require("fs");
@@ -49,12 +49,16 @@ const config = {
   url: `http://${process.env.HOST}`,
   baseUrl: '/handbook/',
   onBrokenLinks: 'log',
-  onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Scholarsome',
   projectName: 'Scholarsome',
   trailingSlash: true,
   staticDirectories: ['public', 'static'],
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   presets,
 

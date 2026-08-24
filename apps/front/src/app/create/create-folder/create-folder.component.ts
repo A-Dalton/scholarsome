@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { faClone, faFolderPlus, faArrowUp, faFolderTree } from "@fortawesome/free-solid-svg-icons";
 import { AbstractControl, FormControl, FormGroup, Validators } from "@angular/forms";
@@ -6,12 +6,18 @@ import { FoldersService } from "../../shared/http/folders.service";
 import { Router } from "@angular/router";
 import { Meta, Title } from "@angular/platform-browser";
 import { UsersService } from "../../shared/http/users.service";
-import { Set, Folder } from "@prisma/client";
+import { Set, Folder } from "@scholarsome/prisma";
+import { CommonModule } from "@angular/common";
+import { ReactiveFormsModule } from "@angular/forms";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-create-folder",
   templateUrl: "./create-folder.component.html",
-  styleUrls: ["./create-folder.component.scss"]
+  styleUrls: ["./create-folder.component.scss"],
+  imports: [CommonModule, ReactiveFormsModule, FontAwesomeModule]
 })
 export class CreateFolderComponent implements OnInit {
   constructor(
@@ -37,11 +43,11 @@ export class CreateFolderComponent implements OnInit {
     subfolders: new FormGroup({})
   });
 
-  sets: Set[] = [];
-  folders: Folder[] = [];
+  sets = signal<Set[]>([]);
+  folders = signal<Folder[]>([]);
 
-  submitted = false;
-  loading = true;
+  submitted = signal(false);
+  loading = signal(true);
 
   protected readonly faClone = faClone;
   protected readonly faArrowUp = faArrowUp;
@@ -104,7 +110,7 @@ export class CreateFolderComponent implements OnInit {
     }
 
     this.createFolderForm.disable();
-    this.submitted = true;
+    this.submitted.set(true);
     this.createFolderForm.setErrors(null);
 
     const selectedSets: string[] = [];
@@ -140,7 +146,7 @@ export class CreateFolderComponent implements OnInit {
     } else {
       this.createFolderForm.enable();
       this.createFolderForm.setErrors({ httpError: true });
-      this.submitted = false;
+      this.submitted.set(false);
     }
   }
 
@@ -168,10 +174,10 @@ export class CreateFolderComponent implements OnInit {
         this.createFolderForm.setControl("subfolders", formSubfolders);
       }
 
-      this.sets = user.sets;
-      this.folders = user.folders;
+      this.sets.set(user.sets);
+      this.folders.set(user.folders);
 
-      this.loading = false;
+      this.loading.set(false);
       this.spinner.nativeElement.remove();
     }
   }

@@ -16,10 +16,10 @@ import { SetsService } from "./sets.service";
 import { UsersService } from "../users/users.service";
 import { Request as ExpressRequest } from "express";
 import { ApiResponse, ApiResponseOptions } from "@scholarsome/shared";
-import { Set } from "@prisma/client";
+import { Set } from "@scholarsome/prisma";
 import * as crypto from "crypto";
 import { CardsService } from "../cards/cards.service";
-import { CardMedia } from "@prisma/client";
+import { CardMedia } from "@scholarsome/prisma";
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,

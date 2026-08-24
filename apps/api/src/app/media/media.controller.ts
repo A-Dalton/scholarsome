@@ -19,7 +19,7 @@ import { Express, Request as ExpressRequest, Response } from "express";
 import { SetsService } from "../sets/sets.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { AuthenticatedGuard } from "../auth/guards/authenticated.guard";
-import * as sharp from "sharp";
+import sharp from "sharp";
 import {
   ApiNotFoundResponse,
   ApiOkResponse,

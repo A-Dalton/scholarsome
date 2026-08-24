@@ -10,7 +10,7 @@ jobs:
       - name: Setup Node.JS
         uses: actions/setup-node@v3
         with:
-          node-version: 'lts/Hydrogen'
+          node-version: '26'
 
       - name: Install dependencies and generate Prisma types
         run: |

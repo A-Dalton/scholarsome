@@ -38,6 +38,6 @@ The current shown card can be flipped by clicking on the card or using the space
 
 Sets can be navigated using the left and right arrow keys, or using the buttons. In progressive mode, the "Don't know" and "Know" buttons are used to signify whether the currently shown card was known.
 
-In traditional mode, arrow keys move the set forward or back one card. In progressive mode, an arrow key to the left will signify that the current card isn't known, and an arrow key to the right signifies that the card was known.
+In traditional mode, arrow keys move the set forward or back one card. In progressive mode, arrow keys move the set forward by one card, with the right arrow additionally marking the current card as known. To record a card as not known, use the "Don't know" button.
 
 To return to the configuration screen, click the arrow button in the bottom left. Note that the current progress in the study session will not be saved after navigating away.

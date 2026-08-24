@@ -6,7 +6,7 @@ import { HttpService } from "@nestjs/axios";
 import { Test } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { UsersService } from "../users/users.service";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { MailService } from "../providers/mail/mail.service";
 import { Request, Response } from "express";
@@ -458,6 +458,7 @@ describe("AuthController", () => {
     } as any as Response;
 
     it("should call the logout method", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const req = {} as any as Request;
 
       await authController.logout(req, res);

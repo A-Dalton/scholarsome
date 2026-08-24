@@ -1,30 +1,38 @@
-import { Component, TemplateRef, ViewChild } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { ChangeDetectionStrategy, Component, DestroyRef, TemplateRef, ViewChild, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { ModalService } from "../../shared/modal.service";
+import { CommonModule } from "@angular/common";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-set-password-modal",
   templateUrl: "./set-password-modal.component.html",
-  styleUrls: ["./set-password-modal.component.scss"]
+  styleUrls: ["./set-password-modal.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class SetPasswordModalComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly bsModalService: BsModalService,
-    private readonly modalService: ModalService
+    private readonly modalService: ModalService,
+    private readonly destroyRef: DestroyRef
   ) {
-    this.bsModalService.onHide.subscribe(() => {
-      this.notMatching = false;
-      this.clicked = false;
-    });
+    this.bsModalService.onHide
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.notMatching.set(false);
+          this.clicked.set(false);
+        });
   }
 
   @ViewChild("modal") modal: TemplateRef<HTMLElement>;
 
-  protected notMatching = false;
-  protected clicked = false;
+  protected notMatching = signal(false);
+  protected clicked = signal(false);
 
   protected modalRef?: BsModalRef;
 
@@ -34,12 +42,12 @@ export class SetPasswordModalComponent {
   }
 
   protected async submit(form: NgForm) {
-    this.notMatching = false;
-    this.clicked = true;
+    this.notMatching.set(false);
+    this.clicked.set(true);
 
     if (form.value["password"] !== form.value["confirmPassword"]) {
-      this.clicked = false;
-      this.notMatching = true;
+      this.clicked.set(false);
+      this.notMatching.set(true);
       return;
     }
 

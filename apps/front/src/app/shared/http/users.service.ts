@@ -23,7 +23,7 @@ export class UsersService {
 
     try {
       user = await lastValueFrom(this.http.get<ApiResponse<User>>("/api/users/" + userId));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -42,7 +42,7 @@ export class UsersService {
 
     try {
       user = await lastValueFrom(this.http.get<ApiResponse<User>>("/api/users/me"));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -67,7 +67,7 @@ export class UsersService {
           "&height=" + (height ? height : ""),
           { responseType: "blob" })
       );
-    } catch (e) {
+    } catch {
       return false;
     }
 
@@ -91,7 +91,7 @@ export class UsersService {
           "&height=" + (height ? height : ""),
           { responseType: "blob" })
       );
-    } catch (e) {
+    } catch {
       return false;
     }
 
@@ -111,7 +111,7 @@ export class UsersService {
 
     try {
       await lastValueFrom(this.http.post("/api/user/me/avatar", formData));
-    } catch (e) {
+    } catch {
       return false;
     }
 
@@ -126,7 +126,7 @@ export class UsersService {
   async deleteMyAvatar(): Promise<boolean> {
     try {
       await lastValueFrom(this.http.delete("/api/user/me/avatar"));
-    } catch (e) {
+    } catch {
       return false;
     }
 

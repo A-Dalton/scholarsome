@@ -20,7 +20,7 @@ import { ApiResponse, ApiResponseOptions } from "@scholarsome/shared";
 import { CreateCardGuard } from "./guards/create-card.guard";
 import { DeleteCardGuard } from "./guards/delete-card.guard";
 import { UpdateCardGuard } from "./guards/update-card.guard";
-import { Card } from "@prisma/client";
+import { Card } from "@scholarsome/prisma";
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,

@@ -24,12 +24,12 @@ import * as jwt from "jsonwebtoken";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { MailService } from "../providers/mail/mail.service";
-import { User } from "@prisma/client";
+import { User } from "@scholarsome/prisma";
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler";
 import { AuthenticatedGuard } from "./guards/authenticated.guard";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { RedisService } from "@liaoliaots/nestjs-redis";
+import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { DeleteApiKeyDto } from "./dto/deleteApiKey.dto";
 import { CreateApiKeyDto } from "./dto/createApiKey.dto";
@@ -191,7 +191,7 @@ export class AuthController {
             req.cookies["resetPasswordToken"],
             this.configService.get<string>("JWT_SECRET")
         ) as { email: string; forPasswordReset: boolean };
-      } catch (e) {
+      } catch {
         throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
       }
 
@@ -254,7 +254,7 @@ export class AuthController {
           params.token,
           this.configService.get<string>("JWT_SECRET")
       ) as { email: string; forPasswordReset: boolean };
-    } catch (e) {
+    } catch {
       return res.redirect("/");
     }
 
@@ -312,7 +312,7 @@ export class AuthController {
           params.token,
           this.configService.get<string>("JWT_SECRET")
       ) as { email: string };
-    } catch (e) {
+    } catch {
       return {
         status: ApiResponseOptions.Fail,
         message: "Invalid token"

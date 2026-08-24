@@ -59,7 +59,7 @@ const allowedElements = [
   "desc",
   "title",
   "use",
-  "symbol",
+  "symbol"
 ];
 
 const allowedAttributes = [
@@ -109,17 +109,17 @@ const allowedAttributes = [
   "clipPathUnits",
 
   // Dataset attributes
-  "data-*",
+  "data-*"
 ];
 
 export const sanitizationConfig = {
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(
-    ["img"],
-    allowedElements
+      ["img"],
+      allowedElements
   ),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
-    "*": allowedAttributes,
+    "*": allowedAttributes
   },
-  allowedSchemes: ["data"],
+  allowedSchemes: ["data"]
 };

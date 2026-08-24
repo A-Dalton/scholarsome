@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@scholarsome/prisma";
 import { Set } from "@scholarsome/shared";
 import { Request as ExpressRequest } from "express";
-import jwt_decode from "jwt-decode";
+import * as jwt from "jsonwebtoken";
 import { UsersService } from "../users/users.service";
 import { StorageService } from "../providers/storage/storage.service";
 
@@ -36,7 +36,7 @@ export class SetsService {
     let accessToken: { id: string; email: string; };
 
     if (req.cookies && req.cookies["access_token"]) {
-      accessToken = jwt_decode(req.cookies["access_token"]) as { id: string; email: string; };
+      accessToken = jwt.decode(req.cookies["access_token"]) as { id: string; email: string; };
     } else {
       return false;
     }

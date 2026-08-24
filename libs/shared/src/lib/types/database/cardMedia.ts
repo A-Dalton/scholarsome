@@ -1,7 +1,5 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../generated/prisma/browser";
 
-const cardMediaWithRelations = Prisma.validator<Prisma.CardMediaArgs>()({
+export type CardMedia = Prisma.CardMediaGetPayload<{
   include: { card: true }
-});
-
-export type CardMedia = Prisma.CardMediaGetPayload<typeof cardMediaWithRelations>;
+}>;

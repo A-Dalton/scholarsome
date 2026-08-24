@@ -21,7 +21,7 @@ export class CardMistakesService {
 
     try {
       mistakes = await lastValueFrom(this.http.get<ApiResponse<CardMistake[]>>("/api/card-mistakes"));
-    } catch (e) {
+    } catch {
       return null;
     }
 
@@ -44,7 +44,7 @@ export class CardMistakesService {
       mistake = await lastValueFrom(this.http.post<ApiResponse<CardMistake>>("/api/card-mistakes", {
         cardId
       }));
-    } catch (e) {
+    } catch {
       return null;
     }
 

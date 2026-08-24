@@ -1,17 +1,22 @@
-import { Component, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, OnInit, signal } from "@angular/core";
 import { ModalService } from "../shared/modal.service";
-import { CookieService } from "ngx-cookie";
+import { CookieService } from "ngx-cookie-service";
 import { Router } from "@angular/router";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faUpRightFromSquare, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { Location } from "@angular/common";
 import { Meta, Title } from "@angular/platform-browser";
 import { SharedService } from "../shared/shared.service";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { CommonModule } from "@angular/common";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-landing",
   templateUrl: "./landing.component.html",
-  styleUrls: ["./landing.component.scss"]
+  styleUrls: ["./landing.component.scss"],
+  imports: [CommonModule, FontAwesomeModule]
 })
 export class LandingComponent implements OnInit {
   constructor(
@@ -27,7 +32,7 @@ export class LandingComponent implements OnInit {
     this.metaService.addTag({ name: "description", content: "Scholarsome is the way studying was meant to be. No monthly fees or upsells to get between you and your study tools. Just flashcards." });
   }
 
-  protected stargazers = 0;
+  protected stargazers = signal(0);
   protected readonly faGithub = faGithub;
   protected readonly faUpRightFromSquare = faUpRightFromSquare;
   protected readonly faArrowRight = faArrowRight;
@@ -37,7 +42,7 @@ export class LandingComponent implements OnInit {
   protected landingPageEnabled = true;
 
   async ngOnInit(): Promise<void> {
-    if (process.env["NG_APP_ENV"] !== "public") {
+    if (import.meta.env.NODE_ENV !== "public") {
       this.landingPageEnabled = false;
       this.modalService.modal.next("login-open");
     }
@@ -51,6 +56,6 @@ export class LandingComponent implements OnInit {
       this.modalService.modal.next("set-password-open");
     }
 
-    this.stargazers = await this.sharedService.getStargazers();
+    this.stargazers.set(await this.sharedService.getStargazers());
   }
 }

@@ -1,4 +1,4 @@
-<nav class="navbar sticky-top navbar-expand-xxl bg-white" [hidden]="!landingPageEnabled">
+<nav class="navbar sticky-top navbar-expand-xxl bg-body" [hidden]="!landingPageEnabled">
   <div class="container-fluid navbar-container">
     <a class="navbar-brand" href="#">
       <img src="assets/header/scholarsome-logo-purple-lowercase.svg" width="80%" height="80%" alt="Logo" class="d-inline-block align-text-top">
@@ -12,9 +12,9 @@
         <a class="nav-link fs-5" href="https://discord.gg/hRgVvc5MKf" target="_blank">Discord <fa-icon [icon]="faUpRightFromSquare"></fa-icon></a>
       </div>
       <div class="navbar-nav ms-auto mt-3 mt-md-0">
-        <a href="https://github.com/hwgilbert16/scholarsome" target="_blank" class="d-flex align-items-center text-decoration-none text-black">
-          <div *ngIf="stargazers !== 0" class="fs-6 me-4 mb-2 mb-md-0 github">
-            <fa-icon [icon]="faGithub"></fa-icon>&nbsp;&nbsp;{{stargazers}} stars
+        <a href="https://github.com/hwgilbert16/scholarsome" target="_blank" class="d-flex align-items-center text-decoration-none text-body">
+          <div *ngIf="stargazers() !== 0" class="fs-6 me-4 mb-2 mb-md-0 github">
+            <fa-icon [icon]="faGithub"></fa-icon>&nbsp;&nbsp;{{stargazers()}} stars
           </div>
         </a>
         <div>
@@ -26,7 +26,7 @@
   </div>
 </nav>
 
-<div class="container-fluid p-0 bg-white" [hidden]="!landingPageEnabled">
+<div class="container-fluid p-0 bg-body" [hidden]="!landingPageEnabled">
   <div class="main-screen d-flex align-items-center min-vh-100">
     <div class="container-fluid text-center">
       <div class="row justify-content-center">
@@ -135,15 +135,15 @@
           <h2 class="display-3 fw-bold">And even more, coming soon</h2>
         </div>
         <div class="row row-cols-1 row-cols-md-3 justify-content-center mt-4 gap-3">
-          <div class="col col-md-3 bg-white rounded shadow-sm py-3">
+          <div class="col col-md-3 bg-body rounded shadow-sm py-3">
             <h4 class="fs-2 fw-semibold">User-accessible API</h4>
             <p class="fs-5">Use the data in your sets in external applications, and create custom automations.</p>
           </div>
-          <div class="col col-md-3 bg-white rounded shadow-sm py-3">
+          <div class="col col-md-3 bg-body rounded shadow-sm py-3">
             <h4 class="fs-2 fw-semibold">Spaced Repetition</h4>
             <p class="fs-5">Learn large sets over time by using psychology-proven methods to improve learning efficiency.</p>
           </div>
-          <div class="col col-md-3 bg-white rounded shadow-sm py-3">
+          <div class="col col-md-3 bg-body rounded shadow-sm py-3">
             <h4 class="fs-2 fw-semibold">Study Games</h4>
             <p class="fs-5">Play games that are both fun and test your memory of your sets.</p>
           </div>

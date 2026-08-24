@@ -1,31 +1,35 @@
-import { Component } from "@angular/core";
-import { NgForm } from "@angular/forms";
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { NgForm, FormsModule } from "@angular/forms";
 import { AuthService } from "../../auth/auth.service";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
 
 @Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: "scholarsome-change-email-settings",
   templateUrl: "./change-email-settings.component.html",
-  styleUrls: ["./change-email-settings.component.scss"]
+  styleUrls: ["./change-email-settings.component.scss"],
+  imports: [CommonModule, FormsModule]
 })
 export class ChangeEmailSettingsComponent {
   constructor(private readonly authService: AuthService, private readonly router: Router) {}
 
-  protected clicked = false;
-  protected error = false;
-  protected notMatching = false;
-  protected rateLimit = false;
+  protected clicked = signal(false);
+  protected error = signal(false);
+  protected notMatching = signal(false);
+  protected rateLimit = signal(false);
 
   async submit(form: NgForm) {
-    this.clicked = true;
-    this.error = false;
-    this.notMatching = false;
-    this.rateLimit = false;
+    this.clicked.set(true);
+    this.error.set(false);
+    this.notMatching.set(false);
+    this.rateLimit.set(false);
 
     if (form.value["newEmail"] !== form.value["confirmNewEmail"]) {
-      this.notMatching = true;
-      this.clicked = false;
+      this.notMatching.set(true);
+      this.clicked.set(false);
       return;
     }
 
@@ -33,7 +37,7 @@ export class ChangeEmailSettingsComponent {
         form.value["newEmail"]
     );
 
-    this.clicked = false;
+    this.clicked.set(false);
 
     switch (response) {
       case ApiResponseOptions.Success:
@@ -41,10 +45,10 @@ export class ChangeEmailSettingsComponent {
         this.router.navigate(["/"]);
         break;
       case ApiResponseOptions.Ratelimit:
-        this.rateLimit = true;
+        this.rateLimit.set(true);
         break;
       default:
-        this.error = true;
+        this.error.set(true);
     }
   }
 }

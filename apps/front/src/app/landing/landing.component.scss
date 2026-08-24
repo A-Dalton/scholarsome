@@ -3,7 +3,7 @@
 }
 
 .nav-link {
-  color: black;
+  color: var(--scholarsome-text);
 }
 
 .navbar-brand {
@@ -59,7 +59,7 @@ body {
   overflow-x: hidden;
 }
 
-html.dark {
+[data-bs-theme="dark"] {
   --sl-landing-g-start: #1e2330;
   --sl-landing-g-end: var(--scholarsome-body-bg);
 }
