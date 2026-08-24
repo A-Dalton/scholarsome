@@ -20,20 +20,16 @@ export class ThemeService {
   }
 
   /**
-   * Applies the theme by toggling a `dark` class on the document root element.
-   * The choice is persisted in a cookie so it survives page reloads.
+   * Applies the theme by setting Bootstrap's native `data-bs-theme` attribute
+   * on the document root element. Bootstrap 5.3+ supports dark mode out of the
+   * box through this attribute, which lets the components/utilities adapt via
+   * CSS variables. The choice is persisted in a cookie so it survives reloads.
    */
   applyTheme(theme: Theme): void {
     // persist the choice
     this.cookieService.set(this.themeCookie, theme);
 
-    const root = document.documentElement;
-
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
+    document.documentElement.setAttribute("data-bs-theme", theme);
   }
 
   /**

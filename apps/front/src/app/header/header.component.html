@@ -3,7 +3,7 @@
   [hidden]="hidden()"
 ></scholarsome-resend-email>
 <nav
-  class="navbar navbar-expand-sm sticky-top bg-white fs-5 shadow-sm"
+  class="navbar navbar-expand-sm sticky-top bg-body fs-5 shadow-sm"
   [hidden]="hidden()"
 >
   <div class="container-fluid">
@@ -30,7 +30,7 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a
-            class="nav-link text-black"
+            class="nav-link text-body"
             aria-current="page"
             [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
             [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
@@ -41,11 +41,11 @@
           >
         </li>
         <li class="nav-item">
-          <a class="nav-link text-black" aria-current="page" href="/handbook">Handbook</a>
+          <a class="nav-link text-body" aria-current="page" href="/handbook">Handbook</a>
         </li>
         <li class="nav-item">
           <a
-            class="nav-link text-black"
+            class="nav-link text-body"
             aria-current="page"
             [attr.data-bs-toggle]="isMobile() ? 'collapse' : ''"
             [attr.data-bs-target]="isMobile() ? '#navbarSupportedContent' : ''"
@@ -202,7 +202,7 @@
           <li class="nav-item dropdown">
             <a
               *ngIf="!avatarUrl()"
-              class="nav-link dropdown-toggle text-black text-left"
+              class="nav-link dropdown-toggle text-body text-left"
               data-bs-toggle="dropdown"
             >
               <fa-icon [icon]="faUser"></fa-icon>

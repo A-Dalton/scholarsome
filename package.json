@@ -73,7 +73,7 @@
     "axios": "^1.19.0",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
-    "bootstrap": "^5.2.3",
+    "bootstrap": "^5.3.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "clsx": "^1.2.1",
