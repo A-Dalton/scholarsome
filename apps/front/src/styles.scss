@@ -23,7 +23,13 @@ $enable-negative-margins: true;
   --scholarsome-border: #dee2e6;
   --scholarsome-text: #212529;
   --scholarsome-muted: #6c757d;
-  --bs-body-bg: #f8fafb;
+  // `--bs-body-bg` drives Bootstrap components such as `.card`, `.dropdown-menu`,
+  // `.modal-content`, `.pagination`, etc. Bootstrap 5.3 changed these defaults from
+  // a hard-coded white to `var(--bs-body-bg)`. If it matched the page background the
+  // surfaces would blend into the page, so keep it distinct (white) while the page
+  // keeps its own `--scholarsome-body-bg`.
+  --bs-body-bg: #fff;
+  --bs-body-bg-rgb: 255, 255, 255;
 }
 
 [data-bs-theme="dark"] {
@@ -52,6 +58,13 @@ body {
 
 [data-bs-theme="dark"] {
   /* Surfaces (navbar, cards, dropdowns, modals) */
+  /* `bg-white`/`bg-light` are static Bootstrap utilities that would otherwise
+     render pure white in dark mode; map them to the dark surface instead. */
+  .bg-white,
+  .bg-light {
+    background-color: var(--scholarsome-surface) !important;
+  }
+
   nav.navbar {
     background-color: var(--scholarsome-surface) !important;
   }
