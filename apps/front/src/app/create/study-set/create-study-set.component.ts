@@ -16,7 +16,7 @@ import { CardComponent } from "../../shared/card/card.component";
 import { faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
-import { SavedSet } from "@scholarsome/shared";
+import { randomUUID, SavedSet } from "@scholarsome/shared";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -123,7 +123,7 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
     this.privateCheck = set.private;
 
     this.draftCards.set(
-        set.cards.map((card) => ({ uid: crypto.randomUUID(), term: card.term, definition: card.definition }))
+        set.cards.map((card) => ({ uid: randomUUID(), term: card.term, definition: card.definition }))
     );
 
     this.existingSet = false;
@@ -183,7 +183,7 @@ export class CreateStudySetComponent implements OnInit, AfterViewInit {
 
     this.draftCards.update((cards) => [
       ...cards,
-      { uid: crypto.randomUUID(), term, definition }
+      { uid: randomUUID(), term, definition }
     ]);
   }
 

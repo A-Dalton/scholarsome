@@ -8,7 +8,7 @@ import {
   signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Set } from "@scholarsome/shared";
+import { Set, randomUUID } from "@scholarsome/shared";
 import { SetsService } from "../shared/http/sets.service";
 import { CardComponent } from "../shared/card/card.component";
 import { UsersService } from "../shared/http/users.service";
@@ -179,7 +179,7 @@ export class StudySetComponent implements OnInit {
     this.cards.update((cards) => [
       ...cards,
       {
-        uid: crypto.randomUUID(),
+        uid: randomUUID(),
         id: opts.id,
         isSaved: opts.isSaved,
         editingEnabled: opts.editingEnabled,
@@ -308,7 +308,7 @@ export class StudySetComponent implements OnInit {
             // look up the matching draft card to keep unsaved cards filtered out
             const draft = this.cards().find((card) => card.isSaved && card.id === savedCard.id);
             return {
-              uid: draft ? draft.uid : crypto.randomUUID(),
+              uid: draft ? draft.uid : randomUUID(),
               id: savedCard.id,
               isSaved: true,
               editingEnabled: false,
