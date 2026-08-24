@@ -109,7 +109,7 @@
     "rxjs": "~7.8.0",
     "sanitize-filename-ts": "^1.0.2",
     "sanitize-html": "2.17.5",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.3",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "winston": "^3.10.0",
@@ -200,6 +200,7 @@
     "nx@23.1.1": true,
     "prisma@7.9.1": true,
     "sharp@0.33.5": true,
-    "unrs-resolver@1.12.2": true
+    "unrs-resolver@1.12.2": true,
+    "@scarf/scarf@1.4.0": true
   }
 }
