@@ -4,7 +4,7 @@
   "private": true,
   "executors": "./executors.json",
   "dependencies": {
-    "@docusaurus/core": "^2.1.0",
+    "@docusaurus/core": "^3.10.2",
     "tslib": "^2.3.0"
   }
 }
