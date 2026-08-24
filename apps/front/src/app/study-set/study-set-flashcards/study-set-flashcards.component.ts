@@ -116,8 +116,22 @@ export class StudySetFlashcardsComponent implements OnInit {
     this.newLearnedCards++;
   }
 
+  // On touch devices, briefly fill the answer button's background (like a mouse
+  // hover would) then let it return to neutral, since sticky :hover would
+  // otherwise persist the color.
+  flashButton(event: Event): void {
+    // Only do this on devices without a real hover (touch / coarse pointer)
+    if (!window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+
+    const button = event.currentTarget as HTMLButtonElement;
+    // Restart the one-shot animation on every tap so it re-fills each time
+    button.classList.remove("flash-bg");
+    void button.offsetWidth;
+    button.classList.add("flash-bg");
+  }
+
   // Stores the current card as a mistake for progressive mode's "Don't know" option
-  async markAsMistake(): Promise<void> {
+  async markAsMistake(): Promise<void> { 
     if (this.flashcardsMode === "progressive" && this.currentCard) {
       await this.cardMistakesService.createMistake(this.currentCard.id);
     }
