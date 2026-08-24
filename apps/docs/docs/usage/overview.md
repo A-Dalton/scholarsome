@@ -23,6 +23,10 @@ If you see it, that means there is a handbook page for the feature you're curren
     - How to import sets from other platforms
   - [Exporting Sets](/usage/sets/exporting-sets)
     - How to export sets to other platforms
+  - [Sharing Sets](/usage/sets/sharing-sets)
+    - How to share sets with other users
+- [Folders](/usage/folders/creating-folders)
+  - How to create folders to organize sets
 - [Flashcards](/usage/flashcards)
   - Studying using the flashcards feature
 - [Quizzes](/usage/quizzes)
