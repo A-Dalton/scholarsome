@@ -11,7 +11,6 @@ import Redis from "ioredis";
 import { Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
 import { User } from "@scholarsome/prisma";
-import { JwtPayload } from "jwt-decode";
 import * as crypto from "crypto";
 
 @Injectable()
@@ -39,7 +38,7 @@ export class AuthService {
    */
   async getUserInfo(req: Request): Promise<{ id: string; email: string; } | false> {
     if (req.cookies["access_token"]) {
-      let decoded: string | JwtPayload;
+      let decoded: string | jwt.JwtPayload;
 
       try {
         decoded = jwt.verify(req.cookies["access_token"], this.configService.get<string>("JWT_SECRET"));
