@@ -41,7 +41,7 @@ You can read more about our design philosophy <a href="https://github.com/hwgilb
 - Import sets from Anki, Quizlet, and CSV files 🔼
 - Export sets to Anki, Quizlet, and CSV files 🔽
 - Study flashcards in multiple learning modes, mimicking real-world flashcards 📖
-- Review your previous mistakes to review your weakest flashcards 🔄
+- Review your previous mistakes to target your weakest flashcards 🔄
 - Create quizzes using fill-in-the-blank, true/false, and multiple choice questions ✏️
 - Edit your sets 🛠️
 - Change set visibility 🔓
