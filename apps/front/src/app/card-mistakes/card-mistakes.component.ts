@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, signal } from "@angular/core";
 import { CardMistake } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { SetsService } from "../shared/http/sets.service";
 import { Router, RouterLink } from "@angular/router";
-import { faCheck, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faChevronRight, faFolderOpen, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -25,6 +25,30 @@ export class CardMistakesComponent implements OnInit {
 
   mistakes = signal<CardMistake[] | null>(null);
 
+  /**
+   * The mistakes grouped by their study set, ordered so that the study set
+   * containing the most recently made mistake is displayed first
+   */
+  groups = computed(() => {
+    const mistakes = this.mistakes();
+    if (!mistakes) return null;
+
+    const groups: { set: CardMistake["set"]; mistakes: CardMistake[] }[] = [];
+    const groupMap = new Map<string, { set: CardMistake["set"]; mistakes: CardMistake[] }>();
+
+    for (const mistake of mistakes) {
+      let group = groupMap.get(mistake.set.id);
+      if (!group) {
+        group = { set: mistake.set, mistakes: [] };
+        groupMap.set(mistake.set.id, group);
+        groups.push(group);
+      }
+      group.mistakes.push(mistake);
+    }
+
+    return groups;
+  });
+
   // IDs of the selected mistakes, used to create a study set
   selected = new Set<string>();
   title = "";
@@ -34,6 +58,8 @@ export class CardMistakesComponent implements OnInit {
   protected readonly faHistory = faHistory;
   protected readonly faSquarePlus = faSquarePlus;
   protected readonly faCheck = faCheck;
+  protected readonly faFolderOpen = faFolderOpen;
+  protected readonly faChevronRight = faChevronRight;
 
   constructor(
     private readonly cardMistakesService: CardMistakesService,
