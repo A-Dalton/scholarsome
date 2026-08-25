@@ -5,7 +5,7 @@ import { DomSanitizer } from "@angular/platform-browser";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { SetsService } from "../shared/http/sets.service";
 import { Router, RouterLink } from "@angular/router";
-import { faCheck, faChevronRight, faFolderOpen, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faChevronRight, faFolderOpen, faHistory, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -60,6 +60,7 @@ export class CardMistakesComponent implements OnInit {
   protected readonly faCheck = faCheck;
   protected readonly faFolderOpen = faFolderOpen;
   protected readonly faChevronRight = faChevronRight;
+  protected readonly faTrash = faTrash;
 
   constructor(
     private readonly cardMistakesService: CardMistakesService,
@@ -110,6 +111,22 @@ export class CardMistakesComponent implements OnInit {
    */
   isSelected(mistakeId: string): boolean {
     return this.selected.has(mistakeId);
+  }
+
+  /**
+   * Deletes a previous mistake and removes it from the displayed state
+   *
+   * @param mistakeId ID of the mistake to delete
+   */
+  async deleteMistake(mistakeId: string) {
+    const deleted = await this.cardMistakesService.deleteMistake(mistakeId);
+    if (!deleted) return;
+
+    const mistakes = this.mistakes();
+    if (!mistakes) return;
+
+    this.mistakes.set(mistakes.filter((m) => m.id !== mistakeId));
+    this.selected.delete(mistakeId);
   }
 
   /**

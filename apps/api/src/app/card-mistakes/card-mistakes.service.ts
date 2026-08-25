@@ -72,4 +72,17 @@ export class CardMistakesService {
       data
     });
   }
+
+  /**
+   * Deletes a cardMistake from the database
+   *
+   * @param where Prisma `CardMistakeWhereUniqueInput` selector
+   *
+   * @returns `CardMistake` object that was deleted
+   */
+  async deleteCardMistake(where: Prisma.CardMistakeWhereUniqueInput): Promise<PrismaCardMistake> {
+    return this.prisma.cardMistake.delete({
+      where
+    });
+  }
 }

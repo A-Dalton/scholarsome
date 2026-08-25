@@ -52,4 +52,25 @@ export class CardMistakesService {
       return mistake.data;
     } else return null;
   }
+
+  /**
+   * Deletes a previous mistake of the authenticated user
+   *
+   * @param cardMistakeId ID of the card mistake to delete
+   *
+   * @returns Deleted `CardMistake` object or null on error
+   */
+  async deleteMistake(cardMistakeId: string): Promise<CardMistake | null> {
+    let mistake: ApiResponse<CardMistake> | undefined;
+
+    try {
+      mistake = await lastValueFrom(this.http.delete<ApiResponse<CardMistake>>("/api/card-mistakes/" + cardMistakeId));
+    } catch {
+      return null;
+    }
+
+    if (mistake.status === ApiResponseOptions.Success) {
+      return mistake.data;
+    } else return null;
+  }
 }

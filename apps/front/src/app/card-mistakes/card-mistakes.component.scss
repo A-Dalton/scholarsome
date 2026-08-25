@@ -87,3 +87,23 @@
 .col {
   cursor: pointer;
 }
+
+.delete-mistake-btn {
+  color: var(--scholarsome-muted);
+  transition: color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bs-danger);
+  }
+
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.delete-mistake-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-danger-rgb), 0.25);
+  border-radius: 0.25rem;
+}
