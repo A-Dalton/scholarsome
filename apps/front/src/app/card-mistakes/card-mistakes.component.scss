@@ -79,6 +79,11 @@
   }
 }
 
+/* Call-to-action panel tying card selection to study set creation */
+.create-set-cta-icon {
+  color: #8438ff;
+}
+
 .selected-card .set-card {
   border-color: var(--bs-primary);
   box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
@@ -86,6 +91,15 @@
 
 .col {
   cursor: pointer;
+}
+
+/* Checkbox affordance showing that a card can be selected */
+.select-icon {
+  color: var(--scholarsome-muted);
+}
+
+.selected-card .select-icon {
+  color: var(--bs-primary);
 }
 
 .delete-mistake-btn {
