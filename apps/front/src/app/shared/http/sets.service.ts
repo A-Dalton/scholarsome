@@ -31,27 +31,6 @@ export class SetsService {
   }
 
   /**
-   * Finds the sets of a user
-   *
-   * @param userId ID of the set author
-   *
-   * @returns Array of `Set` objects
-   */
-  async sets(userId: string): Promise<Set[] | null> {
-    let sets: ApiResponse<Set[]> | undefined;
-
-    try {
-      sets = await lastValueFrom(this.http.get<ApiResponse<Set[]>>("/api/sets/user" + userId));
-    } catch {
-      return null;
-    }
-
-    if (sets.status === ApiResponseOptions.Success) {
-      return sets.data;
-    } else return null;
-  }
-
-  /**
    * Finds the sets of the authenticated user
    *
    * @returns Array of `Set` objects
