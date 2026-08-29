@@ -29,5 +29,7 @@ If you see it, that means there is a handbook page for the feature you're curren
   - How to create folders to organize sets
 - [Flashcards](/usage/flashcards)
   - Studying using the flashcards feature
+- [Previous mistakes](/usage/previous-mistakes)
+  - Reviewing the flashcards you did not know, and practicing them in a new study set
 - [Quizzes](/usage/quizzes)
   - Setting up and creating quizzes
