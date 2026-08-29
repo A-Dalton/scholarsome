@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Request,
   UnauthorizedException,
@@ -23,6 +25,7 @@ import {
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
 import { CreateCardMistakeDto } from "./dto/createCardMistake.dto";
+import { CardMistakeIdParam } from "./param/cardMistakeId.param";
 import { ErrorResponse } from "../shared/response/error.response";
 import { CardMistakesSuccessResponse } from "./response/success/cardMistakes.success.response";
 
@@ -119,6 +122,49 @@ export class CardMistakesController {
         },
         term: card.term,
         definition: card.definition
+      })
+    };
+  }
+
+  /**
+   * Deletes a previous mistake of the authenticated user
+   *
+   * @param params Object containing the ID of the card mistake to delete
+   *
+   * @returns Deleted `CardMistake` object
+   */
+  @UseGuards(AuthenticatedGuard)
+  @ApiOperation({
+    summary: "Delete a previous mistake of the authenticated user"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: CardMistakesSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @Delete(":cardMistakeId")
+  async deleteMistake(@Param() params: CardMistakeIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<unknown>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
+
+    const mistake = await this.cardMistakesService.cardMistake({
+      id: params.cardMistakeId
+    });
+    if (!mistake || mistake.userId !== user.id) {
+      throw new NotFoundException({ status: "fail", message: "Card mistake not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: await this.cardMistakesService.deleteCardMistake({
+        id: params.cardMistakeId
       })
     };
   }

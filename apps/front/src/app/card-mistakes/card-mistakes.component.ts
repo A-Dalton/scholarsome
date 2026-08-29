@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild, computed, signal } from "@angular/core";
 import { CardMistake } from "@scholarsome/shared";
 import { Meta, Title } from "@angular/platform-browser";
 import { DomSanitizer } from "@angular/platform-browser";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { SetsService } from "../shared/http/sets.service";
 import { Router, RouterLink } from "@angular/router";
-import { faCheck, faHistory, faSquarePlus } from "@fortawesome/free-solid-svg-icons";
+import { faChevronRight, faFolderOpen, faHistory, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCheckSquare, faQuestionCircle, faSquare } from "@fortawesome/free-regular-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -25,6 +26,30 @@ export class CardMistakesComponent implements OnInit {
 
   mistakes = signal<CardMistake[] | null>(null);
 
+  /**
+   * The mistakes grouped by their study set, ordered so that the study set
+   * containing the most recently made mistake is displayed first
+   */
+  groups = computed(() => {
+    const mistakes = this.mistakes();
+    if (!mistakes) return null;
+
+    const groups: { set: CardMistake["set"]; mistakes: CardMistake[] }[] = [];
+    const groupMap = new Map<string, { set: CardMistake["set"]; mistakes: CardMistake[] }>();
+
+    for (const mistake of mistakes) {
+      let group = groupMap.get(mistake.set.id);
+      if (!group) {
+        group = { set: mistake.set, mistakes: [] };
+        groupMap.set(mistake.set.id, group);
+        groups.push(group);
+      }
+      group.mistakes.push(mistake);
+    }
+
+    return groups;
+  });
+
   // IDs of the selected mistakes, used to create a study set
   selected = new Set<string>();
   title = "";
@@ -33,7 +58,12 @@ export class CardMistakesComponent implements OnInit {
 
   protected readonly faHistory = faHistory;
   protected readonly faSquarePlus = faSquarePlus;
-  protected readonly faCheck = faCheck;
+  protected readonly faSquare = faSquare;
+  protected readonly faCheckSquare = faCheckSquare;
+  protected readonly faFolderOpen = faFolderOpen;
+  protected readonly faChevronRight = faChevronRight;
+  protected readonly faTrash = faTrash;
+  protected readonly faQuestionCircle = faQuestionCircle;
 
   constructor(
     private readonly cardMistakesService: CardMistakesService,
@@ -87,6 +117,22 @@ export class CardMistakesComponent implements OnInit {
   }
 
   /**
+   * Deletes a previous mistake and removes it from the displayed state
+   *
+   * @param mistakeId ID of the mistake to delete
+   */
+  async deleteMistake(mistakeId: string) {
+    const deleted = await this.cardMistakesService.deleteMistake(mistakeId);
+    if (!deleted) return;
+
+    const mistakes = this.mistakes();
+    if (!mistakes) return;
+
+    this.mistakes.set(mistakes.filter((m) => m.id !== mistakeId));
+    this.selected.delete(mistakeId);
+  }
+
+  /**
    * Creates a new study set from the currently selected mistakes
    */
   async createStudySet() {
@@ -117,7 +163,7 @@ export class CardMistakesComponent implements OnInit {
 
     const set = await this.setsService.createSet({
       title: this.title,
-      private: false,
+      private: true,
       cards
     });
 

@@ -1,15 +1,87 @@
-.card-footer {
+.set-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  color: var(--scholarsome-muted);
   cursor: pointer;
-  transition: background-color 0.15s ease-in-out;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
 }
 
-.card-footer:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.15);
+.set-group-header:hover {
+  color: var(--scholarsome-text);
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
 }
 
-.card-footer:hover small {
-  color: var(--bs-primary);
+.set-group-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: rgba(var(--bs-primary-rgb), 0.12);
+  color: #8438ff;
+  flex-shrink: 0;
+}
+
+.set-group-header-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.set-group-header-title {
+  font-weight: 600;
+  color: var(--scholarsome-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.set-group-header-count {
+  color: var(--scholarsome-muted);
+}
+
+.set-group-header:hover .set-group-header-icon {
+  color: #8438ff;
+}
+
+.set-group-header-chevron {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--scholarsome-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.set-group-header:hover .set-group-header-chevron {
+  color: #8438ff;
+}
+
+.set-group-header:hover .set-group-header-title {
   text-decoration: underline;
+}
+
+/* Group container: visually tie the header to the items beneath it */
+.set-group-items {
+  margin-left: 0.35rem;
+  padding-left: 0.85rem;
+  border-left: 0.15rem solid rgba(var(--bs-primary-rgb), 0.2);
+}
+
+@media (min-width: 768px) {
+  .set-group-header {
+    padding: 0.625rem 0.875rem;
+  }
+}
+
+/* Call-to-action panel tying card selection to study set creation */
+.create-set-cta-icon {
+  color: #8438ff;
 }
 
 .selected-card .set-card {
@@ -19,4 +91,33 @@
 
 .col {
   cursor: pointer;
+}
+
+/* Checkbox affordance showing that a card can be selected */
+.select-icon {
+  color: var(--scholarsome-muted);
+}
+
+.selected-card .select-icon {
+  color: var(--bs-primary);
+}
+
+.delete-mistake-btn {
+  color: var(--scholarsome-muted);
+  transition: color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--bs-danger);
+  }
+
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.delete-mistake-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-danger-rgb), 0.25);
+  border-radius: 0.25rem;
 }

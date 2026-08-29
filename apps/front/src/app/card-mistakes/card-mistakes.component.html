@@ -9,30 +9,40 @@
     <h2>
       <fa-icon class="fs-3" [icon]="faHistory"></fa-icon>
       Previous mistakes
+      <a href="/handbook/usage/previous-mistakes" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
     </h2>
     <p class="text-secondary">Cards you marked as "Don't know" during progressive flashcards, sorted from most recent to oldest.</p>
   </div>
 
-  <div *ngIf="mistakes() && (mistakes()!.length > 0)" class="d-flex align-items-center gap-2 mt-3">
-    <input
-      class="form-control"
-      style="max-width: 300px"
-      placeholder="Study set title"
-      [(ngModel)]="title"
-      name="title"
-    />
-    <button
-      class="btn btn-primary"
-      type="button"
-      [disabled]="creating()"
-      (click)="createStudySet()"
-    >
-      <fa-icon [icon]="faSquarePlus"></fa-icon>
-      Create study set
-    </button>
-    <span class="text-body-secondary" *ngIf="selected.size > 0">
-      {{ selected.size }} selected
-    </span>
+  <div *ngIf="mistakes() && (mistakes()!.length > 0)" class="card mt-4">
+    <div class="card-body">
+      <h3 class="h5 mb-1">
+        <fa-icon class="create-set-cta-icon" [icon]="faSquarePlus"></fa-icon>
+        Create a study set from your mistakes
+      </h3>
+      <p class="text-secondary mb-3">
+        Click the cards below to select the ones you want to practice, give your study set a title, then create it.
+      </p>
+      <input
+        class="form-control"
+        type="text"
+        maxlength="255"
+        placeholder="Enter a title for your study set..."
+        aria-label="Study set title"
+        [(ngModel)]="title"
+        name="title"
+      />
+      <button
+        class="btn btn-primary mt-3"
+        type="button"
+        [disabled]="creating()"
+        (click)="createStudySet()"
+      >
+        <span [hidden]="!creating()" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <fa-icon [icon]="faSquarePlus" class="me-1"></fa-icon>
+        Create study set<span *ngIf="selected.size > 0"> ({{ selected.size }} selected)</span>
+      </button>
+    </div>
   </div>
 
   <scholarsome-alert
@@ -47,30 +57,58 @@
     <p class="fs-5 text-secondary">You haven't made any mistakes yet. Keep studying!</p>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-3 g-4 py-4 w-100" *ngIf="mistakes() && (mistakes()!.length > 0)">
-    <div
-      class="col"
-      *ngFor="let mistake of mistakes()!"
-      (click)="toggleSelect(mistake.id)"
-      [ngClass]="{ 'selected-card': isSelected(mistake.id) }"
-    >
-      <div class="card shadow-sm set-card h-100">
-        <div class="card-body d-flex flex-column py-2">
-          <h5 class="card-title d-flex justify-content-between align-items-start gap-2 mb-1">
-            <span class="text-break" [innerHTML]="sanitizer.bypassSecurityTrustHtml(mistake.term)"></span>
-            <span class="d-flex align-items-center gap-2 flex-shrink-0">
-              <fa-icon
-                *ngIf="isSelected(mistake.id)"
-                class="text-success fs-6"
-                [icon]="faCheck"
-              ></fa-icon>
-              <span class="text-secondary fs-6 text-nowrap">{{ mistake.createdAt.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) }}</span>
-            </span>
-          </h5>
-          <p class="card-text mb-0" [innerHTML]="sanitizer.bypassSecurityTrustHtml(mistake.definition)"></p>
+  <div class="py-4 w-100" *ngIf="groups() && (groups()!.length > 0)">
+    <div class="mb-4" *ngFor="let group of groups()!">
+      <div
+        class="set-group-header"
+        role="button"
+        [routerLink]="['/study-set', group.set.id]"
+      >
+        <div class="set-group-header-icon">
+          <fa-icon [icon]="faFolderOpen"></fa-icon>
         </div>
-        <div class="card-footer" (click)="$event.stopPropagation()" [routerLink]="['/study-set', mistake.set.id]">
-          <small class="text-body-secondary" role="button">{{ mistake.set.title }}</small>
+        <div class="set-group-header-text">
+          <span class="set-group-header-title text-break">{{ group.set.title }}</span>
+          <small class="set-group-header-count">{{ group.mistakes.length }} {{ group.mistakes.length === 1 ? 'mistake' : 'mistakes' }}</small>
+        </div>
+        <small class="set-group-header-chevron">Open
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </small>
+      </div>
+
+      <div class="set-group-items pt-3">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+          <div
+            class="col"
+            role="button"
+            [attr.aria-pressed]="isSelected(mistake.id)"
+            *ngFor="let mistake of group.mistakes"
+            (click)="toggleSelect(mistake.id)"
+            [ngClass]="{ 'selected-card': isSelected(mistake.id) }"
+          >
+            <div class="card shadow-sm set-card h-100">
+              <div class="card-header d-flex align-items-center gap-2 py-1">
+                <fa-icon
+                  class="select-icon"
+                  [icon]="isSelected(mistake.id) ? faCheckSquare : faSquare"
+                  aria-hidden="true"
+                ></fa-icon>
+                <span class="text-secondary fs-6 text-nowrap">{{ mistake.createdAt.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) }}</span>
+                <button
+                  class="btn btn-link btn-sm p-0 ms-auto delete-mistake-btn"
+                  type="button"
+                  title="Delete mistake"
+                  (click)="deleteMistake(mistake.id); $event.stopPropagation()"
+                >
+                  <fa-icon [icon]="faTrash"></fa-icon>
+                </button>
+              </div>
+              <div class="card-body d-flex flex-column py-2">
+                <h5 class="card-title text-break mb-2" [innerHTML]="sanitizer.bypassSecurityTrustHtml(mistake.term)"></h5>
+                <p class="card-text mb-0" [innerHTML]="sanitizer.bypassSecurityTrustHtml(mistake.definition)"></p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

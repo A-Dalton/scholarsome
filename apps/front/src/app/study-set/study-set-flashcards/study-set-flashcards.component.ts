@@ -41,6 +41,9 @@ export class StudySetFlashcardsComponent implements OnInit {
 
   // Array of the IDs of known cards for progressive mode
   protected knownCardIDs: string[] = [];
+  // IDs of cards already stored as mistakes in the current session, so that
+  // cards resurfacing in later rounds are not stored again until a new session
+  protected sessionMistakeIDs = new Set<string>();
   // Whether the user is between rounds
   protected roundCompleted = false;
   // Counter for number of cards learned in the current round
@@ -130,11 +133,24 @@ export class StudySetFlashcardsComponent implements OnInit {
     button.classList.add("flash-bg");
   }
 
-  // Stores the current card as a mistake for progressive mode's "Don't know" option
-  async markAsMistake(): Promise<void> { 
-    if (this.flashcardsMode === "progressive" && this.currentCard) {
-      await this.cardMistakesService.createMistake(this.currentCard.id);
-    }
+  // Stores the current card as a mistake for progressive mode's "Don't know" option.
+  // Only stored the first time it is marked in a session; if it is presented
+  // again in a later round it is skipped until a new session begins
+  async markAsMistake(): Promise<void> {
+    if (this.flashcardsMode !== "progressive" || !this.currentCard) return;
+
+    // capture the id before awaiting: changeCard() advances currentCard while
+    // the request is still in flight
+    const cardId = this.currentCard.id;
+    if (this.sessionMistakeIDs.has(cardId)) return;
+
+    // remember it right away so an in-flight request is never sent twice
+    this.sessionMistakeIDs.add(cardId);
+
+    const mistake = await this.cardMistakesService.createMistake(cardId);
+
+    // allow a retry in a later round if storing failed
+    if (!mistake) this.sessionMistakeIDs.delete(cardId);
   }
 
   flipCard(type?: string) {
@@ -219,6 +235,9 @@ export class StudySetFlashcardsComponent implements OnInit {
     this.flashcardsMode = form.value["flashcards-type"];
     this.answer = form.value["answer-with"];
     this.side = form.value["answer-with"] === "definition" ? "term" : "definition";
+
+    // a new session begins, so previously stored mistakes may be stored again
+    this.sessionMistakeIDs.clear();
 
     if (form.value["enable-shuffling"] === "yes") {
       this.cards = this.cards.sort(() => 0.5 - Math.random());
