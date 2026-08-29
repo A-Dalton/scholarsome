@@ -186,6 +186,12 @@
     "mailparser": "3.9.16",
     "nx": {
       "brace-expansion": "5.0.9"
+    },
+    "@prisma/adapter-mariadb": {
+      "mariadb": "3.5.3"
+    },
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.2"
     }
   },
   "allowScripts": {
