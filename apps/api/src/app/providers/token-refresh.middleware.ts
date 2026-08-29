@@ -5,7 +5,6 @@ import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "../auth/auth.service";
 import { RedisService } from "@songkeys/nestjs-redis";
 import * as jwt from "jsonwebtoken";
-import * as crypto from "crypto";
 
 @Injectable()
 export class TokenRefreshMiddleware implements NestMiddleware {
@@ -16,7 +15,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
     private readonly redisService: RedisService
   ) {}
 
-  use(req: Request, res: Response, next: NextFunction) {
+  async use(req: Request, res: Response, next: NextFunction) {
     if (
       req.cookies &&
       "authenticated" in req.cookies &&
@@ -35,7 +34,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
       if (
         !("access_token" in req.cookies) &&
         "refresh_token" in req.cookies
-      ) this.renewAccessToken(req, res);
+      ) await this.renewAccessToken(req, res);
 
       // if your access token is expired
       try {
@@ -44,7 +43,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
         // and you have a refresh token
         if ("refresh_token" in req.cookies) {
           // renew your access token
-          this.renewAccessToken(req, res);
+          await this.renewAccessToken(req, res);
         } else {
           this.authService.logout(req, res);
         }
@@ -54,22 +53,25 @@ export class TokenRefreshMiddleware implements NestMiddleware {
     next();
   }
 
-  renewAccessToken(req: Request, res: Response): boolean {
+  async renewAccessToken(req: Request, res: Response): Promise<void> {
     let refreshToken: { id: string; sessionId: string; email: string; type: "refresh" };
 
     try {
       refreshToken = jwt.verify(req.cookies["refresh_token"], this.configService.get<string>("JWT_SECRET")) as { id: string; sessionId: string; email: string; type: "refresh" };
     } catch {
       this.authService.logout(req, res);
-      return true;
+      return;
     }
 
-    if (!refreshToken.sessionId || !this.redisService.getClient("default").get(req.cookies["refresh_token"].sessionId)) {
+    // A refresh token is only valid while its session id exists in Redis -
+    // logout revokes a token by deleting that key, so a missing key means revoked
+    if (!refreshToken.sessionId || !(await this.redisService.getClient("default").get(refreshToken.sessionId))) {
       this.authService.logout(req, res);
-      return true;
+      return;
     }
 
-    const accessToken = this.jwtService.sign({ id: refreshToken.id, sessionId: crypto.randomUUID(), email: refreshToken.email, type: "access" }, { expiresIn: "15m" });
+    // The session id must be carried over so that logout can still find and delete it in Redis
+    const accessToken = this.jwtService.sign({ id: refreshToken.id, sessionId: refreshToken.sessionId, email: refreshToken.email, type: "access" }, { expiresIn: "15m" });
 
     // the route following this interceptor will not see the cookie unless if we modify the cookie object here
     // this is only for the request that this interceptor is directly in front of
