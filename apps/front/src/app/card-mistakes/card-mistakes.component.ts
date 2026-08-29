@@ -6,7 +6,7 @@ import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { SetsService } from "../shared/http/sets.service";
 import { Router, RouterLink } from "@angular/router";
 import { faChevronRight, faFolderOpen, faHistory, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { faCheckSquare, faSquare } from "@fortawesome/free-regular-svg-icons";
+import { faCheckSquare, faQuestionCircle, faSquare } from "@fortawesome/free-regular-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -63,6 +63,7 @@ export class CardMistakesComponent implements OnInit {
   protected readonly faFolderOpen = faFolderOpen;
   protected readonly faChevronRight = faChevronRight;
   protected readonly faTrash = faTrash;
+  protected readonly faQuestionCircle = faQuestionCircle;
 
   constructor(
     private readonly cardMistakesService: CardMistakesService,
