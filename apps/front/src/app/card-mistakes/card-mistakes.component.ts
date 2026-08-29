@@ -162,7 +162,7 @@ export class CardMistakesComponent implements OnInit {
 
     const set = await this.setsService.createSet({
       title: this.title,
-      private: false,
+      private: true,
       cards
     });
 
