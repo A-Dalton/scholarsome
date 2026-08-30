@@ -1,5 +1,5 @@
 const lightCodeTheme = require('prism-react-renderer').themes.github;
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const path = require('path');
 const fs = require("fs");
 
