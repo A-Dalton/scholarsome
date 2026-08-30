@@ -6,6 +6,10 @@ WORKDIR /usr/src/app
 RUN apk add g++ make py3-pip openssl
 
 COPY package*.json .
+# This stage installs production dependencies only, then builds below — so any
+# package needed at BUILD time (TypeScript, Nx, Angular tooling, and @types
+# packages whose declarations the code references, e.g. @types/multer for the
+# Express.Multer global namespace) must stay in "dependencies" in package.json.
 RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts --platform=linuxmusl
 RUN npm rebuild bcrypt --build-from-source
 RUN npm rebuild better-sqlite3 --build-from-source
