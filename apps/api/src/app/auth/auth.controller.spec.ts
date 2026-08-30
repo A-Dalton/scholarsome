@@ -13,6 +13,7 @@ import { Request, Response } from "express";
 import { HttpException } from "@nestjs/common";
 import { ApiResponseOptions } from "@scholarsome/shared";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
+import { PassportOptionsModule } from "../providers/passport-options.module";
 
 describe("AuthController", () => {
   let authController: AuthController;
@@ -143,7 +144,7 @@ describe("AuthController", () => {
       controllers: [
         AuthController
       ],
-      imports: [ThrottlerModule.forRoot()]
+      imports: [ThrottlerModule.forRoot(), PassportOptionsModule]
     }).compile();
 
     authController = module.get(AuthController);

@@ -7,7 +7,7 @@
     "generate": "npx prisma generate",
     "migrate": "npx prisma migrate deploy",
     "build": "npx nx run-many --target=build --projects=front,api,docs --skip-nx-cache",
-    "test": "npx nx test api",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx nx test api",
     "lint": "nx run-many --all --target=lint --fix",
     "start": "nx serve",
     "start:front": "npx nx serve --host=0.0.0.0",
@@ -46,21 +46,21 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@mdx-js/react": "^3.1.1",
     "@nestjs-modules/mailer": "^2.3.7",
-    "@nestjs/axios": "^4.0.1",
-    "@nestjs/common": "11.2.1",
-    "@nestjs/config": "^4.0.4",
-    "@nestjs/core": "11.2.1",
-    "@nestjs/jwt": "^11.0.2",
-    "@nestjs/passport": "^11.0.5",
-    "@nestjs/platform-express": "11.2.1",
-    "@nestjs/schedule": "^6.1.3",
-    "@nestjs/serve-static": "^5.0.5",
-    "@nestjs/swagger": "11.4.7",
+    "@nestjs/axios": "^12.0.0",
+    "@nestjs/common": "12.0.1",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/core": "12.0.1",
+    "@nestjs/jwt": "^12.0.1",
+    "@nestjs/passport": "^12.0.0",
+    "@nestjs/platform-express": "12.0.1",
+    "@nestjs/schedule": "^12.0.1",
+    "@nestjs/serve-static": "^12.0.0",
+    "@nestjs/swagger": "12.0.1",
     "@nestjs/throttler": "^6.5.0",
     "@ngx-env/builder": "^22.0.0",
     "@nx/angular": "23.1.1",
     "@popperjs/core": "^2.10.2",
-    "@prisma/adapter-mariadb": "7.9.1",
+    "@prisma/adapter-mariadb": "7.10.0",
     "@prisma/client": "^7.9.1",
     "@schematics/angular": "^22.1.5",
     "@songkeys/nestjs-redis": "^11.0.0",
@@ -123,8 +123,8 @@
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^10.0.1",
     "@golevelup/ts-jest": "^3.0.0",
-    "@nestjs/schematics": "^11.1.0",
-    "@nestjs/testing": "11.2.1",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "12.0.1",
     "@nx/cypress": "23.1.1",
     "@nx/eslint": "23.1.1",
     "@nx/eslint-plugin": "23.1.1",
@@ -169,8 +169,21 @@
     "@nestjs/mapped-types": {
       "class-validator": "^0.15.1"
     },
+    "@nestjs/throttler": {
+      "@nestjs/common": "^12.0.0",
+      "@nestjs/core": "^12.0.0"
+    },
+    "@nx/nest": {
+      "@nestjs/common": ">=10.0.0 <13.0.0",
+      "@nestjs/core": ">=10.0.0 <13.0.0"
+    },
     "@songkeys/nestjs-redis": {
+      "@nestjs/common": "^12.0.0",
+      "@nestjs/core": "^12.0.0",
       "ioredis": "^6.0.0"
+    },
+    "nest-winston": {
+      "@nestjs/common": "^12.0.0"
     },
     "ng-recaptcha": {
       "@angular/core": "$@angular/core"
@@ -196,13 +209,13 @@
     }
   },
   "allowScripts": {
-    "@nestjs/core@11.2.1": true,
+    "@nestjs/core@12.0.1": true,
     "less@4.5.1": true,
     "@parcel/watcher@2.6.0": true,
-    "@prisma/client@7.9.1": true,
-    "@prisma/engines@7.9.1": true,
-    "@prisma/adapter-mariadb@7.9.1": true,
-    "@prisma/config@7.9.1": true,
+    "@prisma/client@7.10.0": true,
+    "@prisma/engines@7.10.0": true,
+    "@prisma/adapter-mariadb@7.10.0": true,
+    "@prisma/config@7.10.0": true,
     "bcrypt@6.0.0": true,
     "better-sqlite3@13.0.3": true,
     "core-js@3.50.0": true,
@@ -211,10 +224,10 @@
     "lmdb@3.5.6": true,
     "msgpackr-extract@3.0.4": true,
     "nx@23.1.1": true,
-    "prisma@7.9.1": true,
+    "prisma@7.10.0": true,
     "sharp@0.33.5": true,
     "unrs-resolver@1.12.2": true,
     "@scarf/scarf@1.4.0": true,
-    "cypress@15.21.0": true
+    "cypress@15.21.1": true
   }
 }

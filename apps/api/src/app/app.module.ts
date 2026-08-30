@@ -24,6 +24,7 @@ import { FoldersModule } from "./folders/folders.module";
 import { CardMistakesModule } from "./card-mistakes/card-mistakes.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TasksService } from "./providers/tasks.service";
+import { PassportOptionsModule } from "./providers/passport-options.module";
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { TasksService } from "./providers/tasks.service";
       })
     }),
     ScheduleModule.forRoot(),
+    PassportOptionsModule,
     AuthModule,
     DatabaseModule,
     SetsModule,
@@ -123,11 +125,11 @@ export class AppModule implements NestModule {
     ) {
       consumer
           .apply(HttpsRedirectMiddleware)
-          .forRoutes({ path: "*", method: RequestMethod.ALL });
+          .forRoutes({ path: "{*path}", method: RequestMethod.ALL });
     }
 
     consumer
         .apply(TokenRefreshMiddleware)
-        .forRoutes({ path: "*", method: RequestMethod.ALL });
+        .forRoutes({ path: "{*path}", method: RequestMethod.ALL });
   }
 }
