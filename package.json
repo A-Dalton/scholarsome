@@ -206,7 +206,11 @@
     },
     "@prisma/config": {
       "deepmerge-ts": "8.0.2"
-    }
+    },
+    "serialize-javascript": "^7.1.1",
+    "uuid": "^11.1.1",
+    "less": "^4.9.0",
+    "image-size": "npm:image-size-next@2.1.1"
   },
   "allowScripts": {
     "@nestjs/core@12.0.1": true,
