@@ -46,7 +46,9 @@ if (fs.existsSync(specPath)) {
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Scholarsome Handbook',
-  url: `http://${process.env.HOST}`,
+  // HOST is a runtime deployment variable and is not set when the handbook is
+  // built (e.g. in the Docker image build), so fall back to a valid URL.
+  url: `http://${process.env.HOST ?? 'localhost'}`,
   baseUrl: '/handbook/',
   onBrokenLinks: 'log',
   favicon: 'img/favicon.ico',
@@ -85,10 +87,13 @@ const config = {
             activeBasePath: 'api'
           },
           {
-            to: `http://${process.env.HOST}`,
+            // A plain <a> pointing at the site root, so the link works no
+            // matter which host serves the handbook. A default navbar item
+            // would not work here: Docusaurus rewrites internal hrefs to the
+            // docs base URL and navigates them client-side.
+            type: 'html',
             position: 'right',
-            label: 'Back to Scholarsome',
-            target: "_self"
+            value: '<a class="navbar__link menu__link" href="/">Back to Scholarsome</a>'
           }
         ],
       },

@@ -8,9 +8,9 @@ import express from "express";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import compression from "compression";
 import { envSchema } from "@scholarsome/shared";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as fs from "fs";
 import { LoggerFactory } from "./app/shared/logger.factory";
+import { createApiDocument } from "./app/shared/api-document";
 import helmet from "helmet";
 import { missingSitemapMiddleware } from "./app/providers/missing-sitemap.middleware";
 import { noIndexMiddleware } from "./app/providers/no-index.middleware";
@@ -105,13 +105,7 @@ async function bootstrap() {
         .listen(8443);
   }
 
-  const config = new DocumentBuilder()
-      .setTitle("Scholarsome API")
-      .setVersion("")
-      .setDescription("This page contains documentation about how to use the Scholarsome API. Currently, only endpoints that do not require authentication are able to be used. In a future update, API tokens will be introduced that allow for the usage of privileged endpoints.")
-      .build();
-
-  const document = SwaggerModule.createDocument(app, config);
+  const document = createApiDocument(app);
   fs.writeFileSync("./dist/api-spec.json", JSON.stringify(document));
 
   await app.init();

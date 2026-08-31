@@ -11,6 +11,12 @@
       "options": {
         "outputPath": "dist/apps/api",
         "main": "apps/api/src/main.ts",
+        "additionalEntryPoints": [
+          {
+            "entryName": "api-spec",
+            "entryPath": "apps/api/src/api-spec.ts"
+          }
+        ],
         "tsConfig": "apps/api/tsconfig.app.json",
         "assets": ["apps/api/src/assets"],
         "target": "node",
@@ -29,6 +35,14 @@
             }
           ]
         }
+      }
+    },
+    "spec-gen": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "outputs": ["{workspaceRoot}/dist/api-spec.json"],
+      "options": {
+        "command": "node dist/apps/api/api-spec.js"
       }
     },
     "serve": {
