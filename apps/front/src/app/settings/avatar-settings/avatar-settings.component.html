@@ -4,8 +4,10 @@
 
 <form class="py-5" (ngSubmit)="submit()" ngNativeValidate>
   <div class="mb-3">
-    <input type="file" accept="image/png,image/jpeg" class="form-control" name="file" (change)="onFileUpload($event)" [disabled]="changeClicked()" ngModel required>
-    <div *ngIf="changeError()" class="form-text text-danger">Something went wrong. Try again, or look at the developer console for more information.</div>
+    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="form-control" name="file" (change)="onFileUpload($event)" [disabled]="changeClicked()" ngModel required>
+    <div *ngIf="changeError() === 'tooLarge'" class="form-text text-danger">This image is too large. Avatars must be smaller than 5 MB.</div>
+    <div *ngIf="changeError() === 'unsupported'" class="form-text text-danger">This file type is not supported. Avatars must be JPEG, PNG, WebP, or GIF images.</div>
+    <div *ngIf="changeError() === 'error'" class="form-text text-danger">Something went wrong. Try again, or look at the developer console for more information.</div>
   </div>
   <div class="d-flex justify-content-between">
     <button type="submit" class="btn btn-primary" [disabled]="changeClicked()">

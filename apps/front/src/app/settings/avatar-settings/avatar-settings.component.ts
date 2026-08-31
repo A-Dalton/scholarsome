@@ -21,7 +21,7 @@ export class AvatarSettingsComponent implements OnInit {
   ) {}
 
   protected changeClicked = signal(false);
-  protected changeError = signal(false);
+  protected changeError = signal<"tooLarge" | "unsupported" | "error" | false>(false);
 
   protected deleteClicked = signal(false);
 
@@ -34,12 +34,14 @@ export class AvatarSettingsComponent implements OnInit {
 
     const response = await this.usersService.setMyAvatar(this.newAvatar);
 
-    this.changeError.set(!response);
+    this.changeError.set(response === "success" ? false : response);
 
     this.changeClicked.set(false);
 
-    await this.viewAvatar();
-    this.sharedService.avatarUpdateEvent.next();
+    if (response === "success") {
+      await this.viewAvatar();
+      this.sharedService.avatarUpdateEvent.next();
+    }
   }
 
   async viewAvatar() {

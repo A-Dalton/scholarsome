@@ -64,7 +64,7 @@ export class CsvImportModalComponent {
       file: this.file()!
     });
 
-    if (set) {
+    if (set && typeof set !== "string") {
       this.router.navigateByUrl("/", { skipLocationChange: true }).then(() => {
         this.router.navigate(["/study-set", set.id]);
       });
@@ -73,7 +73,7 @@ export class CsvImportModalComponent {
       this.file.set(null);
       this.submitted.set(true);
     } else {
-      this.response.set("fail");
+      this.response.set(typeof set === "string" ? set : "error");
       this.clicked.set(false);
       this.file.set(null);
       this.uploading.set(false);

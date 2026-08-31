@@ -80,8 +80,13 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.use(compression());
+
+  /**
+   * JSON bodies can carry base64 images pasted into the card editor,
+   * so they are given more headroom than form-encoded bodies
+   */
   app.use(express.json({ limit: "30mb" }));
-  app.use(express.urlencoded({ limit: "30mb", extended: true }));
+  app.use(express.urlencoded({ limit: "1mb", extended: true }));
 
   // these middleware functions need to run before the serve static module,
   // therefore they are functional middleware instead of being class-based

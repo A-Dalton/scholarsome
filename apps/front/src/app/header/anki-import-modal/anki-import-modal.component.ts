@@ -56,7 +56,7 @@ export class AnkiImportModalComponent {
     if (!this.file()) return;
 
     setTimeout(() => {
-      if (this.response() !== "incompatible" && !this.submitted()) this.uploading.set(true);
+      if (!this.response() && !this.submitted()) this.uploading.set(true);
     }, 3000);
 
     const set = await this.convertingService.importSetFromAnkiApkg({
@@ -66,7 +66,7 @@ export class AnkiImportModalComponent {
       file: this.file()!
     });
 
-    if (set) {
+    if (set && typeof set !== "string") {
       this.router.navigateByUrl("/", { skipLocationChange: true }).then(() => {
         this.router.navigate(["/study-set", set.id]);
       });
@@ -75,7 +75,7 @@ export class AnkiImportModalComponent {
       this.file.set(null);
       this.submitted.set(true);
     } else {
-      this.response.set("incompatible");
+      this.response.set(typeof set === "string" ? set : "error");
       this.clicked.set(false);
       this.file.set(null);
       this.uploading.set(false);
