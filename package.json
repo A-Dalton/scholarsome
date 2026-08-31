@@ -33,7 +33,6 @@
     "@angular/core": "^22.1.3",
     "@angular/forms": "^22.1.3",
     "@angular/platform-browser": "^22.1.3",
-    "@angular/platform-browser-dynamic": "^22.1.3",
     "@angular/router": "^22.1.3",
     "@aws-sdk/client-s3": "3.967.0",
     "@docusaurus/core": "^3.10.2",
