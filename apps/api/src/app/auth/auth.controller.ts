@@ -17,6 +17,7 @@ import { UsersService } from "../users/users.service";
 import { AuthService } from "./auth.service";
 import { Request as ExpressRequest, Response } from "express";
 import { ApiResponse, ApiResponseOptions } from "@scholarsome/shared";
+import { cookieOptions, sslEnabled } from "../shared/cookies";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
@@ -40,6 +41,7 @@ import { ResetEmailDto } from "./dto/resetEmail.dto";
 @Controller("auth")
 export class AuthController {
   private readonly apiKeyRedis: Redis;
+  private readonly defaultRedis: Redis;
 
   constructor(
     private readonly usersService: UsersService,
@@ -50,6 +52,17 @@ export class AuthController {
     private readonly redisService: RedisService
   ) {
     this.apiKeyRedis = this.redisService.getClient("apiToken");
+    this.defaultRedis = this.redisService.getClient("default");
+  }
+
+  /**
+   * Returns the standard cookie attributes for auth cookies
+   */
+  private cookieAttrs(): { sameSite: "lax"; secure: boolean } {
+    return cookieOptions(sslEnabled(
+        this.configService.get<string>("SSL_KEY_BASE64"),
+        this.configService.get<string>("SSL_CERT_BASE64")
+    ));
   }
 
   /*
@@ -198,7 +211,13 @@ export class AuthController {
       if (!decoded || !decoded.forPasswordReset) throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
 
       res.cookie("resetPasswordToken", "", {
+        httpOnly: true,
+        ...this.cookieAttrs(),
+        expires: new Date()
+      });
+      res.cookie("resetPasswordOpen", "", {
         httpOnly: false,
+        ...this.cookieAttrs(),
         expires: new Date()
       });
 
@@ -237,10 +256,13 @@ export class AuthController {
   }
 
   /**
-   * Adds a reset token in cookies that can be used in the /api/auth/reset/password route to reset a password.
+   * Exchanges the single-use token from an emailed password reset link for the
+   * signed reset jwt, which is stored in an httpOnly cookie.
    *
    * @remarks This is the link that is emailed to users when a password reset is requested.
-   * @returns Void, redirect to /api/auth/redirect
+   * The jwt never travels in a URL, where it would leak into server logs and
+   * browser history, and each emailed link can only be used once.
+   * @returns Redirect to /
    */
   @ApiExcludeEndpoint()
   @Get("reset/password/verify/:token")
@@ -248,22 +270,26 @@ export class AuthController {
     @Param() params: { token: string },
     @Res() res: Response
   ): Promise<void> {
-    let decoded: { email: string; forPasswordReset: boolean };
-    try {
-      decoded = jwt.verify(
-          params.token,
-          this.configService.get<string>("JWT_SECRET")
-      ) as { email: string; forPasswordReset: boolean };
-    } catch {
-      return res.redirect("/");
-    }
+    const key = `password-reset:${params.token}`;
 
-    if (decoded && decoded.forPasswordReset) {
-      res.cookie("resetPasswordToken", params.token, {
-        httpOnly: false,
-        expires: new Date(new Date().setMinutes(new Date().getMinutes() + 10))
-      });
-    }
+    const token = await this.defaultRedis.get(key);
+    if (!token) return res.redirect("/");
+
+    // a reset link is single-use; the jwt remains valid until it expires
+    await this.defaultRedis.del(key);
+
+    res.cookie("resetPasswordToken", token, {
+      httpOnly: true,
+      ...this.cookieAttrs(),
+      expires: new Date(new Date().setMinutes(new Date().getMinutes() + 10))
+    });
+    // client-readable flag the front-end uses to open the reset form without
+    // exposing the jwt to page scripts
+    res.cookie("resetPasswordOpen", "true", {
+      httpOnly: false,
+      ...this.cookieAttrs(),
+      expires: new Date(new Date().setMinutes(new Date().getMinutes() + 10))
+    });
 
     return res.redirect("/");
   }
@@ -336,10 +362,12 @@ export class AuthController {
 
     if (verification) {
       res.cookie("verified", true, {
+        httpOnly: false,
+        ...this.cookieAttrs(),
         expires: new Date(new Date().setSeconds(new Date().getSeconds() + 30))
       });
     } else {
-      res.cookie("verified", false, { expires: new Date() });
+      res.cookie("verified", false, { httpOnly: false, ...this.cookieAttrs(), expires: new Date() });
     }
 
     const user = await this.usersService.user({ email: email.email });

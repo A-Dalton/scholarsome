@@ -20,6 +20,7 @@ describe("AuthController", () => {
   let usersService: UsersService;
   let mailService: MailService;
   let authService: AuthService;
+  let redisService: RedisService;
 
   /*
   The JWT secret for this is "a"
@@ -151,6 +152,7 @@ describe("AuthController", () => {
     usersService = module.get(UsersService);
     mailService = module.get(MailService);
     authService = module.get(AuthService);
+    redisService = module.get(RedisService);
 
     jest.spyOn(usersService, "user");
     jest.spyOn(mailService, "sendEmailConfirmation");
@@ -213,22 +215,39 @@ describe("AuthController", () => {
     } as any as Response;
 
     it("should redirect to /reset", async () => {
+      (redisService.getClient("default").get as jest.Mock).mockResolvedValue(null);
+
       await authController.verifyPasswordResetRequest({ token: "" }, res);
 
       expect(res.redirect).toHaveBeenCalled();
     });
 
     it("should not set a cookie if the param is not valid", async () => {
+      (redisService.getClient("default").get as jest.Mock).mockResolvedValue(null);
+
       await authController.verifyPasswordResetRequest({ token: "" }, res);
 
       expect(res.cookie).not.toHaveBeenCalled();
     });
 
     it("should set a cookie if the param is valid", async () => {
-      await authController.verifyPasswordResetRequest({ token: resetPasswordToken }, res);
+      const redisClient = redisService.getClient("default");
+      (redisClient.get as jest.Mock).mockResolvedValue(resetPasswordToken);
 
+      await authController.verifyPasswordResetRequest({ token: "opaque" }, res);
+
+      expect(redisClient.get).toHaveBeenCalledWith("password-reset:opaque");
+      expect(redisClient.del).toHaveBeenCalledWith("password-reset:opaque");
       expect(res.cookie).toHaveBeenCalledWith("resetPasswordToken", resetPasswordToken, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: true,
+        expires: expect.any(Date)
+      });
+      expect(res.cookie).toHaveBeenCalledWith("resetPasswordOpen", "true", {
         httpOnly: false,
+        sameSite: "lax",
+        secure: true,
         expires: expect.any(Date)
       });
     });
@@ -282,6 +301,9 @@ describe("AuthController", () => {
       await authController.verifyEmail({ token: resetPasswordToken }, res);
 
       expect(res.cookie).toHaveBeenCalledWith("verified", true, {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: true,
         expires: expect.any(Date)
       });
     });

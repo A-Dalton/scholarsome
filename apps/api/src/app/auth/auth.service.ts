@@ -6,6 +6,7 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { lastValueFrom } from "rxjs";
 import { RecaptchaResponse, User as UserWithSets } from "@scholarsome/shared";
+import { cookieOptions, sslEnabled } from "../shared/cookies";
 import { RedisService } from "@songkeys/nestjs-redis";
 import Redis from "ioredis";
 import { Request, Response } from "express";
@@ -100,10 +101,22 @@ export class AuthService {
   }
 
   /**
+   * Returns the standard cookie attributes for auth cookies
+   */
+  private cookieAttrs(): { sameSite: "lax"; secure: boolean } {
+    return cookieOptions(sslEnabled(
+        this.configService.get<string>("SSL_KEY_BASE64"),
+        this.configService.get<string>("SSL_CERT_BASE64")
+    ));
+  }
+
+  /**
    * Sets the response login cookies for the user
    */
   setLoginCookies(res: Response, user: UserWithSets | User): void {
-    res.cookie("verified", user.verified, { httpOnly: false });
+    // verified/authenticated are read by the front-end and hold no secret, so
+    // they stay client-readable; the tokens themselves are httpOnly
+    res.cookie("verified", user.verified, { httpOnly: false, ...this.cookieAttrs() });
 
     const sessionId = crypto.randomUUID();
 
@@ -118,7 +131,7 @@ export class AuthService {
     );
     const refreshTokenExpiry = new Date(new Date().setDate(new Date().getDate() + 182));
 
-    res.cookie("refresh_token", refreshToken, { httpOnly: true, expires: refreshTokenExpiry });
+    res.cookie("refresh_token", refreshToken, { httpOnly: true, ...this.cookieAttrs(), expires: refreshTokenExpiry });
     this.refreshTokenRedis.set(sessionId, refreshToken);
     this.refreshTokenRedis.expire(sessionId, Math.round((refreshTokenExpiry.getTime() - new Date().getTime()) / 1000));
 
@@ -130,17 +143,17 @@ export class AuthService {
           type: "access"
         },
         { expiresIn: "15m" }
-    ), { httpOnly: true, expires: new Date(new Date().getTime() + 15 * 60000) });
-    res.cookie("authenticated", true, { httpOnly: false, expires: new Date(new Date().setDate(new Date().getDate() + 182)) });
+    ), { httpOnly: true, ...this.cookieAttrs(), expires: new Date(new Date().getTime() + 15 * 60000) });
+    res.cookie("authenticated", true, { httpOnly: false, ...this.cookieAttrs(), expires: new Date(new Date().setDate(new Date().getDate() + 182)) });
   }
 
   /**
    * Logs a user out
    */
   async logout(req: Request, res: Response) {
-    res.cookie("access_token", "", { httpOnly: true, expires: new Date() });
-    res.cookie("refresh_token", "", { httpOnly: true, expires: new Date() });
-    res.cookie("authenticated", "", { httpOnly: false, expires: new Date() });
+    res.cookie("access_token", "", { httpOnly: true, ...this.cookieAttrs(), expires: new Date() });
+    res.cookie("refresh_token", "", { httpOnly: true, ...this.cookieAttrs(), expires: new Date() });
+    res.cookie("authenticated", "", { httpOnly: false, ...this.cookieAttrs(), expires: new Date() });
 
     const user = jwt.decode(req.cookies.access_token);
     if (user && "email" in (user as jwt.JwtPayload)) {

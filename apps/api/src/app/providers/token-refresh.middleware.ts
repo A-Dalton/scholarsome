@@ -5,6 +5,7 @@ import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "../auth/auth.service";
 import { RedisService } from "@songkeys/nestjs-redis";
 import * as jwt from "jsonwebtoken";
+import { cookieOptions, sslEnabled } from "../shared/cookies";
 
 @Injectable()
 export class TokenRefreshMiddleware implements NestMiddleware {
@@ -78,6 +79,13 @@ export class TokenRefreshMiddleware implements NestMiddleware {
     req.cookies["access_token"] = accessToken;
 
     // but this actually sets the cookie for future requests
-    res.cookie("access_token", accessToken, { httpOnly: true, expires: new Date(new Date().getTime() + 15 * 60000) });
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      ...cookieOptions(sslEnabled(
+          this.configService.get<string>("SSL_KEY_BASE64"),
+          this.configService.get<string>("SSL_CERT_BASE64")
+      )),
+      expires: new Date(new Date().getTime() + 15 * 60000)
+    });
   }
 }
