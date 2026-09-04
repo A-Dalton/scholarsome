@@ -1,4 +1,5 @@
 const lightCodeTheme = require('prism-react-renderer').themes.github;
+const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 require('dotenv').config({ quiet: true });
 const path = require('path');
 const fs = require("fs");
@@ -64,6 +65,11 @@ const config = {
 
   presets,
 
+  // Injects an inline <head> script that syncs the front-end's
+  // `scholarsome-theme` cookie into Docusaurus' color mode, and mirrors
+  // toggle changes back into the cookie. See the plugin for details.
+  plugins: [require.resolve('./scholarsome-theme-plugin.cjs')],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -99,10 +105,16 @@ const config = {
       },
       prism: {
         theme: lightCodeTheme,
+        darkTheme: darkCodeTheme,
       },
+      // Dark mode follows the front-end's `scholarsome-theme` cookie: the
+      // scholarsome-theme-cookie-sync plugin seeds Docusaurus' storage from
+      // the cookie before this bootstrap applies it. The switch stays enabled
+      // so the Handbook has its own toggle, which writes back to the cookie.
       colorMode: {
-        disableSwitch: true,
+        disableSwitch: false,
         respectPrefersColorScheme: false,
+        defaultMode: 'light',
       },
     }),
 };
