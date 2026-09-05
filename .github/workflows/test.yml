@@ -13,6 +13,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts requires DATABASE_URL to be resolvable, but "prisma
+      # generate" never connects to a database, so a placeholder is
+      # sufficient. The tests mock PrismaService and do not use a real
+      # database either.
+      DATABASE_URL: mysql://scholarsome:scholarsome@localhost:3306/scholarsome
     steps:
       - uses: actions/checkout@v7
 
