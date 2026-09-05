@@ -6,7 +6,7 @@
     "ng": "nx",
     "generate": "npx prisma generate",
     "migrate": "npx prisma migrate deploy",
-    "build": "npx nx run-many --target=build --projects=front,api,docs --skip-nx-cache",
+    "build": "npx nx run-many --target=build --projects=front,api,docs",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx nx run-many --target=test --projects=api,front",
     "lint": "nx run-many --all --target=lint --fix",
     "start": "nx serve",
