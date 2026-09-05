@@ -10,9 +10,9 @@ COPY package*.json ./
 # package needed at BUILD time (TypeScript, Nx, Angular tooling, and @types
 # packages whose declarations the code references, e.g. @types/multer for the
 # Express.Multer global namespace) must stay in "dependencies" in package.json.
-RUN npm install --omit=dev --ignore-scripts --platform=linuxmusl
-RUN npm rebuild bcrypt --build-from-source
-RUN npm rebuild better-sqlite3 --build-from-source
+RUN npm install --omit=dev --ignore-scripts
+RUN npm_config_build_from_source=true npm rebuild bcrypt
+RUN npm_config_build_from_source=true npm rebuild better-sqlite3
 
 COPY . .
 
