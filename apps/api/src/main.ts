@@ -36,34 +36,27 @@ async function bootstrap() {
   app.enableCors();
 
   /**
-   * unsafe-inline is required in style-src for Angular to work
+   * 'unsafe-inline' is required in style-src for Angular's component styles.
+   * It is also required in script-src: the Handbook injects an inline
+   * theme-sync script (apps/docs/scholarsome-theme-plugin.cjs) and operators
+   * can inject head scripts via SCHOLARSOME_HEAD_SCRIPTS_BASE64
+   * (see HeadScriptsComponent).
    *
-   * but unsafe-eval is required because i'm unable to find the module that is using it
-   * in a future update, it will be removed
+   * script-src-attr keeps Helmet's default of 'none', disallowing inline
+   * event handlers. This policy applies to both SSL and non-SSL
+   * deployments; non-SSL deployments previously shipped no CSP at all.
    */
-  if (
-    process.env.SSL_KEY_BASE64 &&
-    process.env.SSL_KEY_BASE64.length > 0 &&
-    process.env.SSL_CERT_BASE64 &&
-    process.env.SSL_CERT_BASE64.length > 0
-  ) {
-    app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          "script-src": ["'self'", "'unsafe-eval'", "'unsafe-inline'", "blob:", "https://www.gstatic.com", "https://www.google.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://ssl.google-analytics.com"],
-          "img-src": ["'self'", "blob:", "data:", "https://cdn.redoc.ly", "https://www.google-analytics.com"],
-          "script-src-attr": ["'unsafe-inline'"],
-          "default-src": ["'self'", "https://api.github.com", "https://google-analytics.com"],
-          "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/"],
-          "connect-src": ["'self'", "https://www.google-analytics.com", "https://api.github.com"]
-        }
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": ["'self'", "'unsafe-inline'", "blob:", "https://www.gstatic.com", "https://www.google.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
+        "img-src": ["'self'", "blob:", "data:", "https://cdn.redoc.ly", "https://www.google-analytics.com"],
+        "default-src": ["'self'", "https://api.github.com", "https://google-analytics.com"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/"],
+        "connect-src": ["'self'", "https://www.google-analytics.com", "https://api.github.com"]
       }
-    }));
-  } else {
-    app.use(helmet({
-      contentSecurityPolicy: false
-    }));
-  }
+    }
+  }));
 
   const logger = LoggerFactory("Scholarsome");
   app.useLogger(logger);
