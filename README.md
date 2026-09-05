@@ -1,4 +1,4 @@
-## <p align="center"><img src="https://raw.githubusercontent.com/hwgilbert16/scholarsome/develop/apps/front/src/assets/header/scholarsome-logo-purple-lowercase.svg" height="50%" width="50%"></p>
+## <p align="center"><img src="https://raw.githubusercontent.com/A-Dalton/scholarsome/develop/apps/front/src/assets/header/scholarsome-logo-purple-lowercase.svg" height="50%" width="50%"></p>
 
 <div align="center">
 
@@ -7,13 +7,12 @@
 *Inspired by the larger sites that are now charging for core functionality, Scholarsome intends to be a drop-in replacement for any study workflow.*
 
 <a href="https://discord.gg/hRgVvc5MKf">![](https://img.shields.io/badge/-Join%20our%20Discord-white?logo=Discord&logoColor=blue)</a>
-<a href="https://github.com/hwgilbert16/scholarsome/blob/develop/LICENSE">![](https://img.shields.io/github/license/hwgilbert16/scholarsome?color=blue)</a>
-<a href="https://github.com/hwgilbert16/scholarsome/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">![](https://img.shields.io/badge/contributions-welcome-orange)</a>
+<a href="https://github.com/A-Dalton/scholarsome/blob/develop/LICENSE">![](https://img.shields.io/github/license/A-Dalton/scholarsome?color=blue)</a>
+<a href="https://github.com/A-Dalton/scholarsome/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">![](https://img.shields.io/badge/contributions-welcome-orange)</a>
 <img src="https://img.shields.io/badge/price-free-brightgreen" alt="Pricing">
-<a href="https://github.com/hwgilbert16/scholarsome/issues">![](https://img.shields.io/github/issues/hwgilbert16/scholarsome)</a>
+<a href="https://github.com/A-Dalton/scholarsome/issues">![](https://img.shields.io/github/issues/A-Dalton/scholarsome)</a>
 <a href="https://www.contributor-covenant.org/version/2/1/code_of_conduct.html "><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-purple" /></a>
-<a href="https://github.com/hwgilbert16/scholarsome/stargazers">![](https://img.shields.io/github/stars/hwgilbert16/scholarsome)</a>
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Stop%20using%20clunky%2C%20proprietary%20flashcard%20software%20-%20instead%2C%20use%20the%20open%20source%20alternative%3A%20Scholarsome&url=https://github.com/hwgilbert16/scholarsome&hashtags=bootstrap,nestjs,angular,developers)
+<a href="https://github.com/A-Dalton/scholarsome/stargazers">![](https://img.shields.io/github/stars/A-Dalton/scholarsome)</a>
 
 </div>
 
@@ -25,13 +24,24 @@
 <img src="apps/docs/static/img/homepage.png">
 </p>
 
+## About this fork
+
+Scholarsome was originally created by [@hwgilbert16](https://github.com/hwgilbert16) — a huge thank you for building such a thoughtful, open source studying platform!
+
+As the original repository has been inactive for a while now, I created this fork with two simple goals:
+
+- **Keeping the software alive.** Upgrading dependencies, fixing bugs, and making sure Scholarsome keeps building and running reliably on current Node.js and Docker versions.
+- **Carefully adding new features.** Small, well-considered improvements to hopefully stay true to the original project's design and philosophy.
+
+If you'd like to help keep it that way, contributions are very welcome — see [Contributing](#contributing) below.
+
 ## About
 
 Scholarsome <a href="http://ipa-reader.xyz/?text=%CB%88sk%C3%A4l%C9%99rs(%C9%99)m%2F">(pronounced ˈskälərs(ə)m/)</a> is a web-based and open source studying system. Through the use of flashcards, among other core features, users can practice memorization of terms and definitions, along with keeping their data secure locally.
 
 While other services have begun to paywall core functionalities, Scholarsome intends to offer an equal alternative that does not compromise on features.
 
-You can read more about our design philosophy <a href="https://github.com/hwgilbert16/scholarsome#design-philosophy">here.</a>
+You can read more about our design philosophy <a href="https://github.com/A-Dalton/scholarsome#design-philosophy">here.</a>
 
 ## Features
 
@@ -46,9 +56,6 @@ You can read more about our design philosophy <a href="https://github.com/hwgilb
 - Edit your sets 🛠️
 - Change set visibility 🔓
 
-<img src="https://s13.gifyu.com/images/S0cB1.gif" width="50%">
-<img src="https://s13.gifyu.com/images/S0cBD.gif" width="50%">
-
 ## Features coming soon...
 
 - Interactive study games
@@ -60,30 +67,33 @@ You can read more about our design philosophy <a href="https://github.com/hwgilb
 
 ## Usage
 
-Scholarsome  can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/installation/installing.md">here.</a>
+Scholarsome  can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://github.com/A-Dalton/scholarsome/blob/develop/apps/docs/docs/installation/installing.md">here.</a>
 
 ## Development
 
-For development purposes, Scholarsome is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
+Scholarsome is developed as an <a href="https://nx.dev/">Nx</a> 23 monorepo containing three apps. For development purposes, it is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
 
-While we use many technologies, some of our most prominent are:
+Each app, and the technologies it is built with:
 
-- <a href="https://nestjs.com/">NestJS</a>
-- <a href="https://angular.io/">Angular</a>
-- <a href="https://www.prisma.io/">Prisma</a>
-- <a href="https://nx.dev/">Nx</a>
+- **`apps/front`** – the web application, built with <a href="https://angular.dev/">Angular 22</a>. The UI is styled with Bootstrap 5, renders math expressions with KaTeX, and uses Quill 2 as its rich text editor.
+- **`apps/api`** – the backend API, built with <a href="https://nestjs.com/">NestJS 12</a> on Express 5. It stores data in MariaDB through <a href="https://www.prisma.io/">Prisma 7</a>, uses Redis for caching and session storage, and publishes OpenAPI documentation with Swagger.
+- **`apps/docs`** – the documentation site, built with <a href="https://docusaurus.io/">Docusaurus 3</a> and React 19, including an OpenAPI-powered API reference rendered with Redocusaurus.
+
+Shared across the monorepo: TypeScript 6, Jest 30 for unit tests, Cypress 15 for end-to-end tests, ESLint 10 for linting, and Node.js 26 or later as the required runtime.
 
 ## Contributing
 
-Scholarsome is an open source project. We believe in a transparent development process and are appreciative of any contributions to the project. Whether it's proposing new features, helping us fix bugs, or improving the documentation - we would love to have your help. Please refer to our <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/CODE_OF_CONDUCT.md">code of conduct</a> to ensure you follow the project's rules.
+Scholarsome is an open source project. We believe in a transparent development process and are appreciative of any contributions to the project. Whether it's proposing new features, helping us fix bugs, or improving the documentation - we would love to have your help. Please refer to our <a href="https://github.com/a-dalton/scholarsome/blob/develop/CODE_OF_CONDUCT.md">code of conduct</a> to ensure you follow the project's rules.
 
-- **Bug reports.** If you run into an issue using Scholarsome, please <a href="https://github.com/hwgilbert16/scholarsome/issues/new">create a bug report</a>. Make sure you attach the `bug` label to your issue.
-- **Feature requests.** We'd love to hear your ideas for future features. Please <a href="https://github.com/hwgilbert16/scholarsome/issues/new">create an issue</a> and attach the `feature request` label to propose a new feature.
+- **Bug reports.** If you run into an issue using Scholarsome, please <a href="https://github.com/a-dalton/scholarsome/issues/new">create a bug report</a>. Make sure you attach the `bug` label to your issue.
+- **Feature requests.** We'd love to hear your ideas for future features. Please <a href="https://github.com/a-dalton/scholarsome/issues/new">create an issue</a> and attach the `feature request` label to propose a new feature.
 
 ## Contributors
 
-<a href="https://github.com/hwgilbert16/scholarsome/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=hwgilbert16/scholarsome"/>
+A big thank you to everyone who contributed to the original Scholarsome project — your work is the foundation of everything here.
+
+<a href="https://github.com/a-dalton/scholarsome/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=a-dalton/scholarsome"/>
 </a>
 
 ## Design Philosophy
@@ -99,7 +109,5 @@ We're also selective about the order in which features are being added. Instead 
 It's important to note that Scholarsome is far from complete. We're firm believers of shipping fast and early to gain feedback from users. While some features may be absent at the moment, we love having early users that can ensure we have a stable foundation through valuable feedback.
 
 ## Contact
-
-For formal inquiries, you can contact us via support@scholarsome.com
 
 Otherwise, we recommend joining our <a href="https://discord.gg/hRgVvc5MKf">Discord server.</a> Support can be asked here, along with keeping up-to-date with future versions and upcoming features.
