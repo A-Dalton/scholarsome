@@ -21,7 +21,12 @@ COPY . .
 ENV DATABASE_URL="mysql://scholarsome:scholarsome@localhost:3306/scholarsome"
 
 RUN npm run generate
-RUN npm run build
+# Build the deploy artifact with the API's production configuration (minified
+# bundle, extracted licenses): npm forwards the flag to `nx run-many`, and the
+# API's webpack config picks it up via NX_TASK_TARGET_CONFIGURATION. The
+# front-end already defaults to its production configuration, and the docs
+# build is production-only.
+RUN npm run build -- --configuration=production
 
 FROM node:26-alpine
 
