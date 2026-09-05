@@ -1,5 +1,6 @@
 const lightCodeTheme = require('prism-react-renderer').themes.github;
-require('dotenv').config();
+const darkCodeTheme = require('prism-react-renderer').themes.dracula;
+require('dotenv').config({ quiet: true });
 const path = require('path');
 const fs = require("fs");
 
@@ -46,7 +47,9 @@ if (fs.existsSync(specPath)) {
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Scholarsome Handbook',
-  url: `http://${process.env.HOST}`,
+  // HOST is a runtime deployment variable and is not set when the handbook is
+  // built (e.g. in the Docker image build), so fall back to a valid URL.
+  url: `http://${process.env.HOST ?? 'localhost'}`,
   baseUrl: '/handbook/',
   onBrokenLinks: 'log',
   favicon: 'img/favicon.ico',
@@ -61,6 +64,11 @@ const config = {
   },
 
   presets,
+
+  // Injects an inline <head> script that syncs the front-end's
+  // `scholarsome-theme` cookie into Docusaurus' color mode, and mirrors
+  // toggle changes back into the cookie. See the plugin for details.
+  plugins: [require.resolve('./scholarsome-theme-plugin.cjs')],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -85,19 +93,28 @@ const config = {
             activeBasePath: 'api'
           },
           {
-            to: `http://${process.env.HOST}`,
+            // A plain <a> pointing at the site root, so the link works no
+            // matter which host serves the handbook. A default navbar item
+            // would not work here: Docusaurus rewrites internal hrefs to the
+            // docs base URL and navigates them client-side.
+            type: 'html',
             position: 'right',
-            label: 'Back to Scholarsome',
-            target: "_self"
+            value: '<a class="navbar__link menu__link" href="/">Back to Scholarsome</a>'
           }
         ],
       },
       prism: {
         theme: lightCodeTheme,
+        darkTheme: darkCodeTheme,
       },
+      // Dark mode follows the front-end's `scholarsome-theme` cookie: the
+      // scholarsome-theme-cookie-sync plugin seeds Docusaurus' storage from
+      // the cookie before this bootstrap applies it. The switch stays enabled
+      // so the Handbook has its own toggle, which writes back to the cookie.
       colorMode: {
-        disableSwitch: true,
+        disableSwitch: false,
         respectPrefersColorScheme: false,
+        defaultMode: 'light',
       },
     }),
 };

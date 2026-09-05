@@ -29,7 +29,10 @@
       </div>
       <div class="mb-3">
         <input type="file" accept=".apkg" class="form-control" name="file" (change)="onFileUpload($event)" [disabled]="clicked()" ngModel required>
+        <div *ngIf="response() === 'tooLarge'" class="form-text text-danger">This .apkg file is too large. Imports are limited to 30 MB.</div>
+        <div *ngIf="response() === 'invalid'" class="form-text text-danger">The file you uploaded is not a valid Anki .apkg archive.</div>
         <div *ngIf="response() === 'incompatible'" class="form-text text-danger">The note types in this .apkg are not currently compatible with Scholarsome.</div>
+        <div *ngIf="response() === 'error'" class="form-text text-danger">Something went wrong. Please try again.</div>
       </div>
       <div class="modal-footer">
         <span *ngIf="uploading()" class="text-secondary">Uploading media, this may take a minute...</span>

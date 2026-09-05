@@ -1,10 +1,8 @@
-import { transports, format } from "winston";
+import * as winston from "winston";
 import {
   WinstonModule,
   utilities as nestWinstonModuleUtilities
 } from "nest-winston";
-// import winston = require("winston/lib/winston/config");
-import * as winston from "winston/lib/winston/config";
 
 export const LoggerFactory = (appName: string) => {
   const config = {
@@ -32,9 +30,9 @@ export const LoggerFactory = (appName: string) => {
 
   winston.addColors(config.colors);
 
-  const consoleFormat = format.combine(
-      format.timestamp(),
-      format.ms(),
+  const consoleFormat = winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.ms(),
       nestWinstonModuleUtilities.format.nestLike(appName, {
         colors: true,
         prettyPrint: true
@@ -44,7 +42,7 @@ export const LoggerFactory = (appName: string) => {
   return WinstonModule.createLogger({
     levels: config.levels,
     transports: [
-      new transports.Console({ format: consoleFormat, handleExceptions: true })
+      new winston.transports.Console({ format: consoleFormat, handleExceptions: true })
     ],
     level: "info"
   });

@@ -29,7 +29,8 @@
       </div>
       <div class="mb-3">
         <input type="file" accept="text/csv" class="form-control" name="file" (change)="onFileUpload($event)" [disabled]="clicked()" ngModel required>
-        <div *ngIf="response() === 'fail'" class="form-text text-danger">Something went wrong. Are you sure this is a valid .csv file?</div>
+        <div *ngIf="response() === 'tooLarge'" class="form-text text-danger">This .csv file is too large. Imports are limited to 10 MB.</div>
+        <div *ngIf="response() === 'error'" class="form-text text-danger">Something went wrong. Are you sure this is a valid .csv file?</div>
       </div>
       <div class="modal-footer">
         <span *ngIf="uploading()" class="text-secondary">Uploading media, this may take a minute...</span>

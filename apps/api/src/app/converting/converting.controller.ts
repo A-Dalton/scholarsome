@@ -314,8 +314,25 @@ export class ConvertingController {
     description: "Uploaded file contains unsupported cards",
     type: ErrorResponse
   })
+  @ApiBadRequestResponse({
+    description: "Uploaded file is not a valid Anki .apkg archive",
+    type: ErrorResponse
+  })
   @UseGuards(AuthenticatedGuard)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", {
+    limits: { fileSize: 30_000_000, files: 1 },
+    fileFilter: (_req, file, cb) => {
+      if (
+        file.originalname.toLowerCase().endsWith(".apkg") ||
+        file.mimetype === "application/zip" ||
+        file.mimetype === "application/x-zip-compressed"
+      ) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException("Uploaded file is not a valid Anki .apkg archive"), false);
+      }
+    }
+  }))
   @Post("import/apkg")
   async importSetFromAnkiApkg(@Body(HtmlDecodePipe) body: ImportSetFromFileDto, @Request() req: ExpressRequest, @UploadedFile() file: Express.Multer.File): Promise<ApiResponse<Set>> {
     const user = await this.authService.getUserInfo(req);
@@ -325,6 +342,8 @@ export class ConvertingController {
       email: user.email
     });
     if (!author) throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
+
+    if (!file) throw new BadRequestException();
 
     const uuid = crypto.randomUUID();
 
@@ -397,7 +416,19 @@ export class ConvertingController {
     type: ErrorResponse
   })
   @UseGuards(AuthenticatedGuard)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", {
+    limits: { fileSize: 10_000_000, files: 1 },
+    fileFilter: (_req, file, cb) => {
+      if (
+        file.originalname.toLowerCase().endsWith(".csv") ||
+        ["text/csv", "application/csv", "application/vnd.ms-excel", "text/plain"].includes(file.mimetype)
+      ) {
+        cb(null, true);
+      } else {
+        cb(new UnsupportedMediaTypeException("Uploaded file is not a CSV file"), false);
+      }
+    }
+  }))
   @Post("import/csv")
   async importSetFromCsvFile(@Body(HtmlDecodePipe) body: ImportSetFromFileDto, @Request() req: ExpressRequest, @UploadedFile() file: Express.Multer.File): Promise<ApiResponse<Set>> {
     const user = await this.authService.getUserInfo(req);
@@ -407,6 +438,8 @@ export class ConvertingController {
       email: user.email
     });
     if (!author) throw new UnauthorizedException({ status: "fail", message: "Invalid authentication to access the requested resource" });
+
+    if (!file) throw new BadRequestException();
 
     const cards = this.convertingService.csvToCards(file);
     if (!cards) throw new BadRequestException();

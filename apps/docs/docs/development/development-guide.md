@@ -18,12 +18,8 @@ cd scholarsome
 
 Install dependencies.
 
-:::caution
-`--legacy-peer-deps` must be passed to the installation command
-:::
-
 ```
-npm install --legacy-peer-deps
+npm install
 ```
 
 Next, we'll need to setup the environment file. Make a copy of the development one and open it in your favorite file editor.

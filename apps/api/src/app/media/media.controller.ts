@@ -11,6 +11,7 @@ import {
   Request,
   Res,
   UnauthorizedException,
+  UnsupportedMediaTypeException,
   UploadedFile,
   UseGuards,
   UseInterceptors
@@ -26,7 +27,8 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
-  ApiUnauthorizedResponse
+  ApiUnauthorizedResponse,
+  ApiUnsupportedMediaTypeResponse
 } from "@nestjs/swagger";
 import { SetIdAndFileParam } from "./param/setIdAndFile.param";
 import { ApiResponseOptions } from "@scholarsome/shared";
@@ -245,7 +247,16 @@ export class MediaController {
 
   @ApiTags("Users")
   @UseGuards(AuthenticatedGuard)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", {
+    limits: { fileSize: 5_000_000, files: 1 },
+    fileFilter: (_req, file, cb) => {
+      if (["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new UnsupportedMediaTypeException("Uploaded file is not a supported image"), false);
+      }
+    }
+  }))
   @ApiOperation({
     summary: "Set the authenticated user's avatar"
   })
@@ -254,6 +265,10 @@ export class MediaController {
   })
   @ApiUnauthorizedResponse({
     description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @ApiUnsupportedMediaTypeResponse({
+    description: "Uploaded file is not a supported image",
     type: ErrorResponse
   })
   @Post("user/me/avatar")

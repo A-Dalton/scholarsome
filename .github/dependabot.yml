@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # All dependencies live in the root package.json (npm workspace), so a single
+  # npm entry covers every app/library in the repo.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # One combined PR for minor/patch releases to limit PR noise on this large
+      # dependency tree; major updates still get individual PRs.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,7 +1,6 @@
 import { ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
 import { provideHttpClient } from "@angular/common/http";
 import { provideRouter, withPreloading } from "@angular/router";
-import { provideAnimations } from "@angular/platform-browser/animations";
 import { PreloadAllModules } from "@angular/router";
 import { provideQuillConfig } from "ngx-quill";
 import { ReCaptchaV3Service, RecaptchaLoaderService, RECAPTCHA_V3_SITE_KEY } from "ng-recaptcha";
@@ -51,7 +50,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideHttpClient(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    provideAnimations(),
     provideQuillConfig(quillConfig),
     {
       provide: RECAPTCHA_V3_SITE_KEY,

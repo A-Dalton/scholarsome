@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { ApiResponse, ApiResponseOptions, User } from "@scholarsome/shared";
 import { lastValueFrom } from "rxjs";
 
@@ -103,19 +103,32 @@ export class UsersService {
    *
    * @param avatar Image file
    *
-   * @returns Boolean of whether the operation was successful
+   * @returns "success" if the avatar was uploaded, "tooLarge" if the image
+   * exceeds the maximum size accepted by the API, "unsupported" if the image
+   * is not a supported file type, and "error" for any other failure
    */
-  async setMyAvatar(avatar: File): Promise<boolean> {
+  async setMyAvatar(avatar: File): Promise<"success" | "tooLarge" | "unsupported" | "error"> {
     const formData = new FormData();
     formData.append("file", avatar);
 
     try {
       await lastValueFrom(this.http.post("/api/user/me/avatar", formData));
-    } catch {
-      return false;
+    } catch (e) {
+      if (e instanceof HttpErrorResponse) {
+        switch (e.status) {
+          case 413:
+            return "tooLarge";
+          case 415:
+            return "unsupported";
+          default:
+            return "error";
+        }
+      }
+
+      return "error";
     }
 
-    return true;
+    return "success";
   }
 
   /**

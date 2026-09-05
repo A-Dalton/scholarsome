@@ -1,11 +1,15 @@
 Dockerfile
 .dockerignore
+.github
+.husky
+.vscode
+.angular
+.nx
+.git
 npm_modules
 node_modules
 npm-debug.log
 dist
-.vscode
-.git
 .env
 README.md
 .docusaurus

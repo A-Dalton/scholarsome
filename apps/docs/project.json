@@ -6,6 +6,12 @@
   "targets": {
     "build": {
       "executor": "./tools/docusaurus:browser",
+      "dependsOn": [
+        {
+          "target": "spec-gen",
+          "projects": ["api"]
+        }
+      ],
       "options": {
         "outputPath": "dist/apps/docs"
       }

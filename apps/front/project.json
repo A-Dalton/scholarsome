@@ -31,7 +31,12 @@
         },
         "stylePreprocessorOptions": {
           "sass": {
-            "silenceDeprecations": ["import", "if-function", "global-builtin", "color-functions"]
+            "silenceDeprecations": [
+              "import",
+              "if-function",
+              "global-builtin",
+              "color-functions"
+            ]
           }
         },
         "allowedCommonJsDependencies": ["@prisma/client", "validator"]
@@ -94,14 +99,6 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint"
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/apps/front"],
-      "options": {
-        "jestConfig": "apps/front/jest.config.ts",
-        "passWithNoTests": true
-      }
     }
   }
 }

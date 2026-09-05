@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { lastValueFrom } from "rxjs";
 import { ApiResponse, ApiResponseOptions, Set } from "@scholarsome/shared";
 
@@ -144,14 +144,17 @@ export class ConvertingService {
    * @param body.private Whether the set should be publicly visible
    * @param body.file The .apkg file to be uploaded
    *
-   * @returns Created `Set` object
+   * @returns `Set` object, or a string describing why the import failed:
+   * "tooLarge" if the file exceeds the maximum size accepted by the API,
+   * "invalid" if the file is not a valid .apkg archive, "incompatible" if the
+   * note types within the file are not supported, and "error" for any other failure
    */
   async importSetFromAnkiApkg(body: {
     title: string;
     description?: string;
     private: boolean;
     file: File
-  }): Promise<Set | null> {
+  }): Promise<Set | "tooLarge" | "invalid" | "incompatible" | "error"> {
     let set: ApiResponse<Set> | undefined;
 
     const formData = new FormData();
@@ -162,13 +165,26 @@ export class ConvertingService {
 
     try {
       set = await lastValueFrom(this.http.post<ApiResponse<Set>>("/api/sets/converting/import/apkg", formData));
-    } catch {
-      return null;
+    } catch (e) {
+      if (e instanceof HttpErrorResponse) {
+        switch (e.status) {
+          case 413:
+            return "tooLarge";
+          case 415:
+            return "incompatible";
+          case 400:
+            return "invalid";
+          default:
+            return "error";
+        }
+      }
+
+      return "error";
     }
 
     if (set.status === ApiResponseOptions.Success) {
       return set.data;
-    } else return null;
+    } else return "error";
   }
 
   /**
@@ -179,14 +195,16 @@ export class ConvertingService {
    * @param body.private Whether the set should be publicly visible
    * @param body.file The .csv file to be uploaded
    *
-   * @returns Created `Set` object
+   * @returns `Set` object, or a string describing why the import failed:
+   * "tooLarge" if the file exceeds the maximum size accepted by the API, and
+   * "error" for any other failure
    */
   async importSetFromCsv(body: {
     title: string;
     description?: string;
     private: boolean;
     file: File
-  }): Promise<Set | null> {
+  }): Promise<Set | "tooLarge" | "error"> {
     let set: ApiResponse<Set> | undefined;
 
     const formData = new FormData();
@@ -197,12 +215,21 @@ export class ConvertingService {
 
     try {
       set = await lastValueFrom(this.http.post<ApiResponse<Set>>("/api/sets/converting/import/csv", formData));
-    } catch {
-      return null;
+    } catch (e) {
+      if (e instanceof HttpErrorResponse) {
+        switch (e.status) {
+          case 413:
+            return "tooLarge";
+          default:
+            return "error";
+        }
+      }
+
+      return "error";
     }
 
     if (set.status === ApiResponseOptions.Success) {
       return set.data;
-    } else return null;
+    } else return "error";
   }
 }

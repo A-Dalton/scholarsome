@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from "@angular/core";
 import { NavigationEnd, Router, RouterOutlet } from "@angular/router";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Meta } from "@angular/platform-browser";
 import { ThemeService } from "./shared/theme.service";
 import { HeaderComponent } from "./header/header.component";
@@ -42,6 +43,8 @@ import { CommonModule } from "@angular/common";
   ]
 })
 export class AppComponent {
+  private destroyRef = inject(DestroyRef);
+
   constructor(
     private router: Router,
     private metaService: Meta,
@@ -71,16 +74,18 @@ export class AppComponent {
     this.themeService.initialize();
     // Meta tags are not automatically removed after navigation events
     // This is to manually remove them after every NavigationEnd event
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        if (this.initialNavigation) {
-          this.initialNavigation = false;
-          return;
-        }
+    this.router.events
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event) => {
+          if (event instanceof NavigationEnd) {
+            if (this.initialNavigation) {
+              this.initialNavigation = false;
+              return;
+            }
 
-        this.metaService.removeTag("name=\"description\"");
-      }
-    });
+            this.metaService.removeTag("name=\"description\"");
+          }
+        });
   }
 
   protected initialNavigation = true;

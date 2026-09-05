@@ -43,7 +43,7 @@ describe("AuthService", () => {
         },
         {
           provide: JwtService,
-          useValue: createMock<JwtService>()
+          useValue: createMock<JwtService>({ sign: () => "token" })
         },
         {
           provide: HttpService,
@@ -126,7 +126,7 @@ describe("AuthService", () => {
 
       authService.setLoginCookies(res, user);
 
-      expect(res.cookie).toHaveBeenCalledWith("verified", user.verified, { httpOnly: false });
+      expect(res.cookie).toHaveBeenCalledWith("verified", user.verified, { httpOnly: false, sameSite: "lax", secure: false });
     });
 
     it("should set reset cookie and set within redis", () => {
@@ -145,7 +145,7 @@ describe("AuthService", () => {
       authService.setLoginCookies(res, user);
 
       expect(jwtService.sign).toHaveBeenCalledWith({ id: user.id, sessionId: expect.any(String), email: user.email, type: "refresh" }, { expiresIn: "182d" });
-      expect(res.cookie).toHaveBeenCalledWith("refresh_token", {}, { httpOnly: true, expires: expect.any(Date) });
+      expect(res.cookie).toHaveBeenCalledWith("refresh_token", "token", { httpOnly: true, sameSite: "lax", secure: false, expires: expect.any(Date) });
       expect(redisService.getClient().set).toHaveBeenCalled();
       expect(redisService.getClient().expire).toHaveBeenCalled();
     });
@@ -165,7 +165,7 @@ describe("AuthService", () => {
 
       authService.setLoginCookies(res, user);
 
-      expect(res.cookie).toHaveBeenCalledWith("access_token", {}, { httpOnly: true, expires: expect.any(Date) });
+      expect(res.cookie).toHaveBeenCalledWith("access_token", "token", { httpOnly: true, sameSite: "lax", secure: false, expires: expect.any(Date) });
     });
 
     it("should set the authenticated cookie", () => {
@@ -183,7 +183,7 @@ describe("AuthService", () => {
 
       authService.setLoginCookies(res, user);
 
-      expect(res.cookie).toHaveBeenCalledWith("authenticated", true, { httpOnly: false, expires: expect.any(Date) });
+      expect(res.cookie).toHaveBeenCalledWith("authenticated", true, { httpOnly: false, sameSite: "lax", secure: false, expires: expect.any(Date) });
     });
   });
 
@@ -217,14 +217,20 @@ describe("AuthService", () => {
 
       expect(res.cookie).toHaveBeenNthCalledWith(1, "access_token", "", {
         httpOnly: true,
+        sameSite: "lax",
+        secure: false,
         expires: expect.any(Date)
       });
       expect(res.cookie).toHaveBeenNthCalledWith(2, "refresh_token", "", {
         httpOnly: true,
+        sameSite: "lax",
+        secure: false,
         expires: expect.any(Date)
       });
       expect(res.cookie).toHaveBeenNthCalledWith(3, "authenticated", "", {
         httpOnly: false,
+        sameSite: "lax",
+        secure: false,
         expires: expect.any(Date)
       });
     });
