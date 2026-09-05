@@ -1,8 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "affected": {
-    "defaultBase": "main"
-  },
+  "defaultBase": "main",
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
@@ -71,6 +69,5 @@
     }
   },
   "defaultProject": "front",
-  "nxCloudAccessToken": "NGNiZjJlMDQtNTQyMC00ZjMyLTkxNGUtODFjYjAwZjZkZGFlfHJlYWQtd3JpdGU=",
   "analytics": false
 }
