@@ -26,13 +26,28 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { TasksService } from "./providers/tasks.service";
 import { PassportOptionsModule } from "./providers/passport-options.module";
 
+/**
+ * express.static would otherwise let browsers cache HTML documents for maxAge.
+ * A cached page also caches its response headers (e.g. CSP), so after an
+ * upgrade users would keep running the previous version of the app — with its
+ * old security headers — until maxAge elapsed. no-cache still allows cheap
+ * conditional revalidation (ETag/Last-Modified → 304), while fingerprinted
+ * assets keep the long-lived caching.
+ */
+const htmlRevalidationHeaders = (res: { setHeader: (name: string, value: string) => void }, filePath: string): void => {
+  if (filePath.endsWith(".html")) {
+    res.setHeader("Cache-Control", "no-cache");
+  }
+};
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "front", "browser"),
       serveStaticOptions: {
         cacheControl: true,
-        maxAge: 31536000
+        maxAge: 31536000,
+        setHeaders: htmlRevalidationHeaders
       },
       exclude: ["/api/{*path}", "/handbook/{*path}", "/sitemaps/{*path}", "/sitemap.xml"]
     }),
@@ -41,7 +56,8 @@ import { PassportOptionsModule } from "./providers/passport-options.module";
       serveRoot: "/handbook",
       serveStaticOptions: {
         cacheControl: true,
-        maxAge: 31536000
+        maxAge: 31536000,
+        setHeaders: htmlRevalidationHeaders
       }
     }),
     ServeStaticModule.forRoot({
