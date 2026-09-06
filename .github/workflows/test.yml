@@ -35,7 +35,7 @@ jobs:
       # a stale cache entry can only ever result in a rebuild, never an
       # incorrect build artifact.
       - name: Cache Nx tasks
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .nx
           key: nx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
