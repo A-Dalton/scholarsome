@@ -9,7 +9,7 @@ For development, Scholarsome needs to be installed in a different way.
 Clone the repo and move into it.
 
 ```
-git clone https://github.com/hwgilbert16/scholarsome.git
+git clone https://github.com/A-Dalton/scholarsome.git
 ```
 
 ```

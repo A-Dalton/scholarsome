@@ -71,7 +71,7 @@ Scholarsome can be hosted yourself on any system. For those wishing to self-host
 
 ## Development
 
-Scholarsome is developed as an <a href="https://nx.dev/">Nx</a> 23 monorepo containing three apps. For development purposes, it is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
+Scholarsome is developed as an <a href="https://nx.dev/">Nx</a> 23 monorepo containing three apps. For development purposes, it is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/A-Dalton/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
 
 Each app, and the technologies it is built with:
 

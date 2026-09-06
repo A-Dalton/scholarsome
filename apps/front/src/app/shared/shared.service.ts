@@ -9,8 +9,8 @@ import packageJson from "../../../../../package.json";
 })
 export class SharedService {
   constructor(private readonly http: HttpClient) {
-    this.releaseCheckRes = lastValueFrom(this.http.get("https://api.github.com/repos/hwgilbert16/scholarsome/releases"));
-    this.starsRes = lastValueFrom(this.http.get("https://api.github.com/repos/hwgilbert16/scholarsome"));
+    this.releaseCheckRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome/releases"));
+    this.starsRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome"));
   }
 
   public avatarUpdateEvent = new Subject<void>();
