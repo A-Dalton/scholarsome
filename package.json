@@ -146,7 +146,7 @@
     "@typescript-eslint/parser": "^8.67.0",
     "angular-eslint": "^22.0.0",
     "concurrently": "^10.0.5",
-    "cypress": "^15.21.0",
+    "cypress": "^16.0.0",
     "eslint": "^10.9.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^10.1.8",
