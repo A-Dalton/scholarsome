@@ -26,7 +26,7 @@
 
 ## About this fork
 
-Scholarsome was originally created by [@hwgilbert16](https://github.com/hwgilbert16) — a huge thank you for building such a thoughtful, open source studying platform!
+Scholarsome was originally created by [@hwgilbert16](https://github.com/hwgilbert16/scholarsome) — a huge thank you for building such a thoughtful, open source studying platform!
 
 As the original repository has been inactive for a while now, I created this fork with two simple goals:
 
@@ -35,7 +35,7 @@ As the original repository has been inactive for a while now, I created this for
 
 If you'd like to help keep it that way, contributions are very welcome — see [Contributing](#contributing) below.
 
-## About
+## About the project
 
 Scholarsome <a href="http://ipa-reader.xyz/?text=%CB%88sk%C3%A4l%C9%99rs(%C9%99)m%2F">(pronounced ˈskälərs(ə)m/)</a> is a web-based and open source studying system. Through the use of flashcards, among other core features, users can practice memorization of terms and definitions, along with keeping their data secure locally.
 
@@ -67,11 +67,11 @@ You can read more about our design philosophy <a href="https://github.com/A-Dalt
 
 ## Usage
 
-Scholarsome  can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://github.com/A-Dalton/scholarsome/blob/develop/apps/docs/docs/installation/installing.md">here.</a>
+Scholarsome can be hosted yourself on any system. For those wishing to self-host Scholarsome, documentation for installation can be found <a href="https://github.com/A-Dalton/scholarsome/blob/develop/apps/docs/docs/installation/installing.md">here.</a>
 
 ## Development
 
-Scholarsome is developed as an <a href="https://nx.dev/">Nx</a> 23 monorepo containing three apps. For development purposes, it is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/hwgilbert16/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
+Scholarsome is developed as an <a href="https://nx.dev/">Nx</a> 23 monorepo containing three apps. For development purposes, it is required to be installed outside the standard container-based system that is used for production installs. Documentation for development can be found <a href="https://github.com/A-Dalton/scholarsome/blob/develop/apps/docs/docs/development/development-guide.md">here.</a>
 
 Each app, and the technologies it is built with:
 

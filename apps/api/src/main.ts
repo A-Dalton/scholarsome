@@ -45,18 +45,39 @@ async function bootstrap() {
    * script-src-attr keeps Helmet's default of 'none', disallowing inline
    * event handlers. This policy applies to both SSL and non-SSL
    * deployments; non-SSL deployments previously shipped no CSP at all.
+   *
+   * Helmet's default CSP also enables 'upgrade-insecure-requests', which
+   * makes browsers rewrite http:// subresource requests to https://. That
+   * breaks plain-HTTP deployments (and the HTTP listener when SSL is also
+   * configured), so the directive is only kept for requests that actually
+   * arrive over TLS; the same Express app serves both listeners.
    */
-  app.use(helmet({
+  const cspDirectives = {
+    "script-src": ["'self'", "'unsafe-inline'", "blob:", "https://www.gstatic.com", "https://www.google.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
+    "img-src": ["'self'", "blob:", "data:", "https://cdn.redoc.ly", "https://www.google-analytics.com"],
+    "default-src": ["'self'", "https://api.github.com", "https://google-analytics.com"],
+    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/"],
+    "connect-src": ["'self'", "https://www.google-analytics.com", "https://api.github.com"]
+  };
+
+  const helmetTls = helmet({
+    contentSecurityPolicy: {
+      directives: cspDirectives
+    }
+  });
+
+  const helmetPlain = helmet({
     contentSecurityPolicy: {
       directives: {
-        "script-src": ["'self'", "'unsafe-inline'", "blob:", "https://www.gstatic.com", "https://www.google.com", "https://www.googletagmanager.com", "https://www.google-analytics.com"],
-        "img-src": ["'self'", "blob:", "data:", "https://cdn.redoc.ly", "https://www.google-analytics.com"],
-        "default-src": ["'self'", "https://api.github.com", "https://google-analytics.com"],
-        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/"],
-        "connect-src": ["'self'", "https://www.google-analytics.com", "https://api.github.com"]
+        ...cspDirectives,
+        "upgrade-insecure-requests": null
       }
     }
-  }));
+  });
+
+  app.use((req, res, next) => {
+    (req.secure ? helmetTls : helmetPlain)(req, res, next);
+  });
 
   const logger = LoggerFactory("Scholarsome");
   app.useLogger(logger);

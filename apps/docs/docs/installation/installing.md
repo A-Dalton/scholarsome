@@ -33,7 +33,7 @@ mkdir ~/scholarsome && cd ~/scholarsome
 Download the compose file.
 
 ```
-wget https://raw.githubusercontent.com/hwgilbert16/scholarsome/release/compose.yml
+wget https://raw.githubusercontent.com/A-Dalton/scholarsome/release/compose.yml
 ```
 
 :::caution
@@ -53,7 +53,7 @@ Keep in mind that **non-root** users, by default, **do not have permission to bi
 Download the environment file and make a copy of it.
 
 ```
-wget https://raw.githubusercontent.com/hwgilbert16/scholarsome/release/.env.compose.example && cp .env.compose.example .env
+wget https://raw.githubusercontent.com/A-Dalton/scholarsome/release/.env.compose.example && cp .env.compose.example .env
 ```
 
 Open the `.env` file in any text editor.
@@ -127,14 +127,14 @@ mkdir ~/scholarsome && cd ~/scholarsome
 Pull the image.
 
 ```
-docker pull hwgilbert16/scholarsome
+docker pull a1dalton/scholarsome
 ```
 
 
 Download the environment file and make a copy of it.
 
 ```
-wget https://raw.githubusercontent.com/hwgilbert16/scholarsome/release/.env.docker.example && cp .env.docker.example .env
+wget https://raw.githubusercontent.com/A-Dalton/scholarsome/release/.env.docker.example && cp .env.docker.example .env
 ```
 
 Open `.env` in any text editor.
@@ -197,7 +197,7 @@ You must set `STORAGE_LOCAL_DIR` to `/data` if you are planning to use the examp
 :::
 
 ```
-mkdir ~/scholarsome-media && docker run -d --env-file .env -p (port):(port) -v ~/scholarsome-media:/data --restart=always --name scholarsome hwgilbert16/scholarsome
+mkdir ~/scholarsome-media && docker run -d --env-file .env -p (port):(port) -v ~/scholarsome-media:/data --restart=always --name scholarsome a1dalton/scholarsome
 ```
 
 To stop the container, run:

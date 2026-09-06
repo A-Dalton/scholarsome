@@ -12,7 +12,7 @@ const presets = [
       docs: {
         sidebarPath: require.resolve('./sidebars.js'),
         editUrl:
-          'https://github.com/hwgilbert16/scholarsome/tree/develop/apps/docs',
+          'https://github.com/A-Dalton/scholarsome/tree/develop/apps/docs',
         routeBasePath: '/',
       },
       theme: {
