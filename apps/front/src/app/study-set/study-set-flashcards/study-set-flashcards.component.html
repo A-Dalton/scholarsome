@@ -73,7 +73,7 @@
 <div class="container flashcard-container mb-4" *ngIf="flashcardsMode && !roundCompleted">
   <div class="row">
     <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped && flipInteraction, 'flip-forwards': !flipped && flipInteraction}">
-      <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" onmousedown="return false" (click)="flipCard()">
+      <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" (mousedown)="$event.preventDefault()" (click)="flipCard()">
         <div [innerHTML]="sanitizer.bypassSecurityTrustHtml(sideText())" class="overflow-hidden"></div>
       </div>
     </div>
