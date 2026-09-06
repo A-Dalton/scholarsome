@@ -31,7 +31,7 @@ services:
     volumes:
       - mariadb:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect-innodb"]
+      test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 5s
       retries: 10
