@@ -12,6 +12,11 @@ services:
       --requirepass ${DATABASE_PASSWORD}
     volumes:
       - redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${DATABASE_PASSWORD}' ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     restart: always
   mariadb:
     image: mariadb:latest
@@ -25,6 +30,12 @@ services:
       - "MARIADB_PASSWORD=${DATABASE_PASSWORD}"
     volumes:
       - mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect-innodb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: always
   scholarsome:
     image: a1dalton/scholarsome:latest
@@ -60,8 +71,10 @@ services:
     volumes:
       - scholarsome:/data
     depends_on:
-      - mariadb
-      - redis
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: always
 volumes:
   redis:
