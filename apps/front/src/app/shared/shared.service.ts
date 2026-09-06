@@ -9,8 +9,11 @@ import packageJson from "../../../../../package.json";
 })
 export class SharedService {
   constructor(private readonly http: HttpClient) {
-    this.releaseCheckRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome/releases"));
-    this.starsRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome"));
+    // The GitHub API is unauthenticated and can fail (rate limits, no
+    // connectivity); resolve to null in that case so consumers can degrade
+    // gracefully instead of throwing unhandled rejections.
+    this.releaseCheckRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome/releases")).catch(() => null);
+    this.starsRes = lastValueFrom(this.http.get("https://api.github.com/repos/A-Dalton/scholarsome")).catch(() => null);
   }
 
   public avatarUpdateEvent = new Subject<void>();
@@ -21,7 +24,16 @@ export class SharedService {
   private readonly starsRes: Promise<any>;
 
   async isUpdateAvailable(): Promise<boolean> {
-    const latestRelease = (await this.releaseCheckRes)[0]["name"];
+    const releases = await this.releaseCheckRes;
+    const latestRelease = releases?.[0]?.["name"];
+
+    // GitHub returns an empty array when the repository has no published
+    // releases (e.g. forks), which previously crashed with a TypeError here.
+    // No releases means there is nothing newer to update to.
+    if (!latestRelease) {
+      return false;
+    }
+
     // Only report an update if the latest release is strictly newer than the local version
     return this.compareVersions(latestRelease, packageJson.version) > 0;
   }
@@ -48,10 +60,10 @@ export class SharedService {
   }
 
   async getReleaseUrl(): Promise<string> {
-    return (await this.releaseCheckRes)[0]["html_url"];
+    return (await this.releaseCheckRes)?.[0]?.["html_url"] ?? "";
   }
 
   async getStargazers(): Promise<number> {
-    return (await this.starsRes)["stargazers_count"];
+    return (await this.starsRes)?.["stargazers_count"] ?? 0;
   }
 }
