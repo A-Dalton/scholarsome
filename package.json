@@ -165,9 +165,6 @@
     "webpack-cli": "^7.0.0"
   },
   "overrides": {
-    "@nestjs/mapped-types": {
-      "class-validator": "^0.15.1"
-    },
     "@nestjs/throttler": {
       "@nestjs/common": "^12.0.0",
       "@nestjs/core": "^12.0.0"
@@ -187,19 +184,6 @@
     "ng-recaptcha": {
       "@angular/core": "$@angular/core"
     },
-    "websocket-driver": "0.7.5",
-    "shell-quote": "1.10.0",
-    "ws@7": "7.5.13",
-    "fast-xml-parser": "5.10.1",
-    "form-data@2": "2.5.6",
-    "form-data@3": "3.0.5",
-    "form-data@4": "4.0.6",
-    "tar": "7.5.22",
-    "webpackbar": "7.0.0",
-    "mailparser": "3.9.16",
-    "nx": {
-      "brace-expansion": "5.0.9"
-    },
     "@prisma/adapter-mariadb": {
       "mariadb": "3.5.3"
     },
@@ -214,8 +198,6 @@
     "uuid": "^11.1.1",
     "less": "^4.9.0",
     "image-size": "npm:image-size-next@2.1.1",
-    "glob": "^13.0.6",
-    "encoding-sniffer": "^1.0.2",
     "html-encoding-sniffer": "^6.0.0",
     "lodash.isequal": "npm:fast-deep-equal@^3.1.3"
   },
