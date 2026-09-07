@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, OnInit, signal } from
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { SrsCard, SrsQueueData, SrsQueueStats, SrsRating, SrsState } from "@scholarsome/shared";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBolt, faFolder } from "@fortawesome/free-solid-svg-icons";
+import { faBolt, faChevronDown, faChevronUp, faFolder } from "@fortawesome/free-solid-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
@@ -67,9 +67,27 @@ export class SrsReviewComponent implements OnInit {
   protected hardCount = signal(0);
   protected goodCount = signal(0);
 
+  // Amount of unique cards of the session, shown in the completion summary
+  protected totalCards = signal(0);
+
+  // Amount of cards learned so far, shown as the counter on the bottom
+  protected learnedCount = signal(0);
+
+  // Card IDs that were already rated within the session; only the first
+  // rating of a card triggers the SRS and counts towards the summary
+  private ratedCardIds = new Set<string>();
+
+  // Cards rated with "Don't know" that are shown once more after 4-12 learned cards
+  private pendingReinsertions: { card: SrsCard; remaining: number }[] = [];
+
+  // Delayed text swap of a flip, cancelled when a card is reset beforehand
+  private flipTimeout: ReturnType<typeof setTimeout> | undefined;
+
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faBolt = faBolt;
   protected readonly faFolder = faFolder;
+  protected readonly faChevronUp = faChevronUp;
+  protected readonly faChevronDown = faChevronDown;
 
   /**
    * Starts the review session with the given side to answer with
@@ -81,16 +99,24 @@ export class SrsReviewComponent implements OnInit {
     if (cards.length === 0) return;
 
     this.answer.set(answer);
-    this.cards.set(cards);
+
+    // the cards are shuffled to show up in random order, mixing all study sets
+    const shuffled = [...cards];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    this.cards.set(shuffled);
     this.index.set(0);
     this.completed.set(false);
 
-    // the prompt is the opposite side of what the user answers with
-    this.side.set(answer === "definition" ? "term" : "definition");
-    this.sideText.set(cards[0].card[this.side() as "term" | "definition"]);
+    this.totalCards.set(cards.length);
+    this.learnedCount.set(0);
+    this.ratedCardIds.clear();
+    this.pendingReinsertions = [];
 
-    this.flipped.set(false);
-    this.flipInteraction.set(false);
+    this.resetToPromptSide(shuffled[0]);
   }
 
   /**
@@ -103,7 +129,9 @@ export class SrsReviewComponent implements OnInit {
     this.flipped.update((v) => !v);
 
     // delayed to occur when text is the least visible during animation
-    setTimeout(() => {
+    this.flipTimeout = setTimeout(() => {
+      this.flipTimeout = undefined;
+
       const card = this.cards()[this.index()]?.card;
       if (!card) return;
 
@@ -118,47 +146,115 @@ export class SrsReviewComponent implements OnInit {
   }
 
   /**
-   * Applies the given rating to the current card and advances to the next one
+   * Resets the current card to its prompt side, e.g. when moving on to the
+   * next card or when showing the same card again after a "Don't know"
    *
-   * @param rating The rating to apply to the current card
+   * @param card The card to show the prompt side of
    */
-  async rate(rating: SrsRating): Promise<void> {
-    if (!this.flipped() || this.ratingInFlight()) return;
-
-    const card = this.cards()[this.index()];
-    if (!card) return;
-
-    this.ratingInFlight.set(true);
-
-    const result = await this.srsService.rate(card.card.id, rating);
-
-    // the state returned by the API is the source of truth for the session
-    if (result) {
-      card.srs = result.srs;
+  private resetToPromptSide(card: SrsCard): void {
+    if (this.flipTimeout) {
+      clearTimeout(this.flipTimeout);
+      this.flipTimeout = undefined;
     }
-
-    if (rating === SrsRating.Again) this.againCount.update((c) => c + 1);
-    else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
-    else if (rating === SrsRating.Good) this.goodCount.update((c) => c + 1);
-
-    this.ratingInFlight.set(false);
-
-    if (this.index() === this.cards().length - 1) {
-      // the session is completed
-      this.answer.set(undefined);
-      this.side.set(undefined);
-      this.completed.set(true);
-      return;
-    }
-
-    this.index.update((i) => i + 1);
 
     this.flipInteraction.set(false);
     this.flipped.set(false);
 
-    // reset to the prompt side for the next card
+    // the prompt is the opposite side of what the user answers with
     this.side.set(this.answer() === "definition" ? "term" : "definition");
-    this.sideText.set(this.cards()[this.index()].card[this.side() as "term" | "definition"]);
+    this.sideText.set(card.card[this.side() as "term" | "definition"]);
+  }
+
+  /**
+   * Applies the given rating to the current card. Cards rated with "Don't know"
+   * disappear and are shown once more after 4-12 cards have been learned in the
+   * meantime, repeatedly until they are rated differently. Any other rating
+   * completes the card and advances to the next one. Only the first rating of
+   * a card within the session triggers the SRS and counts towards the summary
+   *
+   * @param rating The rating to apply to the current card
+   */
+  async rate(rating: SrsRating): Promise<void> {
+    if (this.ratingInFlight()) return;
+
+    const card = this.cards()[this.index()];
+    if (!card) return;
+
+    if (!this.ratedCardIds.has(card.card.id)) {
+      this.ratingInFlight.set(true);
+
+      const result = await this.srsService.rate(card.card.id, rating);
+
+      // the state returned by the API is the source of truth for the session
+      if (result) {
+        card.srs = result.srs;
+      }
+
+      this.ratingInFlight.set(false);
+
+      this.ratedCardIds.add(card.card.id);
+
+      if (rating === SrsRating.Again) this.againCount.update((c) => c + 1);
+      else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
+      else this.goodCount.update((c) => c + 1);
+    }
+
+    if (rating === SrsRating.Again) {
+      // the card is shown again after 4-12 cards have been learned in the
+      // meantime, woven in between the remaining cards instead of the queue's end
+      this.pendingReinsertions.push({ card, remaining: 4 + Math.floor(Math.random() * 9) });
+      this.advanceToNextCard();
+      return;
+    }
+
+    // the learned card advances the countdown of every pending reinsertion
+    // and collects the ones that are due now
+    this.learnedCount.update((c) => c + 1);
+
+    const due: SrsCard[] = [];
+    const stillPending: { card: SrsCard; remaining: number }[] = [];
+    for (const pending of this.pendingReinsertions) {
+      pending.remaining--;
+      if (pending.remaining > 0) stillPending.push(pending);
+      else due.push(pending.card);
+    }
+    this.pendingReinsertions = stillPending;
+
+    if (due.length) {
+      this.cards.update((cards) => {
+        const copy = [...cards];
+        copy.splice(this.index() + 1, 0, ...due);
+        return copy;
+      });
+    }
+
+    this.advanceToNextCard();
+  }
+
+  /**
+   * Moves on to the next card. Pending reinsertions are flushed to the end of
+   * the queue when no cards are left to learn in between, and the session is
+   * completed once the last card is reached without pending reinsertions
+   */
+  private advanceToNextCard(): void {
+    if (this.index() === this.cards().length - 1) {
+      if (this.pendingReinsertions.length > 0) {
+        // no cards are left to learn in between, so the pending cards can
+        // only be shown at the end of the queue
+        const flushed = this.pendingReinsertions.map((pending) => pending.card);
+        this.pendingReinsertions = [];
+        this.cards.update((cards) => [...cards, ...flushed]);
+      } else {
+        // the session is completed
+        this.answer.set(undefined);
+        this.side.set(undefined);
+        this.completed.set(true);
+        return;
+      }
+    }
+
+    this.index.update((i) => i + 1);
+    this.resetToPromptSide(this.cards()[this.index()]);
   }
 
   /**
@@ -204,6 +300,10 @@ export class SrsReviewComponent implements OnInit {
     this.againCount.set(0);
     this.hardCount.set(0);
     this.goodCount.set(0);
+    this.totalCards.set(0);
+    this.learnedCount.set(0);
+    this.ratedCardIds.clear();
+    this.pendingReinsertions = [];
   }
 
   formatDate(date: string | null): string {
@@ -255,7 +355,7 @@ export class SrsReviewComponent implements OnInit {
 
   @HostListener("document:keydown", ["$event"])
   keyboardRatingEvent(event: KeyboardEvent) {
-    if (!this.answer() || !this.flipped() || this.ratingInFlight()) return;
+    if (!this.answer() || this.ratingInFlight()) return;
 
     if (event.key === "1") void this.rate(SrsRating.Again);
     else if (event.key === "2") void this.rate(SrsRating.Hard);

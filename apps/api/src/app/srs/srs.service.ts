@@ -548,6 +548,12 @@ export class SrsService {
           overdueMoreThanDay: dueCards.filter((c) => now.getTime() - c.due.getTime() > dayInMs && now.getTime() - c.due.getTime() <= 7 * dayInMs).length,
           overdueMoreThanHour: dueCards.filter((c) => now.getTime() - c.due.getTime() > hourInMs && now.getTime() - c.due.getTime() <= dayInMs).length,
           overdueWithinHour: dueCards.filter((c) => now.getTime() - c.due.getTime() <= hourInMs).length
+        },
+        upcomingBuckets: {
+          upcomingWithin24Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() <= dayInMs).length,
+          upcomingWithin3Days: notDueCards.filter((c) => c.due.getTime() - now.getTime() > dayInMs && c.due.getTime() - now.getTime() <= 3 * dayInMs).length,
+          upcomingWithin10Days: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 3 * dayInMs && c.due.getTime() - now.getTime() <= 10 * dayInMs).length,
+          upcomingWithin30Days: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 10 * dayInMs && c.due.getTime() - now.getTime() <= 30 * dayInMs).length
         }
       },
       sets: sets.map((s) => {

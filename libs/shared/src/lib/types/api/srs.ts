@@ -146,6 +146,17 @@ export interface SrsQueueStats {
       overdueMoreThanHour: number;
       overdueWithinHour: number;
     };
+    /**
+     * Amount of not yet due cards bucketed by how far their due date is in the future.
+     * The buckets are exclusive ranges, e.g. cards within the next 24 hours are not
+     * part of the 3 days bucket
+     */
+    upcomingBuckets: {
+      upcomingWithin24Hours: number;
+      upcomingWithin3Days: number;
+      upcomingWithin10Days: number;
+      upcomingWithin30Days: number;
+    };
   };
   /**
    * Per-set breakdown of the cards within the folder tree

@@ -13,7 +13,7 @@
         <a href="/handbook/usage/flashcards" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
       </h2>
       <p class="text-secondary mb-0">
-        {{ queue()!.cards.length }} card(s) are scheduled for review {{ folderId ? 'within this folder and its subfolders' : 'across all your sets' }}.
+        {{ queue()!.cards.length }} {{ queue()!.cards.length === 1 ? "card is" : "cards are" }} scheduled for review {{ folderId ? 'within this folder and its subfolders' : 'across all your sets' }}.
       </p>
       <div class="d-flex justify-content-around mt-3" *ngIf="queue()!.cards.length > 0">
         <button type="button" class="fs-5 w-25 btn btn-outline-primary mb-3 fw-bold" (click)="beginReview('term')">Term</button>
@@ -36,13 +36,13 @@
           </div>
           <div class="col">
             <h1 class="me-4">Review completed!</h1>
-            <p>
-              You rated <span class="fw-bold">{{ cards().length }} card(s)</span>:
-              <span class="fw-bold text-danger">{{ againCount() }}</span> didn't know,
-              <span class="fw-bold text-warning">{{ hardCount() }}</span> took a while and
-              <span class="fw-bold text-success">{{ goodCount() }}</span> knew right away.
+            <h2 class="fs-4 fw-bold">You rated {{ totalCards() }} {{ totalCards() === 1 ? "card" : "cards" }}</h2>
+            <p class="mb-0">
+              <span class="fw-bold text-danger">{{ againCount() }}</span> didn't know<br>
+              <span class="fw-bold text-warning">{{ hardCount() }}</span> took a while<br>
+              <span class="fw-bold text-success">{{ goodCount() }}</span> knew right away
             </p>
-            <button class="btn btn-primary" (click)="restart()">Review again</button>
+            <button class="btn btn-primary mt-3" [routerLink]="['/homepage']">Back to Home</button>
           </div>
         </div>
       </div>
@@ -64,12 +64,12 @@
     <div class="card text-center shadow-sm">
       <div class="card-body">
         <div class="mt-2 d-flex justify-content-around" *ngIf="cards()">
-          <button type="button" class="fs-4 w-25 btn btn-outline-danger mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Again)">Don't know <span class="badge text-secondary">1</span></button>
-          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Hard)">Took a while <span class="badge text-secondary">2</span></button>
-          <button type="button" class="fs-4 w-25 btn btn-outline-success mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Good)">Knew right away <span class="badge text-secondary">3</span></button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-danger mb-3 fw-bold" (click)="rate(SrsRating.Again)">Don't know <span class="badge text-secondary">1</span></button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" (click)="rate(SrsRating.Hard)">Took a while <span class="badge text-secondary">2</span></button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-success mb-3 fw-bold" (click)="rate(SrsRating.Good)">Knew right away <span class="badge text-secondary">3</span></button>
         </div>
         <div class="mx-2 d-flex justify-content-between">
-          <p class="text-secondary fs-5">{{ index() + 1 }}/{{ cards().length }}</p>
+          <p class="text-secondary fs-5">{{ learnedCount() }}/{{ totalCards() }}</p>
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center" (click)="showStats.set(!showStats())" role="button">
       <span class="fw-bold">SRS debug statistics</span>
-      <fa-icon [icon]="showStats() ? ['fas', 'chevron-up'] : ['fas', 'chevron-down']"></fa-icon>
+      <fa-icon [icon]="showStats() ? faChevronUp : faChevronDown"></fa-icon>
     </div>
     <div class="card-body" *ngIf="showStats() && stats()">
       <div class="row row-cols-1 row-cols-lg-2 g-4">
@@ -123,6 +123,17 @@
               <tr><td>Overdue by 1-24 hours</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanHour }}</td></tr>
               <tr><td>Overdue by 1-7 days</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanDay }}</td></tr>
               <tr><td>Overdue by more than a week</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanWeek }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5>Upcoming reviews</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Upcoming in the next 24 hours</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin24Hours }}</td></tr>
+              <tr><td>Upcoming in the next 3 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin3Days }}</td></tr>
+              <tr><td>Upcoming in the next 10 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin10Days }}</td></tr>
+              <tr><td>Upcoming in the next 30 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin30Days }}</td></tr>
             </tbody>
           </table>
         </div>
