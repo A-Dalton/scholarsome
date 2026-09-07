@@ -1,0 +1,118 @@
+.flashcard {
+  min-height: 65vh;
+  cursor: pointer;
+}
+
+.flashcard-container {
+  margin-top: 2vh;
+}
+
+.message {
+  margin-top: 5vh;
+}
+
+.flashcard.flip-back {
+  animation: flip-card-body-back 0.5s;
+  animation-fill-mode: forwards;
+}
+
+.flashcard.flip-back > .card-body {
+  animation: flip-card-text-back 0s 0.10s;
+  animation-fill-mode: forwards;
+}
+
+.flashcard.flip-forwards {
+  animation: flip-card-body-forwards 0.5s;
+  animation-fill-mode: forwards;
+}
+
+.flashcard.flip-forwards > .card-body {
+  animation: flip-card-text-forwards 0s 0.10s;
+  animation-fill-mode: forwards;
+}
+
+.back-arrow:hover {
+  animation: button-color-change 0.25s;
+  animation-fill-mode: forwards;
+  cursor: pointer;
+}
+
+@keyframes button-color-change {
+  0% {
+    color: #212529;
+  }
+
+  100% {
+    color: #8438ff;
+  }
+
+}
+
+@keyframes flip-card-text-back {
+  0% {
+    transform: rotateX(0deg);
+  }
+
+  100% {
+    transform: rotateX(180deg);
+  }
+}
+
+@keyframes flip-card-body-back {
+  0% {
+    transform: rotateX(0deg);
+    background-color: var(--scholarsome-surface);
+  }
+
+  100% {
+    transform: rotateX(180deg);
+    background-color: var(--scholarsome-surface-2);
+  }
+}
+
+@keyframes flip-card-text-forwards {
+  0% {
+    transform: rotateX(0deg);
+  }
+
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+@keyframes flip-card-body-forwards {
+  0% {
+    transform: rotateX(0deg);
+    background-color: var(--scholarsome-surface-2);
+  }
+
+  100% {
+    transform: rotateX(-180deg);
+    background-color: var(--scholarsome-surface);
+  }
+}
+
+/*
+ * The rating buttons are disabled until the card is flipped. A reduced opacity
+ * would gray them out entirely, so they are kept at full opacity while still
+ * making it obvious that they are not usable yet.
+ */
+.rating-buttons button:disabled {
+  opacity: 0.55;
+}
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+  .flashcard {
+    min-height: 45vh;
+  }
+}
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 7680px) {
+  .container {
+    margin-top: 5vh;
+  }
+
+  .flashcard {
+    min-height: 60vh;
+  }
+}

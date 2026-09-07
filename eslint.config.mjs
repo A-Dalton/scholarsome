@@ -67,7 +67,9 @@ export default [
         camelcase: [
           "error",
           {
-            allow: ["jwt_decode"],
+            // ts-fsrs exposes its API with snake_case identifiers,
+            // which are mirrored by the database columns storing them
+            allow: ["jwt_decode", "request_retention", "maximum_interval", "enable_fuzz", "enable_short_term", "learning_steps", "relearning_steps", "elapsed_days", "scheduled_days", "last_elapsed_days", "last_review"],
           },
         ],
         "valid-jsdoc": "off",

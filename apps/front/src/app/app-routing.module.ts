@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { NotfoundComponent } from "./shared/notfound/notfound.component";
+import { SrsReviewComponent } from "./folder/srs-review/srs-review.component";
 
 export const routes: Routes = [
   {
@@ -33,6 +34,11 @@ export const routes: Routes = [
   {
     path: "folder",
     loadChildren: () => import("./folder/folder-routing.module").then((m) => m.folderRoutes)
+  },
+  {
+    // reviews all cards across all folders of the authenticated user
+    path: "review",
+    component: SrsReviewComponent
   },
   {
     path: "404",

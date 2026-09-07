@@ -1,0 +1,212 @@
+<div class="d-flex justify-content-center mt-5" *ngIf="!queue()">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- Answer with selection -->
+<div class="d-flex flex-column justify-content-center align-items-center mx-4 message" *ngIf="queue() && !answer() && !completed()">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2>
+        Spaced repetition
+        <a href="/handbook/usage/flashcards" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
+      </h2>
+      <p class="text-secondary mb-0">
+        {{ queue()!.cards.length }} card(s) are scheduled for review {{ folderId ? 'within this folder and its subfolders' : 'across all your sets' }}.
+      </p>
+      <div class="d-flex justify-content-around mt-3" *ngIf="queue()!.cards.length > 0">
+        <button type="button" class="fs-5 w-25 btn btn-outline-primary mb-3 fw-bold" (click)="beginReview('term')">Term</button>
+        <button type="button" class="fs-5 w-25 btn btn-outline-primary mb-3 fw-bold" (click)="beginReview('definition')">Definition</button>
+      </div>
+      <p class="text-secondary mb-0" *ngIf="queue()!.cards.length > 0">Answer with</p>
+      <p class="text-secondary mb-0" *ngIf="queue()!.cards.length === 0">Nothing to review right now. Come back later!</p>
+    </div>
+  </div>
+</div>
+
+<!-- Session completed -->
+<div class="d-flex flex-column justify-content-center align-items-center mx-4 message" *ngIf="completed()">
+  <div class="card">
+    <div class="card-body">
+      <div class="container-fluid justify-content-around">
+        <div class="row">
+          <div class="col d-flex align-items-center justify-content-center">
+            <fa-icon [icon]="faBolt" class="display-1"></fa-icon>
+          </div>
+          <div class="col">
+            <h1 class="me-4">Review completed!</h1>
+            <p>
+              You rated <span class="fw-bold">{{ cards().length }} card(s)</span>:
+              <span class="fw-bold text-danger">{{ againCount() }}</span> didn't know,
+              <span class="fw-bold text-warning">{{ hardCount() }}</span> took a while and
+              <span class="fw-bold text-success">{{ goodCount() }}</span> knew right away.
+            </p>
+            <button class="btn btn-primary" (click)="restart()">Review again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review session -->
+<div class="container flashcard-container mb-4" *ngIf="answer() && !completed()">
+  <div class="row">
+    <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped() && flipInteraction(), 'flip-forwards': !flipped() && flipInteraction()}">
+      <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" (mousedown)="$event.preventDefault()" (click)="flipCard()">
+        <div [innerHTML]="sanitizer.bypassSecurityTrustHtml(sideText())" class="overflow-hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <div class="card text-center shadow-sm">
+      <div class="card-body">
+        <div class="mt-2 d-flex justify-content-around" *ngIf="cards()">
+          <button type="button" class="fs-4 w-25 btn btn-outline-danger mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Again)">Don't know <span class="badge text-secondary">1</span></button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Hard)">Took a while <span class="badge text-secondary">2</span></button>
+          <button type="button" class="fs-4 w-25 btn btn-outline-success mb-3 fw-bold" [disabled]="!flipped() || ratingInFlight() ? true : null" (click)="rate(SrsRating.Good)">Knew right away <span class="badge text-secondary">3</span></button>
+        </div>
+        <div class="mx-2 d-flex justify-content-between">
+          <p class="text-secondary fs-5">{{ index() + 1 }}/{{ cards().length }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Debug statistics -->
+<div class="container mb-5" *ngIf="queue() && !answer() && !completed()">
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center" (click)="showStats.set(!showStats())" role="button">
+      <span class="fw-bold">SRS debug statistics</span>
+      <fa-icon [icon]="showStats() ? ['fas', 'chevron-up'] : ['fas', 'chevron-down']"></fa-icon>
+    </div>
+    <div class="card-body" *ngIf="showStats() && stats()">
+      <div class="row row-cols-1 row-cols-lg-2 g-4">
+        <div class="col">
+          <h5><fa-icon class="me-1" [icon]="faFolder"></fa-icon>Folder tree</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Folder</td><td class="text-end">{{ stats()!.folder.name }}</td></tr>
+              <tr><td>Folders (incl. subfolders)</td><td class="text-end">{{ stats()!.folder.folderCount }}</td></tr>
+              <tr><td>Sets</td><td class="text-end">{{ stats()!.folder.setCount }} ({{ stats()!.folder.privateSetCount }} private)</td></tr>
+              <tr><td>Cards</td><td class="text-end">{{ stats()!.folder.cardCount }}</td></tr>
+              <tr><td>Stats generated at</td><td class="text-end">{{ formatDate(stats()!.generatedAt) }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5><fa-icon class="me-1" [icon]="faBolt"></fa-icon>Cards</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Scheduled for review</td><td class="text-end">{{ stats()!.cards.due }}</td></tr>
+              <tr><td>Not scheduled</td><td class="text-end">{{ stats()!.cards.notDue }}</td></tr>
+              <tr><td>Total</td><td class="text-end">{{ stats()!.cards.total }}</td></tr>
+              <tr><td>&mdash; New</td><td class="text-end">{{ stats()!.cards.stateCounts[SrsState.New] }}</td></tr>
+              <tr><td>&mdash; Learning</td><td class="text-end">{{ stats()!.cards.stateCounts[SrsState.Learning] }}</td></tr>
+              <tr><td>&mdash; Review</td><td class="text-end">{{ stats()!.cards.stateCounts[SrsState.Review] }}</td></tr>
+              <tr><td>&mdash; Relearning</td><td class="text-end">{{ stats()!.cards.stateCounts[SrsState.Relearning] }}</td></tr>
+              <tr><td>Average stability</td><td class="text-end">{{ stats()!.cards.averageStability | number: '1.0-2' }}</td></tr>
+              <tr><td>Average difficulty</td><td class="text-end">{{ stats()!.cards.averageDifficulty | number: '1.0-2' }}</td></tr>
+              <tr><td>Average retrievability</td><td class="text-end">{{ stats()!.cards.averageRetrievability | percent: '1.0-2' }}</td></tr>
+              <tr><td>Next due (not scheduled)</td><td class="text-end">{{ formatDate(stats()!.cards.nextDue) }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5>Overdue buckets</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Overdue within the hour</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueWithinHour }}</td></tr>
+              <tr><td>Overdue by 1-24 hours</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanHour }}</td></tr>
+              <tr><td>Overdue by 1-7 days</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanDay }}</td></tr>
+              <tr><td>Overdue by more than a week</td><td class="text-end">{{ stats()!.cards.overdueBuckets.overdueMoreThanWeek }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5>Sets</h5>
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr><th>Title</th><th class="text-end">Cards</th><th class="text-end">Due</th><th class="text-end">Private</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let set of stats()!.sets">
+                <td>{{ set.title }}</td>
+                <td class="text-end">{{ set.cardCount }}</td>
+                <td class="text-end">{{ set.dueCount }}</td>
+                <td class="text-end">{{ set.private ? 'yes' : 'no' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5>User parameters (database)</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>request_retention</td><td class="text-end">{{ stats()!.userParameters.request_retention }}</td></tr>
+              <tr><td>maximum_interval</td><td class="text-end">{{ stats()!.userParameters.maximum_interval }}</td></tr>
+              <tr><td>enable_fuzz</td><td class="text-end">{{ stats()!.userParameters.enable_fuzz }}</td></tr>
+              <tr><td>enable_short_term</td><td class="text-end">{{ stats()!.userParameters.enable_short_term }}</td></tr>
+              <tr><td>learning_steps</td><td class="text-end">{{ stats()!.userParameters.learning_steps.join(', ') }}</td></tr>
+              <tr><td>relearning_steps</td><td class="text-end">{{ stats()!.userParameters.relearning_steps.join(', ') }}</td></tr>
+              <tr><td>w</td><td class="text-end text-wrap" style="max-width: 280px;">[{{ stats()!.userParameters.w.join(', ') }}]</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <h5>Scheduler parameters (effective)</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>request_retention</td><td class="text-end">{{ stats()!.schedulerParameters.request_retention }}</td></tr>
+              <tr><td>maximum_interval</td><td class="text-end">{{ stats()!.schedulerParameters.maximum_interval }}</td></tr>
+              <tr><td>enable_fuzz</td><td class="text-end">{{ stats()!.schedulerParameters.enable_fuzz }}</td></tr>
+              <tr><td>enable_short_term</td><td class="text-end">{{ stats()!.schedulerParameters.enable_short_term }}</td></tr>
+              <tr><td>learning_steps</td><td class="text-end">{{ stats()!.schedulerParameters.learning_steps.join(', ') }}</td></tr>
+              <tr><td>relearning_steps</td><td class="text-end">{{ stats()!.schedulerParameters.relearning_steps.join(', ') }}</td></tr>
+              <tr><td>w (length)</td><td class="text-end">{{ stats()!.schedulerParameters.w.length }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-12">
+          <h5>Scheduling preview (first {{ stats()!.schedulingPreview.length }} due card(s))</h5>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr>
+                  <th>Card</th>
+                  <th>State</th>
+                  <th>S</th>
+                  <th>D</th>
+                  <th>Due</th>
+                  <th *ngFor="let p of stats()!.schedulingPreview[0]?.preview">{{ formatRating(p.rating) }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let card of stats()!.schedulingPreview">
+                  <td style="max-width: 220px;" class="text-truncate" [title]="card.term + ' — ' + card.definition">{{ card.term }}</td>
+                  <td>{{ formatState(card.state) }}</td>
+                  <td>{{ card.stability | number: '1.0-2' }}</td>
+                  <td>{{ card.difficulty | number: '1.0-2' }}</td>
+                  <td>{{ formatDate(card.due) }}</td>
+                  <td *ngFor="let p of card.preview">
+                    {{ p.scheduled_days | number: '1.0-2' }}d → {{ formatState(p.state) }}
+                    <br>
+                    <span class="text-secondary">{{ formatDate(p.due) }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex container-fluid justify-content-between bg-white fixed-bottom shadow controlbar">
+  <fa-icon class="fs-2 back-arrow" *ngIf="answer()" (click)="restart()" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
+  <fa-icon class="fs-2 back-arrow" *ngIf="!answer()" [routerLink]="folderId ? ['/folder', folderId] : ['/homepage']" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
+</div>
