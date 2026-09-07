@@ -133,6 +133,12 @@ export class SrsService {
   }
 
   /**
+   * Default SRS steps for cases where the values stored on the user are invalid
+   */
+  private readonly defaultLearningSteps: Steps = ["6h", "1d"];
+  private readonly defaultRelearningSteps: Steps = ["4h"];
+
+  /**
    * Builds the ts-fsrs parameters of a user from the columns stored on the user
    *
    * @param user User object containing the SRS parameter columns
@@ -161,8 +167,8 @@ export class SrsService {
       w: parsedW !== null && parsedW.length > 0 && parsedW.every((n) => typeof n === "number") ? parsedW as number[] : undefined,
       enable_fuzz: user.srsEnableFuzz ?? undefined,
       enable_short_term: user.srsEnableShortTerm ?? undefined,
-      learning_steps: parsedLearningSteps !== null && parsedLearningSteps.every(isStep) ? parsedLearningSteps as Steps : undefined,
-      relearning_steps: parsedRelearningSteps !== null && parsedRelearningSteps.every(isStep) ? parsedRelearningSteps as Steps : undefined
+      learning_steps: parsedLearningSteps !== null && parsedLearningSteps.every(isStep) ? parsedLearningSteps as Steps : this.defaultLearningSteps,
+      relearning_steps: parsedRelearningSteps !== null && parsedRelearningSteps.every(isStep) ? parsedRelearningSteps as Steps : this.defaultRelearningSteps
     });
   }
 
