@@ -29,6 +29,8 @@ model User {
   apiKeys      ApiKey[]
   folders      Folder[]
   cardMistakes CardMistake[]
+  cardSrsStates CardSrsState[]
+  cardSrsReviewLogs CardSrsReviewLog[]
 }
 
 model Set {
@@ -43,6 +45,7 @@ model Set {
   updatedAt   DateTime @updatedAt
   cards       Card[]
   cardMistakes CardMistake[]
+  cardSrsReviewLogs CardSrsReviewLog[]
 
   @@index([authorId])
 }
@@ -87,7 +90,63 @@ model Card {
   set        Set         @relation(fields: [setId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   media      CardMedia[]
   mistakes   CardMistake[]
+  srsStates  CardSrsState[]
+  srsLogs    CardSrsReviewLog[]
 
+  @@index([setId])
+}
+
+// SRS state of a card (ts-fsrs `Card`) stored per user, as the same card can be studied by multiple users
+model CardSrsState {
+  id            String    @id @default(uuid())
+  userId        String
+  cardId        String
+  due           DateTime
+  stability     Float
+  difficulty    Float
+  elapsedDays   Float
+  scheduledDays Int
+  learningSteps Int
+  reps          Int
+  lapses        Int
+  state         Int
+  lastReview    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, cardId])
+  @@index([userId, due])
+  @@index([cardId])
+}
+
+// History of every SRS review of a card (ts-fsrs `ReviewLog`) stored per user,
+// used for statistics and enabling rollback and reschedule
+model CardSrsReviewLog {
+  id              String   @id @default(uuid())
+  userId          String
+  cardId          String
+  setId           String
+  rating          Int
+  state           Int
+  due             DateTime
+  stability       Float
+  difficulty      Float
+  elapsedDays     Float
+  lastElapsedDays Float
+  scheduledDays   Int
+  learningSteps   Int
+  review          DateTime
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  set  Set  @relation(fields: [setId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([cardId])
   @@index([setId])
 }
 

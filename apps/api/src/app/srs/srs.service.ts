@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@scholarsome/prisma";
+import { CardSrsState as PrismaCardSrsState, Prisma } from "@scholarsome/prisma";
 import {
   SrsCard,
   SrsCardState,
@@ -167,18 +167,60 @@ export class SrsService {
   }
 
   /**
-   * Loads the persisted SRS state of a card for a user
+   * Converts a persisted `CardSrsState` row into a ts-fsrs `Card`
    *
-   * @param userId ID of the user the state belongs to
-   * @param cardId ID of the card
-   * @param now Current time, used for the due date of cards that have no stored state yet
+   * @param state `CardSrsState` row of the user and card
    *
-   * @returns `SrsCardState` of the card, or null if no state is persisted yet
+   * @returns ts-fsrs `Card` object
    */
-  private async loadCardState(_userId: string, _cardId: string, _now: Date): Promise<SrsCardState | null> {
-    // TODO (next step): query the per-card SRS parameters from the database here.
-    // Until they are stored, every card is treated as a new card.
-    return null;
+  private rowToFsrsCard(state: PrismaCardSrsState): Card {
+    return {
+      due: state.due,
+      stability: state.stability,
+      difficulty: state.difficulty,
+      elapsed_days: state.elapsedDays,
+      scheduled_days: state.scheduledDays,
+      learning_steps: state.learningSteps,
+      reps: state.reps,
+      lapses: state.lapses,
+      // the numeric values of `SrsState` map 1:1 to the ts-fsrs `State` enum
+      state: state.state as number as State,
+      last_review: state.lastReview ?? undefined
+    };
+  }
+
+  /**
+   * Converts a ts-fsrs `Card` into the data of a `CardSrsState` row,
+   * without the user and card references
+   *
+   * @param card ts-fsrs `Card` object
+   *
+   * @returns Data object for creating or updating a `CardSrsState` row
+   */
+  private fsrsCardToStateData(card: Card): {
+    due: Date,
+    stability: number,
+    difficulty: number,
+    elapsedDays: number,
+    scheduledDays: number,
+    learningSteps: number,
+    reps: number,
+    lapses: number,
+    state: number,
+    lastReview: Date | null
+  } {
+    return {
+      due: card.due,
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsedDays: card.elapsed_days,
+      scheduledDays: card.scheduled_days,
+      learningSteps: card.learning_steps,
+      reps: card.reps,
+      lapses: card.lapses,
+      state: card.state as number,
+      lastReview: card.last_review ?? null
+    };
   }
 
   /**
@@ -282,6 +324,64 @@ export class SrsService {
   }
 
   /**
+   * Builds the review history statistics of the given cards for a user,
+   * based on the persisted review logs
+   *
+   * @param userId ID of the user the logs have to belong to
+   * @param cardIds IDs of the cards within the scope
+   *
+   * @returns Review history statistics of the scope
+   */
+  private async reviewStats(userId: string, cardIds: string[]): Promise<SrsQueueStats["reviews"]> {
+    if (cardIds.length === 0) {
+      return {
+        total: 0,
+        ratingCounts: { [SrsRating.Again]: 0, [SrsRating.Hard]: 0, [SrsRating.Good]: 0 },
+        lastReview: null
+      };
+    }
+
+    const [ratingCounts, lastReviewLog] = await Promise.all([
+      this.prisma.cardSrsReviewLog.groupBy({
+        by: ["rating"],
+        where: {
+          userId,
+          cardId: {
+            in: cardIds
+          }
+        },
+        _count: {
+          _all: true
+        }
+      }),
+      this.prisma.cardSrsReviewLog.findFirst({
+        where: {
+          userId,
+          cardId: {
+            in: cardIds
+          }
+        },
+        orderBy: {
+          review: "desc"
+        },
+        select: {
+          review: true
+        }
+      })
+    ]);
+
+    return {
+      total: ratingCounts.reduce((sum, count) => sum + count._count._all, 0),
+      ratingCounts: {
+        [SrsRating.Again]: ratingCounts.find((count) => count.rating === SrsRating.Again)?._count._all ?? 0,
+        [SrsRating.Hard]: ratingCounts.find((count) => count.rating === SrsRating.Hard)?._count._all ?? 0,
+        [SrsRating.Good]: ratingCounts.find((count) => count.rating === SrsRating.Good)?._count._all ?? 0
+      },
+      lastReview: lastReviewLog?.review.toISOString() ?? null
+    };
+  }
+
+  /**
    * Builds the review queue for a user.
    * When a folder is given, it contains every card scheduled for review within
    * the folder and recursively within all of its subfolders.
@@ -345,20 +445,39 @@ export class SrsService {
     }
 
     // a set can be connected to multiple folders of the tree, so cards have to be deduplicated
-    const cardMap = new Map<string, { card: Prisma.CardGetPayload<{ include: { set: true, media: true } }>, srs: SrsCardState, due: Date }>();
+    const uniqueCards: Prisma.CardGetPayload<{ include: { set: true, media: true } }>[] = [];
+    const seenCards = new Set<string>();
     for (const set of sets) {
       for (const card of set.cards) {
-        if (cardMap.has(card.id)) continue;
+        if (seenCards.has(card.id)) continue;
 
-        const state = await this.loadCardState(userId, card.id, now);
-        const fsrsCard = state ? this.toFsrsCard(state) : createEmptyCard(now);
-
-        cardMap.set(card.id, {
-          card: card as Prisma.CardGetPayload<{ include: { set: true, media: true } }>,
-          srs: this.toSrsCardState(fsrsCard),
-          due: fsrsCard.due
-        });
+        seenCards.add(card.id);
+        uniqueCards.push(card as Prisma.CardGetPayload<{ include: { set: true, media: true } }>);
       }
+    }
+
+    // batch load the persisted SRS states of the user for all cards
+    const srsStates = await this.prisma.cardSrsState.findMany({
+      where: {
+        userId,
+        cardId: {
+          in: uniqueCards.map((card) => card.id)
+        }
+      }
+    });
+    const srsStateMap = new Map<string, PrismaCardSrsState>(srsStates.map((state) => [state.cardId, state]));
+
+    const cardMap = new Map<string, { card: Prisma.CardGetPayload<{ include: { set: true, media: true } }>, srs: SrsCardState, due: Date }>();
+    for (const card of uniqueCards) {
+      // cards without a persisted state are treated as new cards
+      const state = srsStateMap.get(card.id);
+      const fsrsCard = state ? this.rowToFsrsCard(state) : createEmptyCard(now);
+
+      cardMap.set(card.id, {
+        card,
+        srs: this.toSrsCardState(fsrsCard),
+        due: fsrsCard.due
+      });
     }
 
     const allCards = [...cardMap.values()];
@@ -437,6 +556,7 @@ export class SrsService {
           }).length
         };
       }),
+      reviews: await this.reviewStats(userId, uniqueCards.map((card) => card.id)),
       userParameters: {
         request_retention: user.srsRequestRetention,
         maximum_interval: user.srsMaximumInterval,
@@ -522,21 +642,63 @@ export class SrsService {
     const parameters = this.buildParameters(user);
     const scheduler = fsrs(parameters);
 
-    const state = await this.loadCardState(userId, card.id, now);
-    const currentCard = state ? this.toFsrsCard(state) : createEmptyCard(now);
+    const stateRow = await this.prisma.cardSrsState.findUnique({
+      where: {
+        userId_cardId: {
+          userId,
+          cardId
+        }
+      }
+    });
+    const currentCard = stateRow ? this.rowToFsrsCard(stateRow) : createEmptyCard(now);
 
     const retrievabilityBefore = scheduler.get_retrievability(currentCard, now, false);
 
     const result: RecordLogItem = scheduler.next(currentCard, now, this.toGrade(rating));
 
-    // TODO (next step): persist the new card state of the user here
     const srsState = this.toSrsCardState(result.card);
+
+    // persist the new card state and store the review log within a transaction,
+    // so that the history always matches the stored state
+    await this.prisma.$transaction([
+      this.prisma.cardSrsState.upsert({
+        where: {
+          userId_cardId: {
+            userId,
+            cardId
+          }
+        },
+        create: {
+          userId,
+          cardId,
+          ...this.fsrsCardToStateData(result.card)
+        },
+        update: this.fsrsCardToStateData(result.card)
+      }),
+      this.prisma.cardSrsReviewLog.create({
+        data: {
+          userId,
+          cardId,
+          setId: card.setId,
+          rating,
+          state: result.log.state as number,
+          due: result.log.due,
+          stability: result.log.stability,
+          difficulty: result.log.difficulty,
+          elapsedDays: result.log.elapsed_days,
+          lastElapsedDays: result.log.last_elapsed_days,
+          scheduledDays: result.log.scheduled_days,
+          learningSteps: result.log.learning_steps,
+          review: result.log.review
+        }
+      })
+    ]);
 
     const retrievabilityAfter = scheduler.get_retrievability(result.card, now, false);
 
     const stats: SrsReviewStats = {
       reviewedAt: now.toISOString(),
-      before: state ?? this.toSrsCardState(createEmptyCard(now)),
+      before: stateRow ? this.toSrsCardState(this.rowToFsrsCard(stateRow)) : this.toSrsCardState(createEmptyCard(now)),
       after: srsState,
       retrievabilityBefore,
       retrievabilityAfter

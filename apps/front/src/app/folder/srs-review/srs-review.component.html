@@ -127,6 +127,18 @@
           </table>
         </div>
         <div class="col">
+          <h5>Review history</h5>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Total reviews</td><td class="text-end">{{ stats()!.reviews.total }}</td></tr>
+              <tr><td>&mdash; Don't know (Again)</td><td class="text-end">{{ stats()!.reviews.ratingCounts[SrsRating.Again] }}</td></tr>
+              <tr><td>&mdash; Took a while (Hard)</td><td class="text-end">{{ stats()!.reviews.ratingCounts[SrsRating.Hard] }}</td></tr>
+              <tr><td>&mdash; Knew right away (Good)</td><td class="text-end">{{ stats()!.reviews.ratingCounts[SrsRating.Good] }}</td></tr>
+              <tr><td>Last review</td><td class="text-end">{{ formatDate(stats()!.reviews.lastReview) }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
           <h5>Sets</h5>
           <table class="table table-sm mb-0">
             <thead>

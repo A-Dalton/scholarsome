@@ -158,6 +158,21 @@ export interface SrsQueueStats {
     dueCount: number;
   }[];
   /**
+   * Review history statistics of the cards within the scope
+   */
+  reviews: {
+    total: number;
+    ratingCounts: {
+      [SrsRating.Again]: number;
+      [SrsRating.Hard]: number;
+      [SrsRating.Good]: number;
+    };
+    /**
+     * ISO 8601 encoded time of the most recent review, or null if no card was reviewed yet
+     */
+    lastReview: string | null;
+  };
+  /**
    * The SRS parameters of the authenticated user, as stored in the database
    */
   userParameters: SrsParameters;
