@@ -148,14 +148,14 @@ export interface SrsQueueStats {
     };
     /**
      * Amount of not yet due cards bucketed by how far their due date is in the future.
-     * The buckets are exclusive ranges, e.g. cards within the next 24 hours are not
-     * part of the 3 days bucket
+     * The buckets are exclusive ranges, e.g. cards within the next 4 hours are not
+     * part of the 24 hours bucket
      */
     upcomingBuckets: {
+      upcomingWithin4Hours: number;
       upcomingWithin24Hours: number;
       upcomingWithin3Days: number;
-      upcomingWithin10Days: number;
-      upcomingWithin30Days: number;
+      upcomingWithin7Days: number;
     };
   };
   /**

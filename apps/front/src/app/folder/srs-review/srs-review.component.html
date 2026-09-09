@@ -12,15 +12,76 @@
         Spaced repetition
         <a href="/handbook/usage/flashcards" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
       </h2>
-      <p class="text-secondary mb-0">
-        {{ queue()!.cards.length }} {{ queue()!.cards.length === 1 ? "card is" : "cards are" }} scheduled for review {{ folderId ? 'within this folder and its subfolders' : 'across all your sets' }}.
+      <p class="text-secondary small mb-0">
+        Cards you struggle with come back more often, cards you know well come back<br>
+        less often — {{ folderId ? "the cards of this folder and its subfolders are reviewed" : "everything across all of your sets is reviewed" }}.
       </p>
-      <div class="d-flex justify-content-around mt-3" *ngIf="queue()!.cards.length > 0">
-        <button type="button" class="fs-5 w-25 btn btn-outline-primary mb-3 fw-bold" (click)="beginReview('term')">Term</button>
-        <button type="button" class="fs-5 w-25 btn btn-outline-primary mb-3 fw-bold" (click)="beginReview('definition')">Definition</button>
+      <div class="mt-4" *ngIf="queue()!.cards.length > 0">
+        <p class="text-secondary fw-semibold text-uppercase section-label">{{ queue()!.cards.length }} card{{ queue()!.cards.length === 1 ? "" : "s" }} scheduled for review</p>
+        <div class="row row-cols-2 row-cols-sm-4 g-2">
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.New) }}</span>
+              <span class="text-secondary stat-label">New</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Learning) }}</span>
+              <span class="text-secondary stat-label">Learning</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Review) }}</span>
+              <span class="text-secondary stat-label">Review</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Relearning) }}</span>
+              <span class="text-secondary stat-label">Relearning</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="text-secondary mb-0" *ngIf="queue()!.cards.length > 0">Answer with</p>
-      <p class="text-secondary mb-0" *ngIf="queue()!.cards.length === 0">Nothing to review right now. Come back later!</p>
+      <div class="mt-4" *ngIf="stats()">
+        <p class="text-secondary fw-semibold text-uppercase section-label">Upcoming reviews</p>
+        <div class="row row-cols-2 row-cols-sm-4 g-2">
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ stats()!.cards.upcomingBuckets.upcomingWithin4Hours }}</span>
+              <span class="text-secondary stat-label">Next 4 hours</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ stats()!.cards.upcomingBuckets.upcomingWithin24Hours }}</span>
+              <span class="text-secondary stat-label">Next 24 hours</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ stats()!.cards.upcomingBuckets.upcomingWithin3Days }}</span>
+              <span class="text-secondary stat-label">Next 3 days</span>
+            </div>
+          </div>
+          <div class="col">
+            <div class="stat-tile">
+              <span class="fs-4 fw-bold text-primary">{{ stats()!.cards.upcomingBuckets.upcomingWithin7Days }}</span>
+              <span class="text-secondary stat-label">Next 7 days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4" *ngIf="queue()!.cards.length > 0">
+        <p class="text-secondary fw-semibold text-uppercase section-label">Answer with</p>
+        <div class="d-flex flex-column flex-sm-row gap-3">
+          <button type="button" class="btn btn-outline-primary answer-button flex-sm-fill fs-5 fw-bold" (click)="beginReview('term')">Term</button>
+          <button type="button" class="btn btn-outline-primary answer-button flex-sm-fill fs-5 fw-bold" (click)="beginReview('definition')">Definition</button>
+        </div>
+      </div>
+      <p class="text-secondary mb-0 mt-3" *ngIf="queue()!.cards.length === 0">Nothing to review right now. Come back later!</p>
     </div>
   </div>
 </div>
@@ -130,10 +191,10 @@
           <h5>Upcoming reviews</h5>
           <table class="table table-sm mb-0">
             <tbody>
+              <tr><td>Upcoming in the next 4 hours</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin4Hours }}</td></tr>
               <tr><td>Upcoming in the next 24 hours</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin24Hours }}</td></tr>
               <tr><td>Upcoming in the next 3 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin3Days }}</td></tr>
-              <tr><td>Upcoming in the next 10 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin10Days }}</td></tr>
-              <tr><td>Upcoming in the next 30 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin30Days }}</td></tr>
+              <tr><td>Upcoming in the next 7 days</td><td class="text-end">{{ stats()!.cards.upcomingBuckets.upcomingWithin7Days }}</td></tr>
             </tbody>
           </table>
         </div>

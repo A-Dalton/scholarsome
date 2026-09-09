@@ -11,6 +11,40 @@
   margin-top: 5vh;
 }
 
+/* Section labels of the review start screen */
+.section-label {
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* Answer with buttons of the review start screen */
+.answer-button {
+  padding: 1rem 1.5rem;
+  transition: transform 0.15s ease-in-out, color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.answer-button:hover {
+  transform: translateY(-2px);
+}
+
+/* Stat tiles of the review start screen, shared by the scheduled states and upcoming reviews */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.75rem 0.5rem;
+  background-color: var(--scholarsome-surface-2);
+  border: 1px solid var(--scholarsome-border);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+}
+
 .flashcard.flip-back {
   animation: flip-card-body-back 0.5s;
   animation-fill-mode: forwards;

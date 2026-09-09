@@ -120,6 +120,15 @@ export class SrsReviewComponent implements OnInit {
   }
 
   /**
+   * Amount of cards scheduled for review with the given state
+   *
+   * @param state The state of the cards to count
+   */
+  scheduledStateCount(state: SrsState): number {
+    return this.queue()?.cards.filter((card) => card.srs.state === state).length ?? 0;
+  }
+
+  /**
    * Flips the currently shown card
    */
   flipCard(): void {
