@@ -11,6 +11,29 @@
   margin-top: 5vh;
 }
 
+/*
+ * Cards of the review start screen. Both get the same width so the boxes
+ * align, while the cap keeps the header text wrapping naturally on small
+ * screens instead of stretching the card.
+ */
+.review-start-card,
+.upcoming-reviews-card {
+  width: 100%;
+  max-width: 500px;
+}
+
+/*
+ * Stat tiles fill their column so every tile of a row has the same height,
+ * even when a label wraps onto a second line.
+ */
+.stat-tile-row .col {
+  display: flex;
+}
+
+.stat-tile-row .stat-tile {
+  flex: 1;
+}
+
 /* Section labels of the review start screen */
 .section-label {
   font-size: 0.875rem;
