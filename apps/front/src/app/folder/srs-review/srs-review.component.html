@@ -125,14 +125,27 @@
 
   <div class="row mt-3">
     <div class="card text-center shadow-sm">
-      <div class="card-body">
-        <div class="mt-2 d-flex justify-content-around" *ngIf="cards()">
-          <button type="button" class="fs-4 w-25 btn btn-outline-danger mb-3 fw-bold" (click)="rate(SrsRating.Again)">Don't know <span class="badge text-secondary">1</span></button>
-          <button type="button" class="fs-4 w-25 btn btn-outline-warning mb-3 fw-bold" (click)="rate(SrsRating.Hard)">Took a while <span class="badge text-secondary">2</span></button>
-          <button type="button" class="fs-4 w-25 btn btn-outline-success mb-3 fw-bold" (click)="rate(SrsRating.Good)">Knew right away <span class="badge text-secondary">3</span></button>
+      <div class="card-body" *ngIf="cards()">
+        <div class="d-flex gap-2">
+          <button type="button" class="rating-button btn btn-outline-danger fw-bold" (click)="rate(SrsRating.Again)" aria-label="Don't know (press 1)">
+            <span class="rating-label">Don't know</span>
+            <kbd aria-hidden="true">1</kbd>
+          </button>
+          <button type="button" class="rating-button btn btn-outline-warning fw-bold" (click)="rate(SrsRating.Hard)" aria-label="Took a while (press 2)">
+            <span class="rating-label">Took a while</span>
+            <kbd aria-hidden="true">2</kbd>
+          </button>
+          <button type="button" class="rating-button btn btn-outline-success fw-bold" (click)="rate(SrsRating.Good)" aria-label="Got it (press 3)">
+            <span class="rating-label">Got it</span>
+            <kbd aria-hidden="true">3</kbd>
+          </button>
         </div>
-        <div class="mx-2 d-flex justify-content-between">
-          <p class="text-secondary fs-5">{{ learnedCount() }}/{{ totalCards() }}</p>
+
+        <div class="session-progress mt-3">
+          <div class="progress" role="progressbar" aria-label="Review progress" aria-valuemin="0" [attr.aria-valuemax]="totalCards()" [attr.aria-valuenow]="learnedCount()">
+            <div class="progress-bar" [style.width.%]="totalCards() ? (100 * learnedCount()) / totalCards() : 0"></div>
+          </div>
+          <p class="text-secondary mb-0 mt-2">{{ learnedCount() }}/{{ totalCards() }} learned</p>
         </div>
       </div>
     </div>
