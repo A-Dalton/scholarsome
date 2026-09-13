@@ -26,6 +26,25 @@ export class SrsService {
   private readonly previewCardLimit = 10;
 
   /**
+   * Time by which the due cutoff of the review queue is extended. Cards that are
+   * not due yet but due within this window are part of the queue as well, so that
+   * a session starting slightly earlier than the last one does not skip cards
+   * scheduled for exactly the time between two sessions — a card graduating with
+   * a 24h interval would otherwise only reappear after 48h whenever a session
+   * starts earlier than the day before. Rating such cards early is scheduled
+   * correctly by ts-fsrs, as retrievability is always computed from the elapsed time.
+   *
+   * The window is deliberately the same for every review cadence: it compensates for
+   * the drift of session start times, which does not grow with the time between two
+   * sessions. For sparse cadences (every two days and sparser) nothing can be due
+   * within hours of a session, as their shortest schedule of 1d is always due before
+   * the next session, so a larger window would only pull stability-scheduled cards
+   * into reviews days too early. For dense cadences the short steps (3h/6h) are due
+   * again before the next session ends, so cards can slip at most a single session
+   */
+  private readonly queueLookaheadMs = 4 * 3600000;
+
+  /**
    * Collects the IDs of a folder and recursively all of its subfolders
    *
    * @param userId ID of the user the folders have to belong to
@@ -488,12 +507,15 @@ export class SrsService {
 
     const allCards = [...cardMap.values()];
 
-    // only cards that are scheduled for review are part of the queue
+    // only cards that are scheduled for review are part of the queue, plus
+    // cards that fall into the lookahead window (see queueLookaheadMs)
     const dueCards = allCards.filter((c) => c.due.getTime() <= now.getTime());
     const notDueCards = allCards.filter((c) => c.due.getTime() > now.getTime());
+    const upcomingCards = notDueCards.filter((c) => c.due.getTime() <= now.getTime() + this.queueLookaheadMs);
 
     // new cards first, then ordered by their due date
-    dueCards.sort((a, b) => {
+    const queueCards = [...dueCards, ...upcomingCards];
+    queueCards.sort((a, b) => {
       if (a.srs.state !== b.srs.state) return a.srs.state - b.srs.state;
       if (a.due.getTime() !== b.due.getTime()) return a.due.getTime() - b.due.getTime();
       return a.card.index - b.card.index;
@@ -579,7 +601,7 @@ export class SrsService {
         relearning_steps: (this.parseJsonArray(user.srsRelearningSteps) ?? []).filter((s): s is string => typeof s === "string")
       },
       schedulerParameters: this.toSrsParameters(parameters),
-      schedulingPreview: dueCards.slice(0, this.previewCardLimit).map((card) => {
+      schedulingPreview: queueCards.slice(0, this.previewCardLimit).map((card) => {
         const preview = scheduler.repeat(this.toFsrsCard(card.srs), now);
 
         return {
@@ -605,7 +627,7 @@ export class SrsService {
     };
 
     return {
-      cards: dueCards.map((c) => {
+      cards: queueCards.map((c) => {
         return {
           card: c.card,
           srs: c.srs

@@ -192,7 +192,7 @@ export interface SrsQueueStats {
    */
   schedulerParameters: SrsParameters;
   /**
-   * For the first few due cards, a preview of what each possible rating would schedule
+   * For the first few cards of the review queue, a preview of what each possible rating would schedule
    */
   schedulingPreview: {
     cardId: string;

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
 import { Prisma, User as PrismaUser } from "@scholarsome/prisma";
-import { User } from "@scholarsome/shared";
+import { SrsCadence, User, srsCadenceParameters } from "@scholarsome/shared";
 
 @Injectable()
 export class UsersService {
@@ -100,6 +100,32 @@ export class UsersService {
     return this.prisma.user.update({
       data,
       where
+    });
+  }
+
+  /**
+   * Updates the SRS cadence of a user and rewrites their SRS parameter columns
+   * to the preset matching the selected cadence
+   *
+   * @param where Prisma `UserWhereUniqueInput` selector
+   * @param cadence SRS cadence to apply
+   *
+   * @returns Updated `User` object
+   */
+  async updateSrsCadence(
+      where: Prisma.UserWhereUniqueInput,
+      cadence: SrsCadence
+  ): Promise<PrismaUser> {
+    const parameters = srsCadenceParameters[cadence];
+
+    return this.prisma.user.update({
+      where,
+      data: {
+        srsCadence: cadence,
+        srsEnableShortTerm: parameters.enableShortTerm,
+        srsLearningSteps: parameters.learningSteps,
+        srsRelearningSteps: parameters.relearningSteps
+      }
     });
   }
 
