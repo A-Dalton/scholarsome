@@ -7,6 +7,7 @@ import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
 import { SrsService } from "../../shared/http/srs.service";
+import { FlashcardControlAction, FlashcardControlsComponent } from "../../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
   standalone: true,
@@ -14,7 +15,7 @@ import { SrsService } from "../../shared/http/srs.service";
   selector: "scholarsome-srs-review",
   templateUrl: "./srs-review.component.html",
   styleUrls: ["./srs-review.component.scss"],
-  imports: [CommonModule, FontAwesomeModule, RouterLink]
+  imports: [CommonModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent]
 })
 export class SrsReviewComponent implements OnInit {
   constructor(
@@ -117,6 +118,35 @@ export class SrsReviewComponent implements OnInit {
     this.pendingReinsertions = [];
 
     this.resetToPromptSide(shuffled[0]);
+  }
+
+  /**
+   * Buttons of the lower card, rating the current card within the SRS
+   */
+  protected getRatingActions(): FlashcardControlAction[] {
+    return [
+      {
+        label: "Don't know",
+        variant: "btn-outline-danger",
+        key: "1",
+        ariaLabel: "Don't know (press 1)",
+        action: () => void this.rate(SrsRating.Again)
+      },
+      {
+        label: "Took a while",
+        variant: "btn-outline-warning",
+        key: "2",
+        ariaLabel: "Took a while (press 2)",
+        action: () => void this.rate(SrsRating.Hard)
+      },
+      {
+        label: "Got it",
+        variant: "btn-outline-success",
+        key: "3",
+        ariaLabel: "Got it (press 3)",
+        action: () => void this.rate(SrsRating.Good)
+      }
+    ];
   }
 
   /**

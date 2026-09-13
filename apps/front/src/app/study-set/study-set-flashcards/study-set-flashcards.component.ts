@@ -6,8 +6,9 @@ import { BsModalRef } from "ngx-bootstrap/modal";
 import { faThumbsUp, faCake } from "@fortawesome/free-solid-svg-icons";
 import { DomSanitizer, Meta, Title } from "@angular/platform-browser";
 import { NgForm, FormsModule } from "@angular/forms";
-import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
+import { faArrowAltCircleLeft, faArrowAltCircleRight, faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import { CardMistakesService } from "../../shared/http/card-mistakes.service";
+import { FlashcardControlAction, FlashcardControlsComponent } from "../../shared/flashcard-controls/flashcard-controls.component";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 
@@ -17,7 +18,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
   selector: "scholarsome-study-set-flashcards",
   templateUrl: "./study-set-flashcards.component.html",
   styleUrls: ["./study-set-flashcards.component.scss"],
-  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterLink]
+  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent]
 })
 export class StudySetFlashcardsComponent implements OnInit {
   constructor(
@@ -60,8 +61,6 @@ export class StudySetFlashcardsComponent implements OnInit {
   protected side: string;
   // The text being shown to the user
   protected sideText = signal("");
-  // Displayed in bottom right showing the progress
-  protected remainingCards = signal("");
 
   // Whether the card has been flipped or not
   protected flipped = false;
@@ -111,26 +110,58 @@ export class StudySetFlashcardsComponent implements OnInit {
     }
   }
 
-  updateIndex() {
-    this.remainingCards.set(`${this.index + 1}/${this.cards.length}`);
-  }
-
   incrementLearntCount(): void {
     this.newLearnedCards++;
   }
 
-  // On touch devices, briefly fill the answer button's background (like a mouse
-  // hover would) then let it return to neutral, since sticky :hover would
-  // otherwise persist the color.
-  flashButton(event: Event): void {
-    // Only do this on devices without a real hover (touch / coarse pointer)
-    if (!window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+  /**
+   * Buttons of the lower card, depending on the flashcards mode
+   */
+  protected getFlashcardActions(): FlashcardControlAction[] {
+    if (this.flashcardsMode === "traditional") {
+      return [
+        {
+          icon: faArrowAltCircleLeft,
+          variant: "btn-outline-secondary",
+          key: "←",
+          ariaLabel: "Previous card",
+          disabled: this.index === 0,
+          action: () => this.changeCard(-1)
+        },
+        {
+          icon: faArrowAltCircleRight,
+          variant: "btn-outline-secondary",
+          key: "→",
+          ariaLabel: "Next card",
+          disabled: this.cards.length === this.index + 1,
+          action: () => this.changeCard(1)
+        }
+      ];
+    }
 
-    const button = event.currentTarget as HTMLButtonElement;
-    // Restart the one-shot animation on every tap so it re-fills each time
-    button.classList.remove("flash-bg");
-    void button.offsetWidth;
-    button.classList.add("flash-bg");
+    return [
+      {
+        label: "Don't know",
+        variant: "btn-outline-danger",
+        key: "←",
+        ariaLabel: "Don't know (press left arrow)",
+        action: () => {
+          void this.markAsMistake();
+          this.changeCard(1);
+        }
+      },
+      {
+        label: "Know",
+        variant: "btn-outline-success",
+        key: "→",
+        ariaLabel: "Know (press right arrow)",
+        action: () => {
+          this.incrementLearntCount();
+          this.knownCardIDs.push(this.currentCard.id);
+          this.changeCard(1);
+        }
+      }
+    ];
   }
 
   // Stores the current card as a mistake for progressive mode's "Don't know" option.
@@ -198,7 +229,6 @@ export class StudySetFlashcardsComponent implements OnInit {
       // if the entire mode is not completed
       if (this.cards.length > 0) {
         this.index = 0;
-        this.updateIndex();
 
         if (this.shufflingEnabled) this.cards = this.cards.sort(() => 0.5 - Math.random());
 
@@ -215,7 +245,6 @@ export class StudySetFlashcardsComponent implements OnInit {
     }
 
     this.index += direction;
-    this.updateIndex();
 
     this.flipInteraction = false;
     this.flipped = false;
@@ -274,7 +303,5 @@ export class StudySetFlashcardsComponent implements OnInit {
     this.cards = set.cards.sort((a, b) => {
       return a.index - b.index;
     });
-
-    this.updateIndex();
   }
 }
