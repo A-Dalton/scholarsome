@@ -17,7 +17,34 @@
         <div class="card shadow-sm set-card h-100" role="button">
           <div class="card-body d-flex justify-content-center align-items-center">
             <fa-icon class="fs-3" [icon]="faBolt"></fa-icon>
-            <span class="ms-1 fs-5">Review cards</span>
+            <span class="ms-1 fs-5">Review all cards</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3" (click)="toggleFolderTree()">
+        <div class="card shadow-sm set-card h-100" role="button">
+          <div class="card-body d-flex justify-content-center align-items-center">
+            <fa-icon class="fs-3" [icon]="faFolder"></fa-icon>
+            <span class="ms-1 fs-5">Review folder</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row px-3 pb-4 w-100" *ngIf="folderTreeVisible()">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <p class="text-secondary" *ngIf="folderTree().length === 0">You currently do not have any folders.</p>
+            <ul class="folder-tree list-unstyled mb-0" *ngIf="folderTree().length > 0">
+              <li *ngFor="let node of folderTree()">
+                <ng-container *ngTemplateOutlet="folderTreeNode; context: { $implicit: node, level: 0 }"></ng-container>
+              </li>
+            </ul>
+            <div class="d-flex justify-content-end mt-3" *ngIf="folderTree().length > 0">
+              <button type="button" class="btn btn-primary" [disabled]="!selectedFolderId()" (click)="reviewSelectedFolder()">
+                <fa-icon [icon]="faBolt" class="me-1"></fa-icon>Review
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -51,9 +78,6 @@
                 [icon]="['far', 'eye-slash']"
               ></fa-icon>
             </h5>
-            <button type="button" class="btn btn-sm btn-outline-primary mt-2 align-self-start" (click)="reviewFolder($event, folder.id)">
-              <fa-icon [icon]="faBolt" class="me-1"></fa-icon>Review
-            </button>
           </div>
           <div class="card-footer mt-auto" [ngStyle]="{'background-color': folder.color}"></div>
         </div>
@@ -96,3 +120,27 @@
     </div>
   </div>
 </div>
+
+<ng-template #folderTreeNode let-node let-level="level">
+  <div
+    class="d-flex align-items-center folder-tree-row cursor-pointer"
+    [ngStyle]="{ 'padding-left': (level * 1.5) + 'rem' }"
+    [ngClass]="{ 'folder-tree-row-selected': isFolderSelected(node) }"
+    (click)="selectFolder(node)"
+  >
+    <span class="folder-tree-toggle" (click)="toggleFolderExpanded(node); $event.stopPropagation()">
+      <fa-icon
+        *ngIf="node.children.length > 0"
+        [icon]="isFolderExpanded(node) ? faChevronDown : faChevronRight"
+        class="folder-tree-chevron"
+      ></fa-icon>
+    </span>
+    <fa-icon [icon]="faFolder" class="me-2 folder-tree-icon" [ngStyle]="{ 'color': node.color }"></fa-icon>
+    <span class="text-truncate">{{ node.name }}</span>
+  </div>
+  <ul class="list-unstyled mb-0" *ngIf="isFolderExpanded(node) && node.children.length > 0">
+    <li *ngFor="let child of node.children">
+      <ng-container *ngTemplateOutlet="folderTreeNode; context: { $implicit: child, level: level + 1 }"></ng-container>
+    </li>
+  </ul>
+</ng-template>
