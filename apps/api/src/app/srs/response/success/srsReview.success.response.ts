@@ -19,18 +19,6 @@ export class SrsReviewDataEntity {
     type: SrsCardStateEntity
   })
     srs: SrsCardStateEntity;
-
-  @ApiProperty({
-    description: "The review log of ts-fsrs",
-    type: Object
-  })
-    log: object;
-
-  @ApiProperty({
-    description: "Statistics regarding the review for debug purposes",
-    type: Object
-  })
-    stats: object;
 }
 
 export class SrsReviewSuccessResponse {

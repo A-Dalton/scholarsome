@@ -22,7 +22,7 @@ Traditional is a digitized form of how flashcards are physically studied. The ca
 
 Progressive is an alternative way to study cards. Cards are shown, and the user is asked after revealing the answer whether they knew it or not. If they did, the card is not shown again. If the card was not known, it is shown again after the user has reached the end of the set. This repeats until all cards are known.
 
-An additional mode, a spaced repetition system, will be available in the future. This will differ from the existing modes as its progress will save between study sessions.
+A spaced repetition mode is available separately as the Review feature. Unlike traditional and progressive mode, its progress is saved between study sessions. See [Review](/usage/review).
 
 ### Answer with
 

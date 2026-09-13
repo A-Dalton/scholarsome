@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { SrsCard, SrsQueueData, SrsQueueStats, SrsRating, SrsState } from "@scholarsome/shared";
+import { SrsCard, SrsQueueData, SrsRating, SrsState } from "@scholarsome/shared";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBolt, faChevronDown, faChevronUp, faFolder } from "@fortawesome/free-solid-svg-icons";
+import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
 import { SrsService } from "../../shared/http/srs.service";
+import { FoldersService } from "../../shared/http/folders.service";
 import { FlashcardControlAction, FlashcardControlsComponent } from "../../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
@@ -22,6 +23,7 @@ export class SrsReviewComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly srsService: SrsService,
+    private readonly foldersService: FoldersService,
     private readonly titleService: Title,
     public readonly sanitizer: DomSanitizer
   ) {}
@@ -34,10 +36,6 @@ export class SrsReviewComponent implements OnInit {
 
   // Data of the review queue, undefined while it is being loaded
   protected queue = signal<SrsQueueData | undefined>(undefined);
-  protected stats = signal<SrsQueueStats | undefined>(undefined);
-
-  // Whether the debug statistics are expanded
-  protected showStats = signal(true);
 
   // What the user answers with, undefined while the session has not begun
   protected answer = signal<"term" | "definition" | undefined>(undefined);
@@ -86,9 +84,6 @@ export class SrsReviewComponent implements OnInit {
 
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faBolt = faBolt;
-  protected readonly faFolder = faFolder;
-  protected readonly faChevronUp = faChevronUp;
-  protected readonly faChevronDown = faChevronDown;
 
   /**
    * Starts the review session with the given side to answer with
@@ -317,13 +312,10 @@ export class SrsReviewComponent implements OnInit {
     }
 
     this.queue.set(queue);
-    this.stats.set(queue.stats);
 
     if (this.folderId) {
-      this.titleService.setTitle("Review — Scholarsome");
-      if (queue.stats.folder.name) {
-        this.titleService.setTitle("Review " + queue.stats.folder.name + " — Scholarsome");
-      }
+      const folder = await this.foldersService.folder(this.folderId);
+      this.titleService.setTitle((folder ? "Review " + folder.name : "Review") + " — Scholarsome");
     } else {
       this.titleService.setTitle("Review all — Scholarsome");
     }
@@ -343,45 +335,6 @@ export class SrsReviewComponent implements OnInit {
     this.learnedCount.set(0);
     this.ratedCardIds.clear();
     this.pendingReinsertions = [];
-  }
-
-  formatDate(date: string | null): string {
-    if (!date) return "—";
-    return new Date(date).toLocaleString("en-us", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit"
-    });
-  }
-
-  formatRating(rating: SrsRating): string {
-    switch (rating) {
-      case SrsRating.Again:
-        return "Again";
-      case SrsRating.Hard:
-        return "Hard";
-      case SrsRating.Good:
-        return "Good";
-      default:
-        return "Easy";
-    }
-  }
-
-  formatState(state: SrsState): string {
-    switch (state) {
-      case SrsState.New:
-        return "New";
-      case SrsState.Learning:
-        return "Learning";
-      case SrsState.Review:
-        return "Review";
-      case SrsState.Relearning:
-        return "Relearning";
-      default:
-        return "Unknown";
-    }
   }
 
   @HostListener("document:keypress", ["$event"])

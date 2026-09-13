@@ -77,6 +77,32 @@ export class SrsCardEntity {
     srs: SrsCardStateEntity;
 }
 
+export class SrsUpcomingBucketsEntity {
+  @ApiProperty({
+    description: "Amount of cards that are not yet due and scheduled within the next 4 hours",
+    example: 0
+  })
+    upcomingWithin4Hours: number;
+
+  @ApiProperty({
+    description: "Amount of cards that are not yet due and scheduled between 4 hours and 24 hours from now",
+    example: 0
+  })
+    upcomingWithin24Hours: number;
+
+  @ApiProperty({
+    description: "Amount of cards that are not yet due and scheduled between 24 hours and 3 days from now",
+    example: 0
+  })
+    upcomingWithin3Days: number;
+
+  @ApiProperty({
+    description: "Amount of cards that are not yet due and scheduled between 3 days and 7 days from now",
+    example: 0
+  })
+    upcomingWithin7Days: number;
+}
+
 export class SrsQueueDataEntity {
   @ApiProperty({
     description: "The cards scheduled for review",
@@ -85,10 +111,10 @@ export class SrsQueueDataEntity {
     cards: SrsCardEntity[];
 
   @ApiProperty({
-    description: "Statistics regarding the SRS for debug purposes",
-    type: Object
+    description: "Amount of cards that are not yet due, bucketed by how far their due date is in the future",
+    type: SrsUpcomingBucketsEntity
   })
-    stats: object;
+    upcomingBuckets: SrsUpcomingBucketsEntity;
 }
 
 export class SrsQueueSuccessResponse {

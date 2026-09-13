@@ -33,3 +33,5 @@ If you see it, that means there is a handbook page for the feature you're curren
   - Reviewing the flashcards you did not know, and practicing them in a new study set
 - [Quizzes](/usage/quizzes)
   - Setting up and creating quizzes
+- [Review](/usage/review)
+  - Studying due cards with spaced repetition

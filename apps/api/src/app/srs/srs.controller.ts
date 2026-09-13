@@ -39,11 +39,11 @@ export class SrsController {
   /**
    * Gets the full review queue across all folders of the authenticated user
    *
-   * @returns Cards scheduled for review and debug statistics
+   * @returns Cards scheduled for review and the upcoming review buckets
    */
   @ApiOperation({
     summary: "Get the full review queue across all folders",
-    description: "Gets all of the cards that are scheduled for review across all folders of the authenticated user, plus statistics regarding the SRS for debug purposes"
+    description: "Gets all of the cards that are scheduled for review across all folders of the authenticated user"
   })
   @ApiOkResponse({
     description: "Expected response to a valid request",
@@ -74,11 +74,11 @@ export class SrsController {
    * Gets the review queue of a folder, including all cards scheduled for
    * review within the folder and recursively within its subfolders
    *
-   * @returns Cards scheduled for review and debug statistics
+   * @returns Cards scheduled for review and the upcoming review buckets
    */
   @ApiOperation({
     summary: "Get the review queue of a folder",
-    description: "Gets all of the cards that are scheduled for review within a folder and recursively within its subfolders, plus statistics regarding the SRS for debug purposes"
+    description: "Gets all of the cards that are scheduled for review within a folder and recursively within its subfolders"
   })
   @ApiOkResponse({
     description: "Expected response to a valid request",
@@ -117,11 +117,11 @@ export class SrsController {
   /**
    * Applies a rating to a card within the SRS
    *
-   * @returns New SRS state of the card and debug statistics
+   * @returns New SRS state of the card
    */
   @ApiOperation({
     summary: "Rate a card within the SRS",
-    description: "Applies a rating to a card and returns its new SRS state, the review log and debug statistics"
+    description: "Applies a rating to a card and returns its new SRS state"
   })
   @ApiCreatedResponse({
     description: "Expected response to a valid request",
