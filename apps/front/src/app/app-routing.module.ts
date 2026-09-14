@@ -1,6 +1,6 @@
 import { Routes } from "@angular/router";
 import { NotfoundComponent } from "./shared/notfound/notfound.component";
-import { SrsReviewComponent } from "./folder/srs-review/srs-review.component";
+import { SrsReviewComponent } from "./review/srs-review.component";
 
 export const routes: Routes = [
   {

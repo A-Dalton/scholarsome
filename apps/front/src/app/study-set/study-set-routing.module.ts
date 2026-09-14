@@ -1,7 +1,7 @@
 import { Routes } from "@angular/router";
 import { AuthGuardService } from "../auth/auth-guard.service";
 import { HomepageComponent } from "../homepage/homepage.component";
-import { SrsReviewComponent } from "../folder/srs-review/srs-review.component";
+import { SrsReviewComponent } from "../review/srs-review.component";
 import { StudySetFlashcardsComponent } from "./study-set-flashcards/study-set-flashcards.component";
 import { StudySetQuizComponent } from "./study-set-quiz/study-set-quiz.component";
 import { StudySetComponent } from "./study-set.component";

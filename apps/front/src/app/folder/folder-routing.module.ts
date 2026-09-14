@@ -1,6 +1,6 @@
 import { Routes } from "@angular/router";
 import { FolderComponent } from "./folder.component";
-import { SrsReviewComponent } from "./srs-review/srs-review.component";
+import { SrsReviewComponent } from "../review/srs-review.component";
 
 export const folderRoutes: Routes = [
   {

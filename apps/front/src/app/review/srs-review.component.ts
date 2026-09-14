@@ -6,10 +6,10 @@ import { faBolt } from "@fortawesome/free-solid-svg-icons";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
-import { SrsService } from "../../shared/http/srs.service";
-import { FoldersService } from "../../shared/http/folders.service";
-import { SetsService } from "../../shared/http/sets.service";
-import { FlashcardControlAction, FlashcardControlsComponent } from "../../shared/flashcard-controls/flashcard-controls.component";
+import { SrsService } from "../shared/http/srs.service";
+import { FoldersService } from "../shared/http/folders.service";
+import { SetsService } from "../shared/http/sets.service";
+import { FlashcardControlAction, FlashcardControlsComponent } from "../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
   standalone: true,

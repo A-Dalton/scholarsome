@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, Max, Min, IsUUID } from "class-validator";
+import { IsEnum, IsNotEmpty, IsUUID } from "class-validator";
+import { SrsRating } from "@scholarsome/shared";
 
 export class RateCardDto {
   @ApiProperty({
@@ -14,13 +15,10 @@ export class RateCardDto {
 
   @ApiProperty({
     description: "The rating to apply to the card (1 = Again, 2 = Hard, 3 = Good)",
-    example: 3,
-    minimum: 1,
-    maximum: 3
+    enum: SrsRating,
+    example: SrsRating.Good
   })
-  @IsNumber()
-  @Min(1)
-  @Max(3)
+  @IsEnum(SrsRating)
   @IsNotEmpty()
-    rating: number;
+    rating: SrsRating;
 }
