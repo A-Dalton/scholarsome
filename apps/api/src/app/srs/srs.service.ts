@@ -277,19 +277,22 @@ export class SrsService {
 
   /**
    * Builds the review queue for a user.
-   * When a folder is given, it contains every card scheduled for review within
-   * the folder and recursively within all of its subfolders.
-   * When no folder is given, it contains every card scheduled for review
-   * across all sets of the user.
+   * When a set is given, it contains every card scheduled for review within
+   * the set.
+   * Otherwise, when a folder is given, it contains every card scheduled for
+   * review within the folder and recursively within all of its subfolders.
+   * When no set and no folder is given, it contains every card scheduled for
+   * review across all sets of the user.
    * Cards are ordered new cards first. Additionally returns the upcoming
    * review buckets of the cards that are not due yet.
    *
    * @param userId ID of the user to build the queue for
    * @param folderId Optional, ID of the folder to build the queue of
+   * @param setId Optional, ID of the set to build the queue of
    *
-   * @returns `SrsQueueData` object, or null if the folder does not exist or does not belong to the user
+   * @returns `SrsQueueData` object, or null if the folder or set does not exist or does not belong to the user
    */
-  async getQueue(userId: string, folderId?: string): Promise<SrsQueueData | null> {
+  async getQueue(userId: string, folderId?: string, setId?: string): Promise<SrsQueueData | null> {
     const now = new Date();
 
     const user = await this.prisma.user.findUnique({
@@ -300,7 +303,16 @@ export class SrsService {
 
     let sets: Prisma.SetGetPayload<{ include: { cards: true } }>[];
 
-    if (folderId) {
+    if (setId) {
+      // within a set, only the set itself is considered, and only if it belongs to the user
+      const set = await this.prisma.set.findUnique({
+        where: { id: setId },
+        include: { cards: true }
+      });
+      if (!set || set.authorId !== userId) return null;
+
+      sets = [set];
+    } else if (folderId) {
       const folderIds = await this.collectFolderTreeIds(userId, folderId);
       if (!folderIds) return null;
 

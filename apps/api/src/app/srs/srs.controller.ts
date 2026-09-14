@@ -23,6 +23,7 @@ import { AuthService } from "../auth/auth.service";
 import { AuthenticatedGuard } from "../auth/guards/authenticated.guard";
 import { ErrorResponse } from "../shared/response/error.response";
 import { FolderIdParam } from "../folders/param/folderId.param";
+import { SetIdParam } from "../sets/param/setIdParam.param";
 import { RateCardDto } from "./dto/rateCard.dto";
 import { SrsService } from "./srs.service";
 import { SrsQueueSuccessResponse } from "./response/success/srsQueue.success.response";
@@ -106,6 +107,50 @@ export class SrsController {
     const queue = await this.srsService.getQueue(user.id, params.folderId);
     if (!queue) {
       throw new NotFoundException({ status: "fail", message: "Folder not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: queue
+    };
+  }
+
+  /**
+   * Gets the review queue of a set, including all cards scheduled for review
+   * within the set
+   *
+   * @returns Cards scheduled for review and the upcoming review buckets
+   */
+  @ApiOperation({
+    summary: "Get the review queue of a set",
+    description: "Gets all of the cards that are scheduled for review within a set"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsQueueSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("sets/:setId/queue")
+  async setQueue(@Param() params: SetIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<SrsQueueData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const queue = await this.srsService.getQueue(user.id, undefined, params.setId);
+    if (!queue) {
+      throw new NotFoundException({ status: "fail", message: "Set not found" });
     }
 
     return {

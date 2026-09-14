@@ -13,7 +13,7 @@
         <a href="/handbook/usage/review" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
       </h2>
       <p class="text-secondary small mb-0">
-        Cards you struggle with come back more often, cards you know well come back less often — {{ folderId ? "the cards of this folder and its subfolders are reviewed" : "everything across all of your sets is reviewed" }}.
+        Cards you struggle with come back more often, cards you know well come back less often — {{ setId ? "the cards of this set are reviewed" : folderId ? "the cards of this folder and its subfolders are reviewed" : "everything across all of your sets is reviewed" }}.
       </p>
       <div class="mt-4" *ngIf="queue()!.cards.length > 0">
         <p class="text-secondary fw-semibold text-uppercase section-label">{{ queue()!.cards.length }} card{{ queue()!.cards.length === 1 ? "" : "s" }} scheduled for review</p>
@@ -136,5 +136,5 @@
 
 <div class="d-flex container-fluid justify-content-between bg-white fixed-bottom shadow controlbar">
   <fa-icon class="fs-2 back-arrow" *ngIf="answer()" (click)="restart()" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
-  <fa-icon class="fs-2 back-arrow" *ngIf="!answer()" [routerLink]="folderId ? ['/folder', folderId] : ['/homepage']" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
+  <fa-icon class="fs-2 back-arrow" *ngIf="!answer()" [routerLink]="setId ? ['/study-set', setId] : folderId ? ['/folder', folderId] : ['/homepage']" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
 </div>

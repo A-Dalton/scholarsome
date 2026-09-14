@@ -6,17 +6,19 @@ sidebar_position: 8
 
 Review is the spaced repetition feature of Scholarsome. Instead of studying a set from front to back, cards are scheduled over time: cards you struggle with come back more often, while cards you know well come back less often. This way, the cards that are close to being forgotten are the ones you practice, which is more efficient for memorizing large collections of cards over long periods of time.
 
-A review can span every set at once, or a single folder with all of its subfolders.
+A review can span every set at once, a single folder with all of its subfolders, or a single set.
 
 ## Starting a review
 
-Both entry points are located in the "Review" section of the home page.
+The "Review all cards" and "Review folder" entry points are located in the "Review" section of the home page.
 
 **Review all cards** starts a review of every card across all of your sets.
 
 **Review folder** opens a tree of all of your folders, including subfolders. Click the arrow next to a folder to expand or collapse its subfolders, and click a folder to select it. All subfolders of the selected folder are highlighted as well, since they are included in the review. Then click "Review" underneath the tree.
 
 A folder review includes every set that is connected to the selected folder or to one of its subfolders. Sets that are not connected to any folder are only part of "Review all cards".
+
+**Review set** is available inside a study set that you have created. Click the "Review" button next to "Flashcards" and "Quiz" to start a review of just the cards of that set. Since a review is personal, the button is only shown to the author of the set.
 
 :::info
 Folders are a way to organize sets. See [Folders](/usage/folders/creating-folders) for how to create them and connect sets to them.

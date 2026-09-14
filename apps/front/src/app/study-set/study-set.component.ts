@@ -15,7 +15,7 @@ import { UsersService } from "../shared/http/users.service";
 import { Meta, Title } from "@angular/platform-browser";
 import { QuizletExportModalComponent } from "./quizlet-export-modal/quizlet-export-modal.component";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faFileExport, faShareFromSquare, faPencil, faSave, faCancel, faTrashCan, faClipboard, faStar, faQ, faFileCsv, faImages } from "@fortawesome/free-solid-svg-icons";
+import { faFileExport, faShareFromSquare, faPencil, faSave, faCancel, faTrashCan, faClipboard, faStar, faQ, faFileCsv, faImages, faBolt } from "@fortawesome/free-solid-svg-icons";
 import { ConvertingService } from "../shared/http/converting.service";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -95,6 +95,7 @@ export class StudySetComponent implements OnInit {
   protected readonly faQ = faQ;
   protected readonly faFileCsv = faFileCsv;
   protected readonly faImages = faImages;
+  protected readonly faBolt = faBolt;
 
   protected readonly navigator = navigator;
   protected readonly window = window;

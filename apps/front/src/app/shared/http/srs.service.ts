@@ -32,6 +32,28 @@ export class SrsService {
   }
 
   /**
+   * Gets the review queue of a set, including all cards scheduled for
+   * review within the set
+   *
+   * @param setId ID of the set to get the review queue of
+   *
+   * @returns `SrsQueueData` object
+   */
+  async setQueue(setId: string): Promise<SrsQueueData | null> {
+    let queue: ApiResponse<SrsQueueData> | undefined;
+
+    try {
+      queue = await lastValueFrom(this.http.get<ApiResponse<SrsQueueData>>("/api/srs/sets/" + setId + "/queue"));
+    } catch {
+      return null;
+    }
+
+    if (queue.status === ApiResponseOptions.Success) {
+      return queue.data;
+    } else return null;
+  }
+
+  /**
    * Gets the full review queue across all folders of the authenticated user
    *
    * @returns `SrsQueueData` object

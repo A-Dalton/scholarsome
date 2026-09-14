@@ -8,6 +8,7 @@ import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
 import { SrsService } from "../../shared/http/srs.service";
 import { FoldersService } from "../../shared/http/folders.service";
+import { SetsService } from "../../shared/http/sets.service";
 import { FlashcardControlAction, FlashcardControlsComponent } from "../../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
@@ -24,6 +25,7 @@ export class SrsReviewComponent implements OnInit {
     private readonly router: Router,
     private readonly srsService: SrsService,
     private readonly foldersService: FoldersService,
+    private readonly setsService: SetsService,
     private readonly titleService: Title,
     public readonly sanitizer: DomSanitizer
   ) {}
@@ -32,8 +34,11 @@ export class SrsReviewComponent implements OnInit {
   // an action is triggered with the keyboard
   @ViewChild(FlashcardControlsComponent) private controls?: FlashcardControlsComponent;
 
-  // ID of the folder to review, or null to review all cards across all folders
+  // ID of the folder to review, or null when another scope is reviewed
   protected folderId: string | null;
+
+  // ID of the study set to review, or null when another scope is reviewed
+  protected setId: string | null;
 
   protected readonly SrsRating = SrsRating;
   protected readonly SrsState = SrsState;
@@ -304,12 +309,17 @@ export class SrsReviewComponent implements OnInit {
   }
 
   /**
-   * Loads the review queue. Within a folder it contains all cards scheduled
+   * Loads the review queue. Within a set it contains all cards scheduled for
+   * review within the set, within a folder it contains all cards scheduled
    * for review within the folder and its subfolders, otherwise it contains
    * all cards scheduled for review across all folders
    */
   private async loadQueue(): Promise<void> {
-    const queue = this.folderId ? await this.srsService.queue(this.folderId) : await this.srsService.queueAll();
+    let queue: SrsQueueData | null;
+    if (this.setId) queue = await this.srsService.setQueue(this.setId);
+    else if (this.folderId) queue = await this.srsService.queue(this.folderId);
+    else queue = await this.srsService.queueAll();
+
     if (!queue) {
       await this.router.navigate(["404"]);
       return;
@@ -317,7 +327,10 @@ export class SrsReviewComponent implements OnInit {
 
     this.queue.set(queue);
 
-    if (this.folderId) {
+    if (this.setId) {
+      const set = await this.setsService.set(this.setId);
+      this.titleService.setTitle((set ? "Review " + set.title : "Review") + " — Scholarsome");
+    } else if (this.folderId) {
       const folder = await this.foldersService.folder(this.folderId);
       this.titleService.setTitle((folder ? "Review " + folder.name : "Review") + " — Scholarsome");
     } else {
@@ -366,8 +379,9 @@ export class SrsReviewComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    // without a folderId parameter, every card across all folders is reviewed
+    // without a folderId or setId parameter, every card across all folders is reviewed
     this.folderId = this.route.snapshot.paramMap.get("folderId");
+    this.setId = this.route.snapshot.paramMap.get("setId");
 
     await this.loadQueue();
   }
