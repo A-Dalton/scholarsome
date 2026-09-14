@@ -94,6 +94,8 @@ export class StudySetFlashcardsComponent implements OnInit {
         if (this.flashcardsMode === "traditional") {
           this.changeCard(-1);
         } else {
+          // the left arrow key performs the same action as the "Don't know" button
+          void this.markAsMistake();
           this.changeCard(1);
         }
       } else if (event.key === "ArrowRight") {

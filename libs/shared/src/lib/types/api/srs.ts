@@ -51,9 +51,11 @@ export interface SrsCardState {
 
 /**
  * A card as stored in the database, combined with its SRS scheduling state.
+ * The review queue returns the card rows without the `set` and `media`
+ * relations included in the `Card` type, as they are not needed for reviewing.
  */
 export interface SrsCard {
-  card: Card;
+  card: Omit<Card, "set" | "media">;
   srs: SrsCardState;
 }
 

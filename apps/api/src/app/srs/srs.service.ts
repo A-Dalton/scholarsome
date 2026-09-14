@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CardSrsState as PrismaCardSrsState, Prisma } from "@scholarsome/prisma";
+import { Card as PrismaCard, CardSrsState as PrismaCardSrsState, Prisma } from "@scholarsome/prisma";
 import {
   SrsCardState,
   SrsQueueData,
@@ -324,14 +324,14 @@ export class SrsService {
     }
 
     // a set can be connected to multiple folders of the tree, so cards have to be deduplicated
-    const uniqueCards: Prisma.CardGetPayload<{ include: { set: true, media: true } }>[] = [];
+    const uniqueCards: PrismaCard[] = [];
     const seenCards = new Set<string>();
     for (const set of sets) {
       for (const card of set.cards) {
         if (seenCards.has(card.id)) continue;
 
         seenCards.add(card.id);
-        uniqueCards.push(card as Prisma.CardGetPayload<{ include: { set: true, media: true } }>);
+        uniqueCards.push(card);
       }
     }
 
@@ -346,7 +346,7 @@ export class SrsService {
     });
     const srsStateMap = new Map<string, PrismaCardSrsState>(srsStates.map((state) => [state.cardId, state]));
 
-    const cardMap = new Map<string, { card: Prisma.CardGetPayload<{ include: { set: true, media: true } }>, srs: SrsCardState, due: Date }>();
+    const cardMap = new Map<string, { card: PrismaCard, srs: SrsCardState, due: Date }>();
     for (const card of uniqueCards) {
       // cards without a persisted state are treated as new cards
       const state = srsStateMap.get(card.id);
