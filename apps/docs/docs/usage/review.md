@@ -62,6 +62,6 @@ The queue always contains every card that is due. It is not limited to a daily a
 
 ## Review cadence
 
-The "Review" section of the settings page contains a "How often do you learn?" option, ranging from "Four times a day" to "Once per week". It determines the rhythm of the short learning and relearning steps: the more often you learn, the shorter these steps are.
+The "Review" section of the settings page contains a "How often do you learn?" option, ranging from "Four times a day" to "Once per week". This setting determines the rhythm of the short learning and relearning steps: the steps cards move through between their first ratings, and again after being rated "Don't know". It decides how long a card waits in each of these steps before it comes back, so the timing of your reviews is adjusted to match the cadence you choose.
 
 The change applies immediately to cards that have not been studied yet. Cards that have already been studied keep their current due date until the next time they are reviewed.
