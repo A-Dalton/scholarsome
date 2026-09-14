@@ -4,9 +4,11 @@
       @for (action of actions(); track $index) {
         <button
           type="button"
+          #actionButton
           class="rating-button btn fw-bold"
           [ngClass]="action.variant"
           [disabled]="action.disabled ?? false"
+          [scholarsomeHoverGuard]="action.disabled ?? false"
           (click)="flash($event); action.action()"
           [attr.aria-label]="action.ariaLabel ?? action.label"
         >
@@ -24,8 +26,8 @@
     </div>
 
     <div class="session-progress mt-3">
-      <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" [attr.aria-valuemax]="total()" [attr.aria-valuenow]="progress()">
-        <div class="progress-bar" [style.width.%]="total() ? (100 * progress()) / total() : 0"></div>
+      <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" [attr.aria-valuemax]="barTotal() ?? total()" [attr.aria-valuenow]="barValue()">
+        <div class="progress-bar" [style.width.%]="barPercent()"></div>
       </div>
       <p class="text-secondary mb-0 mt-2">{{ counterText() }}</p>
     </div>

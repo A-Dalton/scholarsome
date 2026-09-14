@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild, signal } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { SrsCard, SrsQueueData, SrsRating, SrsState } from "@scholarsome/shared";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
@@ -27,6 +27,10 @@ export class SrsReviewComponent implements OnInit {
     private readonly titleService: Title,
     public readonly sanitizer: DomSanitizer
   ) {}
+
+  // Controls of the lower card, referenced to flash the rating buttons when
+  // an action is triggered with the keyboard
+  @ViewChild(FlashcardControlsComponent) private controls?: FlashcardControlsComponent;
 
   // ID of the folder to review, or null to review all cards across all folders
   protected folderId: string | null;
@@ -349,9 +353,16 @@ export class SrsReviewComponent implements OnInit {
   keyboardRatingEvent(event: KeyboardEvent) {
     if (!this.answer() || this.ratingInFlight()) return;
 
-    if (event.key === "1") void this.rate(SrsRating.Again);
-    else if (event.key === "2") void this.rate(SrsRating.Hard);
-    else if (event.key === "3") void this.rate(SrsRating.Good);
+    if (event.key === "1") {
+      this.controls?.flashAction(0);
+      void this.rate(SrsRating.Again);
+    } else if (event.key === "2") {
+      this.controls?.flashAction(1);
+      void this.rate(SrsRating.Hard);
+    } else if (event.key === "3") {
+      this.controls?.flashAction(2);
+      void this.rate(SrsRating.Good);
+    }
   }
 
   async ngOnInit(): Promise<void> {

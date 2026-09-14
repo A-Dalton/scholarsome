@@ -42,6 +42,20 @@
 }
 
 /*
+ * A button that has just been enabled must not light up in its filled hover
+ * style while the cursor happens to rest on it: the browser applies :hover
+ * without the mouse moving after the DOM change (see the directive). The
+ * guard class holds the neutral look until the mouse moves again. The muted
+ * token is used instead of `--bs-btn-color` because the dark theme overrides
+ * the outline-secondary color directly.
+ */
+.hover-guard:not(:disabled):hover:not(:active):not(:focus-visible) {
+  color: var(--scholarsome-muted);
+  background-color: var(--bs-btn-bg);
+  border-color: var(--scholarsome-muted);
+}
+
+/*
  * Session progress below the buttons: a slim bar in the brand color with the
  * counter centered underneath.
  */
@@ -59,27 +73,40 @@
  * On touch devices there is no true hover: the browser applies a sticky
  * :hover state that persists after a tap, which would otherwise leave the
  * filled background stuck on the button. Instead of relying on hover styles,
- * the tap triggers a one-shot 1.5s "flash" (via the `flash-bg` class added in
- * the component) that briefly fills the button like a mouse hover would, then
+ * the tap triggers a one-shot 0.9s "flash" (via the `flash-bg` class added in
+ * the component) that fills the button like a mouse hover would, then
  * automatically returns to the neutral outline thanks to `animation-fill-mode:
  * both` holding the final keyframe over the sticky hover.
+ *
+ * The flash is shaped like a quick blink: it fills fast, dwells on the
+ * highlighted state for a moment and releases quickly towards the end.
  */
 .flash-bg {
-  animation: flash-background 1.5s ease-in-out both;
+  animation: flash-background 0.9s both;
 }
 
 @keyframes flash-background {
-  0%,
+  0% {
+    color: var(--bs-btn-color);
+    background-color: transparent;
+    border-color: var(--bs-btn-border-color);
+    // fast attack into the highlighted state
+    animation-timing-function: ease-out;
+  }
+
+  40%,
+  60% {
+    color: var(--bs-btn-hover-color);
+    background-color: var(--bs-btn-hover-bg);
+    border-color: var(--bs-btn-hover-border-color);
+    // accelerating fade-out towards the end
+    animation-timing-function: ease-in;
+  }
+
   100% {
     color: var(--bs-btn-color);
     background-color: transparent;
     border-color: var(--bs-btn-border-color);
-  }
-
-  50% {
-    color: var(--bs-btn-hover-color);
-    background-color: var(--bs-btn-hover-bg);
-    border-color: var(--bs-btn-hover-border-color);
   }
 }
 
