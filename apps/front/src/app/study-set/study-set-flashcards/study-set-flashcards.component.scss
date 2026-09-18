@@ -1,6 +1,15 @@
 .flashcard {
   min-height: 65vh;
   cursor: pointer;
+
+  // Clicking the card must not start a text selection
+  user-select: none;
+  -webkit-user-select: none;
+
+  // Keep native image dragging from hijacking presses on card content
+  img {
+    -webkit-user-drag: none;
+  }
 }
 
 .flashcard-container {
