@@ -1,3 +1,5 @@
+const vm = require("vm");
+
 module.exports = {
   displayName: "front",
   preset: "../../jest.preset.js",
@@ -13,11 +15,13 @@ module.exports = {
       },
     ],
   },
-  // node_modules must not be transformed: Angular ships ESM-only .mjs bundles, and Jest
-  // is run with NODE_OPTIONS=--experimental-vm-modules (required by the api's ESM-only
-  // @nestjs/* packages), which loads them via its ESM machinery. Transforming them to
-  // CommonJS makes them fail evaluation as ESM with "ReferenceError: module is not defined".
-  transformIgnorePatterns: ["node_modules"],
+  // Jest's ESM loader only exists when it runs with NODE_OPTIONS=--experimental-vm-modules.
+  // When it is available it loads the ESM-only packages in node_modules (Angular's .mjs
+  // bundles, ngx-cookie-service, ...) as ESM, so they must not be transformed - compiling
+  // them to CommonJS would make them fail evaluation as ESM with "ReferenceError: module is
+  // not defined". Without the flag they are compiled to CommonJS instead, which is what makes
+  // the suite run without any special flags.
+  transformIgnorePatterns: typeof vm.SourceTextModule === "function" ? ["node_modules"] : [],
   snapshotSerializers: [
     "jest-preset-angular/build/serializers/no-ng-attributes",
     "jest-preset-angular/build/serializers/ng-snapshot",
