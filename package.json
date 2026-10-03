@@ -61,7 +61,7 @@
     "@prisma/adapter-mariadb": "7.10.0",
     "@prisma/client": "^7.9.1",
     "@schematics/angular": "^22.2.0",
-    "@songkeys/nestjs-redis": "^11.0.0",
+    "@songkeys/nestjs-redis": "^12.0.0",
     "@types/multer": "^2.2.0",
     "adm-zip": "^0.6.0",
     "axios": "^1.19.0",
