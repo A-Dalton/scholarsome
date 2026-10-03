@@ -107,6 +107,19 @@ export class FlashcardControlsComponent {
   }
 
   /**
+   * Performs the action of the clicked button and releases its focus right
+   * away: a pressed button keeps focus, and the browser then re-runs its
+   * action when the Space key is pressed — which is reserved for toggling
+   * the flashcard. With the focus released, the Space key can no longer
+   * reach the button and is free for flipping.
+   */
+  onAction(event: Event, action: FlashcardControlAction): void {
+    this.flash(event);
+    action.action();
+    (event.currentTarget as HTMLElement).blur();
+  }
+
+  /**
    * Runs the flash feedback animation on the given button
    */
   private flashButton(button: HTMLButtonElement): void {

@@ -56,6 +56,26 @@
 }
 
 /*
+ * Touch devices apply a sticky :hover state to the button under the last tap
+ * and re-attach it to whichever button appears there, e.g. a rating button
+ * showing up where the "Term"/"Definition" buttons of the review start screen
+ * were just tapped. That phantom hover must not light the button up although
+ * it was never really hovered, so on such devices the hover styling is forced
+ * back to the neutral outline. The media query is the same as the component's
+ * `flash()` so both agree on what counts as a touch device. For the outline
+ * variants `--bs-btn-bg` is undefined, which resolves the background to the
+ * transparent color they have by default. Devices with a hover-capable
+ * pointer are unaffected and keep the native hover feedback.
+ */
+@media (hover: none), (pointer: coarse) {
+  .rating-button:not(:disabled):hover {
+    color: var(--bs-btn-color);
+    background-color: var(--bs-btn-bg);
+    border-color: var(--bs-btn-border-color);
+  }
+}
+
+/*
  * Session progress below the buttons: a slim bar in the brand color with the
  * counter centered underneath.
  */
@@ -68,21 +88,24 @@
 }
 
 /*
- * Touch feedback for the buttons.
+ * Tap and keyboard feedback for the buttons.
  *
- * On touch devices there is no true hover: the browser applies a sticky
- * :hover state that persists after a tap, which would otherwise leave the
- * filled background stuck on the button. Instead of relying on hover styles,
- * the tap triggers a one-shot 0.9s "flash" (via the `flash-bg` class added in
- * the component) that fills the button like a mouse hover would, then
- * automatically returns to the neutral outline thanks to `animation-fill-mode:
- * both` holding the final keyframe over the sticky hover.
+ * On touch devices the tap would otherwise leave the filled hover background
+ * stuck on the button, because the browser applies a sticky :hover state that
+ * persists after the tap. Instead of relying on hover styles, the tap (and a
+ * keyboard trigger, e.g. pressing the action's key) runs a one-shot 0.9s
+ * "flash" (via the `flash-bg` class added in the component) that fills the
+ * button like a mouse hover would and releases again. The animation must not
+ * use a fill mode: a finished animation keeps its final keyframe applying
+ * over the button's own styles, which would permanently break the mouse hover
+ * styling after the action was triggered with the keyboard. The sticky :hover
+ * of touch taps is held down by the media query above instead.
  *
  * The flash is shaped like a quick blink: it fills fast, dwells on the
  * highlighted state for a moment and releases quickly towards the end.
  */
 .flash-bg {
-  animation: flash-background 0.9s both;
+  animation: flash-background 0.9s;
 }
 
 @keyframes flash-background {

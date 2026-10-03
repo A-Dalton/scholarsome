@@ -9,7 +9,7 @@
           [ngClass]="action.variant"
           [disabled]="action.disabled ?? false"
           [scholarsomeHoverGuard]="action.disabled ?? false"
-          (click)="flash($event); action.action()"
+          (click)="onAction($event, action)"
           [attr.aria-label]="action.ariaLabel ?? action.label"
         >
           @if (action.icon) {

@@ -39,6 +39,13 @@ export class HoverGuardDirective implements OnDestroy {
   }
 
   private arm(): void {
+    // The coincidental hover only exists on devices with a hover-capable
+    // pointer: touch devices apply a sticky :hover state after every tap,
+    // which the stylesheet holds down instead, so the guard must not arm
+    // there and lock the button into its guarded look. There is no mousemove
+    // on touch to disarm it again either.
+    if (!window.matchMedia("(hover: hover)").matches) return;
+
     this.disarm();
 
     this.host.nativeElement.classList.add("hover-guard");
