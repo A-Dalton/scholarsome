@@ -10,7 +10,14 @@ COPY package*.json ./
 # package needed at BUILD time (TypeScript, Nx, Angular tooling, and @types
 # packages whose declarations the code references, e.g. @types/multer for the
 # Express.Multer global namespace) must stay in "dependencies" in package.json.
-RUN npm install --omit=dev --ignore-scripts --no-fund
+#
+# --libc=musl is required: this stage targets Alpine, but npm decides which
+# platform-specific native packages to install via libc autodetection, and that
+# detection can silently skip musl-only optional dependencies (the npm/cli#4828
+# class of bug). Angular's build then fails at chunk optimization because
+# rolldown's native binding is missing. Forcing musl matches the base image
+# and guarantees bindings like @rolldown/binding-linux-x64-musl install.
+RUN npm install --omit=dev --ignore-scripts --no-fund --libc=musl
 RUN npm rebuild bcrypt
 
 COPY . .
