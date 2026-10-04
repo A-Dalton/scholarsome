@@ -47,6 +47,8 @@ The currently shown card is flipped by clicking on it or by pressing the spaceba
 
 Cards rated as "Don't know" do not leave the session right away. They come back after another 4-12 cards have been learned, and keep coming back until they are rated differently. The counter at the bottom shows how many cards have been learned so far.
 
+Cards rated as "Don't know" are also stored in [Previous mistakes](/usage/previous-mistakes), just like the "Don't know" button of progressive flashcards. Each card is only recorded once per session, even if it is rated "Don't know" more than once.
+
 Ratings are applied immediately. Leaving a session in progress does not discard the ratings that were already made. The back arrow restarts the review with a freshly built queue, which now only contains the cards that are still due.
 
 When all cards have been rated, a summary shows how many cards were rated with each option.

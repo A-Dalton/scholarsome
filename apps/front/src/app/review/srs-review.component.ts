@@ -9,6 +9,7 @@ import { DomSanitizer, Title } from "@angular/platform-browser";
 import { SrsService } from "../shared/http/srs.service";
 import { FoldersService } from "../shared/http/folders.service";
 import { SetsService } from "../shared/http/sets.service";
+import { CardMistakesService } from "../shared/http/card-mistakes.service";
 import { FlashcardControlAction, FlashcardControlsComponent } from "../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
@@ -26,6 +27,7 @@ export class SrsReviewComponent implements OnInit {
     private readonly srsService: SrsService,
     private readonly foldersService: FoldersService,
     private readonly setsService: SetsService,
+    private readonly cardMistakesService: CardMistakesService,
     private readonly titleService: Title,
     public readonly sanitizer: DomSanitizer
   ) {}
@@ -211,9 +213,10 @@ export class SrsReviewComponent implements OnInit {
   /**
    * Applies the given rating to the current card. Cards rated with "Don't know"
    * disappear and are shown once more after 4-12 cards have been learned in the
-   * meantime, repeatedly until they are rated differently. Any other rating
-   * completes the card and advances to the next one. Only the first rating of
-   * a card within the session triggers the SRS and counts towards the summary
+   * meantime, repeatedly until they are rated differently. They are also stored
+   * as a previous mistake. Any other rating completes the card and advances to
+   * the next one. Only the first rating of a card within the session triggers
+   * the SRS and counts towards the summary
    *
    * @param rating The rating to apply to the current card
    */
@@ -237,8 +240,14 @@ export class SrsReviewComponent implements OnInit {
 
       this.ratedCardIds.add(card.card.id);
 
-      if (rating === SrsRating.Again) this.againCount.update((c) => c + 1);
-      else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
+      if (rating === SrsRating.Again) {
+        this.againCount.update((c) => c + 1);
+
+        // the card is stored as a previous mistake, like the "Don't know"
+        // button of progressive flashcards; ratedCardIds ensures it is only
+        // recorded once per session, even when the card is rated again
+        void this.cardMistakesService.createMistake(card.card.id);
+      } else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
       else this.goodCount.update((c) => c + 1);
     }
 

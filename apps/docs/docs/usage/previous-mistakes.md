@@ -4,11 +4,13 @@ sidebar_position: 6
 
 # Previous mistakes
 
-Previous mistakes are a record of the flashcards that you marked as "Don't know" while studying with progressive mode. They can be reviewed at any time to target the cards that give you the most trouble, and practiced by turning them into a new study set.
+Previous mistakes are a record of the flashcards that you marked as "Don't know" while studying with progressive mode or while reviewing with spaced repetition. They can be reviewed at any time to target the cards that give you the most trouble, and practiced by turning them into a new study set.
 
 ## Recording mistakes
 
 Mistakes are recorded automatically while studying flashcards. Whenever a card is marked as "Don't know" in progressive mode, it is stored as a previous mistake along with the study set it belongs to. Traditional mode does not record mistakes.
+
+The same happens when a card is rated "Don't know" during a [Review](/usage/review) session. Ratings of "Took a while" or "Knew right away" do not record mistakes.
 
 Each card is only recorded once per studying session, even if it is marked as "Don't know" in more than one round.
 
