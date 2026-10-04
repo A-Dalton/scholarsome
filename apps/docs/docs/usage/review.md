@@ -68,4 +68,35 @@ The queue always contains every card that is due. It is not limited to a daily a
 
 The "Review" section of the settings page contains a "How often do you learn?" option, ranging from "Four times a day" to "Once per week". This setting determines the rhythm of the short learning and relearning steps: the steps cards move through between their first ratings, and again after being rated "Don't know". It decides how long a card waits in each of these steps before it comes back, so the timing of your reviews is adjusted to match the cadence you choose.
 
+Here is what each option means, and what each of the three answers does with the cards:
+
+- **Four times a day** - you review about every six hours, and cards you are learning come back within the same day.
+  - **Don't know** - the card moves into the first learning step and is due again after 3 hours. Rating it "Don't know" again repeats the same wait.
+  - **Took a while** - the card stays in the learning steps, but is due a little later: roughly halfway between the 3-hour step and the next day, so about 13 hours.
+  - **Knew right away** - the card skips the same-day steps and is due the next day. From then on, its intervals grow as usual.
+- **Two times a day** - you review about every twelve hours, and the same-day waits stretch accordingly.
+  - **Don't know** - the card moves into the first learning step and is due again after 6 hours. Rating it "Don't know" again repeats the same wait.
+  - **Took a while** - the card stays in the learning steps, but is due a little later: roughly halfway between the 6-hour step and the next day, so about 15 hours.
+  - **Knew right away** - the card skips the same-day steps and is due the next day. From then on, its intervals grow as usual.
+- **Once per day** - you review every day.
+  - **Don't know** - the card is due again the next day and comes back in your next review.
+  - **Took a while** - the card waits a little longer than "Don't know".
+  - **Knew right away** - the longest wait, so the card comes back when it is close to being forgotten.
+- **Every two days** - you review every other day.
+  - **Don't know** - the card is due again the next day, but your next review is two days later, so it comes back then.
+  - **Took a while** - the card waits a little longer than "Don't know".
+  - **Knew right away** - the longest wait, so the card comes back when it is close to being forgotten.
+- **Every four days** - you review every four days.
+  - **Don't know** - the card is due again the next day, but your next review is four days later, so it comes back then.
+  - **Took a while** - the card waits a little longer than "Don't know".
+  - **Knew right away** - the longest wait, so the card comes back when it is close to being forgotten.
+- **Once per week** - you review once a week.
+  - **Don't know** - the card is due again the next day, but your next review is a week later, so it comes back then.
+  - **Took a while** - the card waits a little longer than "Don't know".
+  - **Knew right away** - the longest wait, so the card comes back when it is close to being forgotten.
+
+When a card that has already graduated is rated "Don't know", it goes through a relearning step first: 3 hours with "Four times a day" and 6 hours with "Two times a day". While it relearns, "Don't know" repeats that step, "Took a while" stretches the wait to one and a half times the step, and "Knew right away" ends the relearning and returns the card to its normal schedule.
+
+The options from "Once per day" on schedule the same way: a card is due the next day at the earliest, and since cards are never due within hours of a session, every review picks up everything that has come due in the meantime. A card that is already due therefore reappears in your next review, not necessarily the next day. The choice between them is about how often you plan to sit down and review.
+
 The change applies immediately to cards that have not been studied yet. Cards that have already been studied keep their current due date until the next time they are reviewed.
