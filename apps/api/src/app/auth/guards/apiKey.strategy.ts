@@ -17,7 +17,7 @@ export class ApiKeyStrategy extends PassportStrategy(Strategy, "apiKey") {
   constructor(private redisService: RedisService) {
     super();
 
-    this.apiKeyRedis = this.redisService.getClient("apiToken");
+    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
   }
 
   async validate(req: ExpressRequest): Promise<TokenUser> {

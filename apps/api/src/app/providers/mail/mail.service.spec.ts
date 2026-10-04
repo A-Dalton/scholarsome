@@ -51,7 +51,7 @@ describe("MailService", () => {
     await mailService.sendPasswordReset("john@smith.com");
 
     expect(sign).toHaveBeenCalledWith({ email: "john@smith.com", forPasswordReset: true }, { expiresIn: "10m" });
-    expect(redisService.getClient("default").set).toHaveBeenCalledWith(
+    expect(redisService.getOrThrow("default").set).toHaveBeenCalledWith(
         expect.stringMatching(/^password-reset:/),
         "token",
         "EX",
@@ -65,7 +65,7 @@ describe("MailService", () => {
 
     await mailService.sendPasswordReset("john@smith.com");
 
-    const [key] = (redisService.getClient("default").set as jest.Mock).mock.calls[0];
+    const [key] = (redisService.getOrThrow("default").set as jest.Mock).mock.calls[0];
     const opaqueToken = (key as string).replace("password-reset:", "");
 
     expect(mailerService.sendMail).toHaveBeenCalledWith(

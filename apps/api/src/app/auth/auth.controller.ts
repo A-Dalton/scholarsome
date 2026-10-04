@@ -51,8 +51,8 @@ export class AuthController {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService
   ) {
-    this.apiKeyRedis = this.redisService.getClient("apiToken");
-    this.defaultRedis = this.redisService.getClient("default");
+    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
+    this.defaultRedis = this.redisService.getOrThrow("default");
   }
 
   /**

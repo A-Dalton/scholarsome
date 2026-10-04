@@ -61,7 +61,7 @@ export class MailService {
     // logs and browser history: it is stored server-side and the email carries a
     // random, single-use token that the API exchanges for the jwt
     const opaqueToken = crypto.randomBytes(48).toString("base64url");
-    await this.redisService.getClient("default").set(`password-reset:${opaqueToken}`, token, "EX", 600);
+    await this.redisService.getOrThrow("default").set(`password-reset:${opaqueToken}`, token, "EX", 600);
 
     await this.mailerService.sendMail({
       to: email,
