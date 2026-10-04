@@ -42,7 +42,7 @@ describe("TokenRefreshMiddleware", () => {
     const configService = createMock<ConfigService>();
     const jwtService = { sign } as unknown as JwtService;
     const redisService = {
-      getClient: jest.fn().mockReturnValue({ get: redisGet } as unknown as Redis)
+      getOrThrow: jest.fn().mockReturnValue({ get: redisGet } as unknown as Redis)
     } as unknown as RedisService;
 
     middleware = new TokenRefreshMiddleware(configService, jwtService, authService, redisService);

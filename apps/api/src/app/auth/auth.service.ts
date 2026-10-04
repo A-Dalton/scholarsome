@@ -26,8 +26,8 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly redisService: RedisService
   ) {
-    this.refreshTokenRedis = this.redisService.getClient("default");
-    this.apiKeyRedis = this.redisService.getClient("apiToken");
+    this.refreshTokenRedis = this.redisService.getOrThrow("default");
+    this.apiKeyRedis = this.redisService.getOrThrow("apiToken");
   }
 
   /**
