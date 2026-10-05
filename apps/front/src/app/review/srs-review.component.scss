@@ -51,6 +51,7 @@
 
 /* Stat tiles of the review start screen, shared by the scheduled states and upcoming reviews */
 .stat-tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -59,6 +60,26 @@
   background-color: var(--scholarsome-surface-2);
   border: 1px solid var(--scholarsome-border);
   border-radius: var(--bs-border-radius-lg);
+}
+
+/* Info icon of a stat tile, anchored to its top right corner; the tooltip
+   explaining the box is shown when the icon is hovered or focused */
+.stat-info {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--scholarsome-muted);
+  background: none;
+  border: none;
+  cursor: help;
+}
+
+.stat-info:hover,
+.stat-info:focus-visible {
+  color: var(--bs-body-color);
 }
 
 .stat-label {

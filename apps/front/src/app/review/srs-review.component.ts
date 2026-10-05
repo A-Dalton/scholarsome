@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild, si
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { SrsCard, SrsQueueData, SrsRating, SrsState } from "@scholarsome/shared";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
-import { faBolt } from "@fortawesome/free-solid-svg-icons";
+import { faBolt, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { TooltipModule } from "ngx-bootstrap/tooltip";
 import { CommonModule } from "@angular/common";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { DomSanitizer, Title } from "@angular/platform-browser";
@@ -18,7 +19,7 @@ import { FlashcardControlAction, FlashcardControlsComponent } from "../shared/fl
   selector: "scholarsome-srs-review",
   templateUrl: "./srs-review.component.html",
   styleUrls: ["./srs-review.component.scss"],
-  imports: [CommonModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent]
+  imports: [CommonModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent, TooltipModule]
 })
 export class SrsReviewComponent implements OnInit {
   constructor(
@@ -95,6 +96,33 @@ export class SrsReviewComponent implements OnInit {
 
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faBolt = faBolt;
+  protected readonly faCircleInfo = faCircleInfo;
+
+  // The states that the scheduled cards are counted by on the start screen,
+  // with the label of each box and the explanation that its info icon shows
+  // when hovered
+  protected readonly stateTiles: { state: SrsState; label: string; info: string }[] = [
+    {
+      state: SrsState.New,
+      label: "New",
+      info: "Cards you have never reviewed before."
+    },
+    {
+      state: SrsState.Learning,
+      label: "Learning",
+      info: "Cards you are still learning and trying to memorize."
+    },
+    {
+      state: SrsState.Review,
+      label: "Reviewing",
+      info: "Cards you have learned and still review from time to time."
+    },
+    {
+      state: SrsState.Relearning,
+      label: "Relearning",
+      info: "Cards you have learned before, but forgot during a review."
+    }
+  ];
 
   /**
    * Starts the review session with the given side to answer with

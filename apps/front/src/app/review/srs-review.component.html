@@ -18,30 +18,17 @@
       <div class="mt-4" *ngIf="queue()!.cards.length > 0">
         <p class="text-secondary fw-semibold text-uppercase section-label">{{ queue()!.cards.length }} card{{ queue()!.cards.length === 1 ? "" : "s" }} scheduled for review</p>
         <div class="row row-cols-2 row-cols-sm-4 g-2 stat-tile-row">
-          <div class="col">
-            <div class="stat-tile">
-              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.New) }}</span>
-              <span class="text-secondary stat-label">New</span>
+          @for (tile of stateTiles; track tile.state) {
+            <div class="col">
+              <div class="stat-tile">
+                <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(tile.state) }}</span>
+                <span class="text-secondary stat-label">{{ tile.label }}</span>
+                <button type="button" class="stat-info" [tooltip]="tile.info" placement="top" [attr.aria-label]="'What does ' + tile.label + ' mean?'">
+                  <fa-icon [icon]="faCircleInfo"></fa-icon>
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="col">
-            <div class="stat-tile">
-              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Learning) }}</span>
-              <span class="text-secondary stat-label">Learning</span>
-            </div>
-          </div>
-          <div class="col">
-            <div class="stat-tile">
-              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Review) }}</span>
-              <span class="text-secondary stat-label">Review</span>
-            </div>
-          </div>
-          <div class="col">
-            <div class="stat-tile">
-              <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(SrsState.Relearning) }}</span>
-              <span class="text-secondary stat-label">Relearning</span>
-            </div>
-          </div>
+          }
         </div>
       </div>
       <div class="mt-4" *ngIf="queue()!.cards.length > 0">

@@ -30,8 +30,10 @@ Once a review is started, the review screen shows how many cards are scheduled, 
 
 - **New** cards have never been rated and are due immediately
 - **Learning** cards are in the short steps between their first ratings
-- **Review** cards have graduated and are scheduled for a later date
+- **Reviewing** cards have graduated and are scheduled for a later date
 - **Relearning** cards were forgotten and are going through the steps again
+
+Each box shows an info icon in its corner. Hovering over it explains what the state means.
 
 Underneath, "Answer with" lets you choose whether the term or the definition is shown first. This is the same choice as when studying with [Flashcards](/usage/flashcards): if "Definition" is selected as the answer, the term is presented first, and vice versa.
 
