@@ -1,6 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { SrsCardReviewInfo, SrsRating, SrsState } from "@scholarsome/shared";
+import { SrsCardReviewInfo, SrsRating, SrsReviewHistoryEntry, SrsState } from "@scholarsome/shared";
 import { CardReviewInfoContentComponent } from "./card-review-info-content.component";
 
 describe("CardReviewInfoContentComponent", () => {
@@ -138,6 +138,58 @@ describe("CardReviewInfoContentComponent", () => {
     expect(bars[0].title).toContain("back right away");
     expect(bars[1].title).toContain("Got it");
     expect(bars[1].title).toContain("back in 14 days");
+  });
+
+  it("positions the history bars at the time of their reviews", () => {
+    const fixture = render(dueSoon);
+
+    const bars = Array.from(fixture.nativeElement.querySelectorAll(".history-bar")) as HTMLElement[];
+    const component = fixture.componentInstance as unknown as {
+      historyBarLeft: (entry: SrsReviewHistoryEntry, info: SrsCardReviewInfo) => string;
+    };
+
+    expect(bars).toHaveLength(2);
+    // the first review sits at the left edge and the last one at the right
+    // edge of the chart, in line with the date range below it
+    expect(bars[0].style.left).toContain("(100% - 6px)");
+    expect(component.historyBarLeft(dueSoon.history[0], dueSoon)).toBe("calc((100% - 6px) * 0.000000)");
+    expect(component.historyBarLeft(dueSoon.history[1], dueSoon)).toBe("calc((100% - 6px) * 1.000000)");
+
+    // a review in between falls in line proportionally to its date, e.g. a
+    // review five days into a ten day range sits halfway
+    const spaced = {
+      ...dueSoon,
+      history: [
+        { ...dueSoon.history[0], review: "2026-09-01T00:00:00.000Z" },
+        { ...dueSoon.history[0], review: "2026-09-06T00:00:00.000Z" },
+        { ...dueSoon.history[0], review: "2026-09-11T00:00:00.000Z" }
+      ]
+    };
+    expect(component.historyBarLeft(spaced.history[1], spaced)).toBe("calc((100% - 6px) * 0.500000)");
+  });
+
+  it("shows a single review as one bar with a single date", () => {
+    const single = { ...dueSoon, history: [dueSoon.history[0]] };
+    const fixture = render(single);
+
+    const bars = Array.from(fixture.nativeElement.querySelectorAll(".history-bar")) as HTMLElement[];
+    const dates = Array.from(fixture.nativeElement.querySelectorAll(".history-range span")) as HTMLElement[];
+
+    expect(bars).toHaveLength(1);
+    expect(bars[0].style.left).toContain("0.5");
+    expect(dates).toHaveLength(1);
+    expect(dates[0].textContent?.trim().length).toBeGreaterThan(0);
+  });
+
+  it("explains the meaning of the history bar height below the section header", () => {
+    const fixture = render(dueSoon);
+
+    const hint = fixture.nativeElement.querySelector(".section-hint") as HTMLElement | null;
+    expect(hint?.textContent).toContain("how far into the future each review scheduled the card");
+
+    // the hint is only meaningful when the history chart is shown
+    const empty = render(newCard);
+    expect(empty.nativeElement.querySelector(".section-hint")).toBeNull();
   });
 
   it("notes when only a part of the reviews is shown", () => {

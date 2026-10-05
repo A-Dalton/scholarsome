@@ -60,6 +60,14 @@
   color: var(--scholarsome-muted);
 }
 
+// Explanatory hint below a section label
+.section-hint {
+  margin: -0.15rem 0 0.3rem;
+  font-size: 0.7rem;
+  font-style: italic;
+  color: var(--scholarsome-muted);
+}
+
 /*
  * Stacked bar chart of the ratings, with one segment per rating sized by its
  * amount of reviews
@@ -135,21 +143,22 @@
 }
 
 /*
- * Timeline of the reviews, with one bar per review colored by its rating and
- * sized by how far the card was scheduled into the future at that point
+ * Timeline of the reviews, with one bar per review colored by its rating,
+ * positioned by the time the review happened between the first and the last
+ * shown review and sized by how far the card was scheduled into the future at
+ * that point. The bars are positioned absolutely, so the chart does not
+ * distribute them evenly but keeps every bar at its exact date; their width is
+ * bound by the component, which computes the horizontal offsets from it
  */
 .history-strip {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
+  position: relative;
   height: 34px;
   border-bottom: 1px solid var(--scholarsome-border);
 }
 
 .history-bar {
-  flex: 1 1 0;
-  min-width: 2px;
-  max-width: 8px;
+  position: absolute;
+  bottom: 0;
   border-radius: 2px 2px 0 0;
   transform-origin: bottom;
   animation: history-bar-in 0.3s ease-out backwards;
@@ -168,6 +177,11 @@
   margin-top: 0.3rem;
   font-size: 0.72rem;
   color: var(--scholarsome-muted);
+}
+
+// A single review has no date range; its date is centered below its bar
+.history-range span:only-child {
+  margin: 0 auto;
 }
 
 // Tiles with the current state and aggregated statistics of the card

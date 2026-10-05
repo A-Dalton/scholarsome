@@ -21,6 +21,9 @@ export class CardReviewInfoContentComponent {
   protected readonly faCalendarCheck = faCalendarCheck;
   // Exposed for the state comparisons of the template
   protected readonly SrsState = SrsState;
+  // Width of a bar of the review history chart in pixels; the horizontal
+  // position of a bar is computed from it, so both must stay in sync
+  protected readonly historyBarWidth = 6;
 
   /**
    * CSS class of the due pill of the card
@@ -149,6 +152,29 @@ export class CardReviewInfoContentComponent {
   protected historyBarHeight(entry: SrsReviewHistoryEntry, info: SrsCardReviewInfo): number {
     const maxScheduledDays = info.history.reduce((max, e) => Math.max(max, e.scheduledDays), 1);
     return 8 + Math.round((entry.scheduledDays / maxScheduledDays) * 22);
+  }
+
+  /**
+   * Horizontal offset of a bar of the review history chart, scaling with the
+   * time of the review between the first and the last shown review of the card
+   * so that every bar falls in line with its date; the offset leaves room for
+   * the width of the bar, so the first bar starts at the left edge and the
+   * last one ends at the right edge of the chart. A single review has no range
+   * to scale into, so its bar is centered instead
+   *
+   * @param entry Review to get the offset of
+   * @param info Review information of the card the review belongs to
+   */
+  protected historyBarLeft(entry: SrsReviewHistoryEntry, info: SrsCardReviewInfo): string {
+    if (info.history.length === 1) {
+      return "calc((100% - " + this.historyBarWidth + "px) * 0.5)";
+    }
+
+    const times = info.history.map((e) => new Date(e.review).getTime());
+    const first = Math.min(...times);
+    const span = Math.max(...times) - first;
+    const fraction = span > 0 ? (new Date(entry.review).getTime() - first) / span : 0;
+    return "calc((100% - " + this.historyBarWidth + "px) * " + fraction.toFixed(6) + ")";
   }
 
   /**

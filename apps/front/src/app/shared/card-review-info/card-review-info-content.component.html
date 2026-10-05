@@ -67,10 +67,13 @@
     <p class="section-label">Review history</p>
 
     @if (data.history.length > 0) {
+      <p class="section-hint">The bar height shows how far into the future each review scheduled the card</p>
       <div class="history-strip">
         @for (entry of data.history; track $index) {
           <div class="history-bar"
             [ngClass]="ratingClass(entry.rating)"
+            [style.left]="historyBarLeft(entry, data)"
+            [style.width.px]="historyBarWidth"
             [style.height.px]="historyBarHeight(entry, data)"
             [style.animation-delay.ms]="historyBarDelay($index)"
             [title]="historyTitle(entry, (entry.review | date: 'MMM d, h:mm a'))"></div>
@@ -78,7 +81,9 @@
       </div>
       <div class="history-range">
         <span>{{ data.history[0].review | date: "MMM d, y" }}</span>
-        <span>{{ data.history[data.history.length - 1].review | date: "MMM d, y" }}</span>
+        @if (data.history.length > 1) {
+          <span>{{ data.history[data.history.length - 1].review | date: "MMM d, y" }}</span>
+        }
       </div>
       @if (data.totalReviews > data.history.length) {
         <p class="history-capped">Showing the last {{ data.history.length }} of {{ data.totalReviews }} reviews</p>
