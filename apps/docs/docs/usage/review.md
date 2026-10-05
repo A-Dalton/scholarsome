@@ -64,6 +64,8 @@ Every card has a due date and one of the four states listed above:
 
 The queue always contains every card that is due. It is not limited to a daily amount, so a review is as long as the number of due cards.
 
+Every card also reports its own schedule and history: within a study set, the bar chart icon next to each card opens its review information. See [Review information](/usage/sets/review-information).
+
 ## Review cadence
 
 The "Review" section of the settings page contains a "How often do you learn?" option, ranging from "Four times a day" to "Once per week". This setting determines the rhythm of the short learning and relearning steps: the steps cards move through between their first ratings, and again after being rated "Don't know". It decides how long a card waits in each of these steps before it comes back, so the timing of your reviews is adjusted to match the cadence you choose.

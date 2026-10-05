@@ -25,6 +25,8 @@ If you see it, that means there is a handbook page for the feature you're curren
     - How to export sets to other platforms
   - [Sharing Sets](/usage/sets/sharing-sets)
     - How to share sets with other users
+  - [Review Information](/usage/sets/review-information)
+    - The review statistics of a card, available within a study set
 - [Folders](/usage/folders/creating-folders)
   - How to create folders to organize sets
 - [Flashcards](/usage/flashcards)
