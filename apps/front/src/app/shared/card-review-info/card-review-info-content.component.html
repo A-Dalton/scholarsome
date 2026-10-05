@@ -44,17 +44,23 @@
       <div class="legend-row">
         <span class="legend-dot again"></span>
         <span class="legend-label">Don't know</span>
-        <span class="legend-value">{{ data.againCount }} · {{ percent(data.againCount, data.totalReviews) }}</span>
+        <span class="legend-count">{{ data.againCount }}×</span>
+        <span class="legend-sep">·</span>
+        <span class="legend-percent">{{ percent(data.againCount, data.totalReviews) }}</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot hard"></span>
         <span class="legend-label">Took a while</span>
-        <span class="legend-value">{{ data.hardCount }} · {{ percent(data.hardCount, data.totalReviews) }}</span>
+        <span class="legend-count">{{ data.hardCount }}×</span>
+        <span class="legend-sep">·</span>
+        <span class="legend-percent">{{ percent(data.hardCount, data.totalReviews) }}</span>
       </div>
       <div class="legend-row">
         <span class="legend-dot good"></span>
         <span class="legend-label">Got it</span>
-        <span class="legend-value">{{ data.goodCount }} · {{ percent(data.goodCount, data.totalReviews) }}</span>
+        <span class="legend-count">{{ data.goodCount }}×</span>
+        <span class="legend-sep">·</span>
+        <span class="legend-percent">{{ percent(data.goodCount, data.totalReviews) }}</span>
       </div>
     </div>
 

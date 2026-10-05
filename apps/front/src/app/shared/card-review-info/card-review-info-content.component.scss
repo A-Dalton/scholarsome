@@ -87,27 +87,44 @@
   min-width: 6px;
 }
 
+/*
+ * Legend of the rating bar. The rows are flattened into one grid with
+ * `display: contents` so that the counts and percentages of all ratings share
+ * the same column tracks and align vertically, regardless of how many digits
+ * the amounts have
+ */
 .rating-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr max-content max-content max-content;
+  column-gap: 0.45rem;
+  row-gap: 0.25rem;
+  align-items: center;
   margin-top: 0.55rem;
+  font-size: 0.85rem;
 }
 
 .legend-row {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.85rem;
+  display: contents;
+}
+
+.legend-row > * {
   animation: legend-in 0.35s ease-out backwards;
 }
 
-.legend-row:nth-child(2) {
+.legend-row:nth-child(2) > * {
   animation-delay: 0.06s;
 }
 
-.legend-row:nth-child(3) {
+.legend-row:nth-child(3) > * {
   animation-delay: 0.12s;
+}
+
+// Right-aligned so that the times and percentage indicators of every rating
+// fall in line vertically; tabular figures keep equal amounts the same width
+.legend-count,
+.legend-percent {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes legend-in {

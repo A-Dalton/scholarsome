@@ -121,9 +121,11 @@ describe("CardReviewInfoContentComponent", () => {
   it("shows the amount and percentage of each rating within the legend", () => {
     const fixture = render(dueSoon);
 
-    const legend = Array.from(fixture.nativeElement.querySelectorAll(".legend-value"));
+    const counts = Array.from(fixture.nativeElement.querySelectorAll(".legend-count")) as HTMLElement[];
+    const percents = Array.from(fixture.nativeElement.querySelectorAll(".legend-percent")) as HTMLElement[];
 
-    expect(legend.map((row: HTMLElement) => (row.textContent ?? "").trim())).toEqual(["1 · 25%", "1 · 25%", "2 · 50%"]);
+    expect(counts.map((count) => (count.textContent ?? "").trim())).toEqual(["1×", "1×", "2×"]);
+    expect(percents.map((percent) => (percent.textContent ?? "").trim())).toEqual(["25%", "25%", "50%"]);
   });
 
   it("shows one bar per review with the rating and schedule of the review as tooltip", () => {
