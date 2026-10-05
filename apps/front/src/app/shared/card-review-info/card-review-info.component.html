@@ -1,5 +1,5 @@
 @if (info()) {
-  <button type="button" #button class="review-info-button" aria-label="Review information" title="Review information"
+  <button type="button" #button class="review-info-button" [ngClass]="iconClass()" aria-label="Review information" title="Review information"
     (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (click)="onClick()">
     <fa-icon [icon]="faChartSimple"></fa-icon>
   </button>

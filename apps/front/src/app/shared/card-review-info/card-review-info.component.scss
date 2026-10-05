@@ -19,6 +19,20 @@
   cursor: pointer;
 }
 
+// The icon is colored like the segment of the rating that was given the most
+// among the reviews of the card
+.review-info-button.again {
+  color: var(--bs-danger);
+}
+
+.review-info-button.hard {
+  color: var(--bs-warning);
+}
+
+.review-info-button.good {
+  color: var(--bs-success);
+}
+
 // The icon glyph keeps a compact chip look, highlighted while hovered
 .review-info-button fa-icon {
   display: flex;

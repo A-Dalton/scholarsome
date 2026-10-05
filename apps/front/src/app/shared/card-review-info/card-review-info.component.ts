@@ -89,6 +89,22 @@ export class CardReviewInfoComponent implements OnInit {
   }
 
   /**
+   * Class of the icon based on the rating that was given the most among the
+   * reviews of the card, coloring it like the segment of that rating within
+   * the charts of the review information; ties are broken towards the worse
+   * rating, and null keeps the standard color for cards that have not been
+   * reviewed yet
+   */
+  protected iconClass(): "again" | "hard" | "good" | null {
+    const info = this.info();
+    if (!info || info.totalReviews === 0) return null;
+
+    if (info.againCount >= info.hardCount && info.againCount >= info.goodCount) return "again";
+    if (info.hardCount >= info.goodCount) return "hard";
+    return "good";
+  }
+
+  /**
    * Shows the popover, anchored below the icon and aligned with its right edge,
    * staying within the bounds of the viewport
    */
