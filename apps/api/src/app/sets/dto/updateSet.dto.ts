@@ -59,7 +59,7 @@ export class UpdateSetDto {
     folders?: string[];
 
   @ApiProperty({
-    description: "New cards to replace the existing ones in the set with",
+    description: "The cards of the set: cards with a known ID are updated in place, cards without a known ID are created, and cards that are missing from the list are deleted",
     required: false,
     type: [CardWithIdValidator]
   })
