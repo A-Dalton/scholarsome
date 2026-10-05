@@ -294,8 +294,9 @@ export class SrsService {
    * review within the folder and recursively within all of its subfolders.
    * When no set and no folder is given, it contains every card scheduled for
    * review across all sets of the user.
-   * Cards are ordered new cards first. Additionally returns the upcoming
-   * review buckets of the cards that are not due yet.
+   * Cards are ordered new cards first, then by their due date. Cards sharing
+   * both are ordered randomly. Additionally returns the upcoming review
+   * buckets of the cards that are not due yet.
    *
    * @param userId ID of the user to build the queue for
    * @param folderId Optional, ID of the folder to build the queue of
@@ -357,7 +358,9 @@ export class SrsService {
     });
     const srsStateMap = new Map<string, PrismaCardSrsState>(srsStates.map((state) => [state.cardId, state]));
 
-    const cardMap = new Map<string, { card: PrismaCard, srs: SrsCardState, due: Date }>();
+    // the random keys break ties between cards sharing their state and due
+    // date, drawn once per card so that the sort comparator stays consistent
+    const cardMap = new Map<string, { card: PrismaCard, srs: SrsCardState, due: Date, shuffle: number }>();
     for (const card of uniqueCards) {
       // cards without a persisted state are treated as new cards
       const state = srsStateMap.get(card.id);
@@ -366,7 +369,8 @@ export class SrsService {
       cardMap.set(card.id, {
         card,
         srs: this.toSrsCardState(fsrsCard),
-        due: fsrsCard.due
+        due: fsrsCard.due,
+        shuffle: Math.random()
       });
     }
 
@@ -378,12 +382,14 @@ export class SrsService {
     const notDueCards = allCards.filter((c) => c.due.getTime() > now.getTime());
     const upcomingCards = notDueCards.filter((c) => c.due.getTime() <= now.getTime() + this.queueLookaheadMs);
 
-    // new cards first, then ordered by their due date
+    // new cards first, then ordered by their due date; cards sharing both are
+    // ordered randomly, as a fixed order inherited from the study set would
+    // be predictable and easier to memorize than the cards themselves
     const queueCards = [...dueCards, ...upcomingCards];
     queueCards.sort((a, b) => {
       if (a.srs.state !== b.srs.state) return a.srs.state - b.srs.state;
       if (a.due.getTime() !== b.due.getTime()) return a.due.getTime() - b.due.getTime();
-      return a.card.index - b.card.index;
+      return a.shuffle - b.shuffle;
     });
 
     const hourInMs = 3600000;
