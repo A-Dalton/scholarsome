@@ -107,14 +107,10 @@ export class SrsReviewComponent implements OnInit {
 
     this.answer.set(answer);
 
-    // the cards are shuffled to show up in random order, mixing all study sets
-    const shuffled = [...cards];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    this.cards.set(shuffled);
+    // the session follows the order of the queue: new cards first, then by
+    // due date, so that a session that was stopped in the middle continues
+    // with the same order on the next attempt
+    this.cards.set([...cards]);
     this.index.set(0);
     this.completed.set(false);
 
@@ -123,7 +119,7 @@ export class SrsReviewComponent implements OnInit {
     this.ratedCardIds.clear();
     this.pendingReinsertions = [];
 
-    this.resetToPromptSide(shuffled[0]);
+    this.resetToPromptSide(this.cards()[0]);
   }
 
   /**
