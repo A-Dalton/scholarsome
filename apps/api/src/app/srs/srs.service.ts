@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { Card as PrismaCard, CardSrsState as PrismaCardSrsState, Prisma } from "@scholarsome/prisma";
 import {
+  SrsCardReviewInfo,
   SrsCardState,
   SrsQueueData,
   SrsRating,
   SrsReviewData,
+  SrsSetReviewInfoData,
   SrsState,
   SrsUpcomingBuckets
 } from "@scholarsome/shared";
@@ -35,6 +37,14 @@ export class SrsService {
    * again before the next session ends, so cards can slip at most a single session
    */
   private readonly queueLookaheadMs = 4 * 3600000;
+
+  /**
+   * Amount of reviews returned per card within its review history. The charts of
+   * the UI only show the most recent reviews, so the cap keeps the response of
+   * sets with many heavily reviewed cards small while `totalReviews` still
+   * reflects every review of the card
+   */
+  private readonly reviewHistoryLimit = 50;
 
   /**
    * Collects the IDs of a folder and recursively all of its subfolders
@@ -492,5 +502,133 @@ export class SrsService {
       rating,
       srs: srsState
     };
+  }
+
+  /**
+   * Gets the review information of the authenticated user for the cards of a set,
+   * including the current SRS state, the rating counts and the review history of
+   * every card of the set that has already been reviewed
+   *
+   * @param userId ID of the user to get the review information for
+   * @param setId ID of the set to get the review information of
+   *
+   * @returns `SrsSetReviewInfoData` object, or null if the set does not exist
+   */
+  async getSetReviewInfo(userId: string, setId: string): Promise<SrsSetReviewInfoData | null> {
+    const set = await this.prisma.set.findUnique({
+      where: { id: setId },
+      select: {
+        cards: {
+          select: {
+            id: true,
+            index: true
+          }
+        }
+      }
+    });
+    if (!set) return null;
+
+    const cardIds = set.cards.map((card) => card.id);
+
+    const info = new Map<string, SrsCardReviewInfo>();
+
+    // the states hold the current scheduling of the cards, while the review
+    // logs below hold the history the statistics are aggregated from
+    const states = await this.prisma.cardSrsState.findMany({
+      where: {
+        userId,
+        cardId: { in: cardIds }
+      }
+    });
+    for (const state of states) {
+      info.set(state.cardId, {
+        cardId: state.cardId,
+        due: state.due.toISOString(),
+        state: state.state as SrsState,
+        lapses: state.lapses,
+        lastReview: state.lastReview ? state.lastReview.toISOString() : null,
+        totalReviews: 0,
+        againCount: 0,
+        hardCount: 0,
+        goodCount: 0,
+        history: []
+      });
+    }
+
+    const logs = await this.prisma.cardSrsReviewLog.findMany({
+      where: {
+        userId,
+        setId
+      },
+      orderBy: { review: "asc" }
+    });
+    for (const log of logs) {
+      let entry = info.get(log.cardId);
+      if (!entry) {
+        // the logs of a card can exist without a state, e.g. when the state
+        // row was removed while the logs were kept, so the entry is rebuilt
+        // from the logs alone
+        entry = {
+          cardId: log.cardId,
+          due: null,
+          state: null,
+          lapses: 0,
+          lastReview: null,
+          totalReviews: 0,
+          againCount: 0,
+          hardCount: 0,
+          goodCount: 0,
+          history: []
+        };
+        info.set(log.cardId, entry);
+      }
+
+      entry.totalReviews++;
+      if (log.rating === SrsRating.Again) entry.againCount++;
+      else if (log.rating === SrsRating.Hard) entry.hardCount++;
+      else entry.goodCount++;
+
+      entry.lastReview = log.review.toISOString();
+      entry.history.push({
+        rating: log.rating,
+        state: log.state as SrsState,
+        review: log.review.toISOString(),
+        due: log.due.toISOString(),
+        scheduledDays: log.scheduledDays
+      });
+    }
+
+    // cards without a state and reviews are included as new, so that the UI
+    // can show the review information of every card of the set
+    const reviewedCardIds = new Set(info.keys());
+    for (const card of set.cards) {
+      if (reviewedCardIds.has(card.id)) continue;
+
+      info.set(card.id, {
+        cardId: card.id,
+        due: null,
+        state: SrsState.New,
+        lapses: 0,
+        lastReview: null,
+        totalReviews: 0,
+        againCount: 0,
+        hardCount: 0,
+        goodCount: 0,
+        history: []
+      });
+    }
+
+    // only the most recent reviews are needed for the charts of the UI
+    for (const entry of info.values()) {
+      if (entry.history.length > this.reviewHistoryLimit) {
+        entry.history = entry.history.slice(-this.reviewHistoryLimit);
+      }
+    }
+
+    // the cards are returned in the order of the set
+    const order = new Map(set.cards.map((card) => [card.id, card.index]));
+    const cards = [...info.values()].sort((a, b) => (order.get(a.cardId) ?? 0) - (order.get(b.cardId) ?? 0));
+
+    return { cards };
   }
 }

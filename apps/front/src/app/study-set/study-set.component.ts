@@ -8,8 +8,9 @@ import {
   signal
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Set, randomUUID } from "@scholarsome/shared";
+import { Set, SrsCardReviewInfo, randomUUID } from "@scholarsome/shared";
 import { SetsService } from "../shared/http/sets.service";
+import { SrsService } from "../shared/http/srs.service";
 import { CardComponent } from "../shared/card/card.component";
 import { UsersService } from "../shared/http/users.service";
 import { Meta, Title } from "@angular/platform-browser";
@@ -45,6 +46,7 @@ export class StudySetComponent implements OnInit {
     private readonly titleService: Title,
     private readonly metaService: Meta,
     private readonly setsService: SetsService,
+    private readonly srsService: SrsService,
     private readonly convertingService: ConvertingService
   ) {}
 
@@ -68,6 +70,10 @@ export class StudySetComponent implements OnInit {
   protected userIsAuthor = signal(false);
   protected isEditing = signal(false);
   protected setId: string | null;
+
+  // Review information of the cards of the set for the signed in user, keyed by
+  // card ID; undefined while it is being loaded or when the user is not the author
+  protected reviewInfo = signal<Record<string, SrsCardReviewInfo> | undefined>(undefined);
 
   protected author = signal("");
 
@@ -326,6 +332,34 @@ export class StudySetComponent implements OnInit {
     await this.router.navigate(["homepage"]);
   }
 
+  /**
+   * Review information of a card of the set, or null when the card has not
+   * been reviewed by the user yet
+   *
+   * @param cardId ID of the card to get the review information of
+   */
+  protected reviewInfoFor(cardId?: string): SrsCardReviewInfo | null {
+    const info = this.reviewInfo();
+    if (!info || !cardId) return null;
+    return info[cardId] ?? null;
+  }
+
+  /**
+   * Loads the review information of the cards of the set for the signed in
+   * user, used to show the review statistics of each card
+   */
+  private async loadReviewInfo(): Promise<void> {
+    const reviewInfo = await this.srsService.setReviewInfo(this.setId!);
+    if (!reviewInfo) return;
+
+    const info: Record<string, SrsCardReviewInfo> = {};
+    for (const card of reviewInfo.cards) {
+      info[card.cardId] = card;
+    }
+
+    this.reviewInfo.set(info);
+  }
+
   async ngOnInit(): Promise<void> {
     this.setId = this.route.snapshot.paramMap.get("setId");
     if (!this.setId) {
@@ -355,7 +389,13 @@ export class StudySetComponent implements OnInit {
 
     this.set.set(set);
 
-    if (user && user.id === set.authorId) this.userIsAuthor.set(true);
+    if (user && user.id === set.authorId) {
+      this.userIsAuthor.set(true);
+
+      // the review information is only shown to the author, as the SRS is
+      // scoped to the user that reviewed the cards
+      void this.loadReviewInfo();
+    }
 
     if (window.location.href.slice(0, 5) !== "https") {
       this.isHttps = false;

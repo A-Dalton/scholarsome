@@ -153,6 +153,7 @@
           [term]="card.term"
           [definition]="card.definition"
           [uid]="card.uid"
+          [reviewInfo]="reviewInfoFor(card.id)"
           (deleteCardEvent)="deleteCard($event)"
           (moveCardEvent)="moveCard($event)"
           (addCardEvent)="addCard({ editingEnabled: true, isSaved: false })"

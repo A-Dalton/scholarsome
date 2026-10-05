@@ -18,7 +18,7 @@ import {
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
 import { Request as ExpressRequest } from "express";
-import { ApiResponse, ApiResponseOptions, SrsQueueData, SrsReviewData } from "@scholarsome/shared";
+import { ApiResponse, ApiResponseOptions, SrsQueueData, SrsReviewData, SrsSetReviewInfoData } from "@scholarsome/shared";
 import { AuthService } from "../auth/auth.service";
 import { AuthenticatedGuard } from "../auth/guards/authenticated.guard";
 import { ErrorResponse } from "../shared/response/error.response";
@@ -27,6 +27,7 @@ import { SetIdParam } from "../sets/param/setIdParam.param";
 import { RateCardDto } from "./dto/rateCard.dto";
 import { SrsService } from "./srs.service";
 import { SrsQueueSuccessResponse } from "./response/success/srsQueue.success.response";
+import { SrsReviewInfoSuccessResponse } from "./response/success/srsReviewInfo.success.response";
 import { SrsReviewSuccessResponse } from "./response/success/srsReview.success.response";
 
 @ApiTags("SRS")
@@ -156,6 +157,49 @@ export class SrsController {
     return {
       status: ApiResponseOptions.Success,
       data: queue
+    };
+  }
+
+  /**
+   * Gets the review information of a set for the authenticated user
+   *
+   * @returns SRS states, rating counts and review histories of the reviewed cards of the set
+   */
+  @ApiOperation({
+    summary: "Get the review information of a set",
+    description: "Gets the SRS states, rating counts and review histories of the cards of a set that the authenticated user has already reviewed"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsReviewInfoSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("sets/:setId/review-info")
+  async setReviewInfo(@Param() params: SetIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<SrsSetReviewInfoData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const reviewInfo = await this.srsService.getSetReviewInfo(user.id, params.setId);
+    if (!reviewInfo) {
+      throw new NotFoundException({ status: "fail", message: "Set not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: reviewInfo
     };
   }
 

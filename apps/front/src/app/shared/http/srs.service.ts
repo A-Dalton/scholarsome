@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { lastValueFrom } from "rxjs";
-import { ApiResponse, ApiResponseOptions, SrsQueueData, SrsRating, SrsReviewData } from "@scholarsome/shared";
+import { ApiResponse, ApiResponseOptions, SrsQueueData, SrsRating, SrsReviewData, SrsSetReviewInfoData } from "@scholarsome/shared";
 
 @Injectable({
   providedIn: "root"
@@ -69,6 +69,28 @@ export class SrsService {
 
     if (queue.status === ApiResponseOptions.Success) {
       return queue.data;
+    } else return null;
+  }
+
+  /**
+   * Gets the review information of a set for the authenticated user, including
+   * the SRS states, rating counts and review histories of the reviewed cards
+   *
+   * @param setId ID of the set to get the review information of
+   *
+   * @returns `SrsSetReviewInfoData` object
+   */
+  async setReviewInfo(setId: string): Promise<SrsSetReviewInfoData | null> {
+    let info: ApiResponse<SrsSetReviewInfoData> | undefined;
+
+    try {
+      info = await lastValueFrom(this.http.get<ApiResponse<SrsSetReviewInfoData>>("/api/srs/sets/" + setId + "/review-info"));
+    } catch {
+      return null;
+    }
+
+    if (info.status === ApiResponseOptions.Success) {
+      return info.data;
     } else return null;
   }
 

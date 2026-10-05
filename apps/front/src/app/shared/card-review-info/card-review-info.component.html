@@ -1,0 +1,23 @@
+@if (info()) {
+  <button type="button" #button class="review-info-button" aria-label="Review information" title="Review information"
+    (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()" (click)="onClick()">
+    <fa-icon [icon]="faChartSimple"></fa-icon>
+  </button>
+}
+
+@if (open()) {
+  <div #popover class="review-info-popover" [style.top.px]="popoverTop()" [style.left.px]="popoverLeft()">
+    <scholarsome-card-review-info-content [info]="info()"></scholarsome-card-review-info-content>
+  </div>
+}
+
+<!-- Shown instead of the popover on devices without a precise hover capability -->
+<ng-template #reviewInfoModal>
+  <div class="modal-header">
+    <h4 class="modal-title">Review information</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+  <div class="modal-body">
+    <scholarsome-card-review-info-content [info]="info()"></scholarsome-card-review-info-content>
+  </div>
+</ng-template>

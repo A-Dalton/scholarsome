@@ -96,3 +96,73 @@ export interface SrsReviewData {
    */
   srs: SrsCardState;
 }
+
+/**
+ * A single review of a card, part of its review history
+ */
+export interface SrsReviewHistoryEntry {
+  rating: SrsRating;
+  state: SrsState;
+  /**
+   * ISO 8601 encoded time of the review
+   */
+  review: string;
+  /**
+   * ISO 8601 encoded time for when the card was scheduled to be reviewed next
+   */
+  due: string;
+  /**
+   * Amount of days the card was scheduled into the future
+   */
+  scheduledDays: number;
+}
+
+/**
+ * Review information of a single card of the authenticated user, combining its
+ * current SRS state with the rating counts and history of its review logs
+ */
+export interface SrsCardReviewInfo {
+  cardId: string;
+  /**
+   * ISO 8601 encoded time for when the card is due next, or null when the card was never scheduled
+   */
+  due: string | null;
+  /**
+   * Current state of the card, where New is also returned for cards that have
+   * never been reviewed, or null when the state could not be determined
+   */
+  state: SrsState | null;
+  /**
+   * Amount of times the card has been forgotten
+   */
+  lapses: number;
+  /**
+   * ISO 8601 encoded time of the last review, or null
+   */
+  lastReview: string | null;
+  /**
+   * Amount of reviews the card has received in total, which can exceed the
+   * amount of entries of the review history as the latter is capped
+   */
+  totalReviews: number;
+  /**
+   * Amount of reviews rated with each rating
+   */
+  againCount: number;
+  hardCount: number;
+  goodCount: number;
+  /**
+   * The most recent reviews of the card, ordered from oldest to newest
+   */
+  history: SrsReviewHistoryEntry[];
+}
+
+/**
+ * Data returned when requesting the review information of the cards of a set
+ */
+export interface SrsSetReviewInfoData {
+  /**
+   * The review information of every card of the set that has already been reviewed
+   */
+  cards: SrsCardReviewInfo[];
+}

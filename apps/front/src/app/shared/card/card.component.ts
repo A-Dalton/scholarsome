@@ -14,6 +14,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AlertComponent } from "../alert/alert.component";
+import { CardReviewInfoComponent } from "../card-review-info/card-review-info.component";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -23,6 +24,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { QuillEditorComponent } from "ngx-quill";
+import { SrsCardReviewInfo } from "@scholarsome/shared";
 import Quill from "quill";
 
 @Component({
@@ -31,7 +33,7 @@ import Quill from "quill";
   selector: "scholarsome-card",
   templateUrl: "./card.component.html",
   styleUrls: ["./card.component.scss"],
-  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent, AlertComponent]
+  imports: [CommonModule, FormsModule, FontAwesomeModule, QuillEditorComponent, AlertComponent, CardReviewInfoComponent]
 })
 export class CardComponent implements OnInit, AfterViewInit {
   constructor(
@@ -78,6 +80,9 @@ export class CardComponent implements OnInit, AfterViewInit {
   // Stable identity used by parent `@for` structures so cards can be identified across
   // re-renders without relying on a mutable index.
   readonly uid = input("");
+  // SRS review information of the card, only set for cards that the user has
+  // already reviewed; renders the review information icon when present
+  readonly reviewInfo = input<SrsCardReviewInfo | null>(null);
 
   @Output() addCardEvent = new EventEmitter();
   @Output() deleteCardEvent = new EventEmitter<string>();

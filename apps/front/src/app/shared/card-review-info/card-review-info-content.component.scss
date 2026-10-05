@@ -1,0 +1,218 @@
+// Header with the due pill of the card
+.review-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.review-info-title {
+  font-weight: 700;
+}
+
+.due-pill {
+  flex-shrink: 0;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background-color: var(--scholarsome-surface-2);
+  border: 1px solid var(--scholarsome-border);
+}
+
+.due-pill.due-now {
+  color: #fff;
+  background-color: var(--bs-danger);
+  border: none;
+}
+
+.due-pill.due-new {
+  color: #fff;
+  background-color: var(--bs-primary);
+  border: none;
+}
+
+.due-pill.due-later {
+  color: #8438ff;
+}
+
+.due-pill.due-none {
+  color: var(--scholarsome-muted);
+}
+
+// Row showing when the card is due next
+.review-info-due {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--scholarsome-muted);
+}
+
+// Labels above the charts
+.section-label {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--scholarsome-muted);
+}
+
+/*
+ * Stacked bar chart of the ratings, with one segment per rating sized by its
+ * amount of reviews
+ */
+.rating-bar {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border: 1px solid var(--scholarsome-border);
+  border-radius: 999px;
+  background-color: var(--scholarsome-surface-2);
+  overflow: hidden;
+  transform-origin: left;
+  animation: rating-bar-in 0.45s ease-out backwards;
+}
+
+@keyframes rating-bar-in {
+  from {
+    transform: scaleX(0.6);
+    opacity: 0.4;
+  }
+}
+
+.rating-segment {
+  min-width: 6px;
+}
+
+.rating-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  animation: legend-in 0.35s ease-out backwards;
+}
+
+.legend-row:nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.legend-row:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+@keyframes legend-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+/*
+ * Timeline of the reviews, with one bar per review colored by its rating and
+ * sized by how far the card was scheduled into the future at that point
+ */
+.history-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 34px;
+  border-bottom: 1px solid var(--scholarsome-border);
+}
+
+.history-bar {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 8px;
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom;
+  animation: history-bar-in 0.3s ease-out backwards;
+}
+
+@keyframes history-bar-in {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+.history-range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--scholarsome-muted);
+}
+
+// Tiles with the current state and aggregated statistics of the card
+.review-stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  padding-bottom: 0.2rem;
+}
+
+.review-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.82rem;
+  text-align: center;
+  background-color: var(--scholarsome-surface-2);
+  border: 1px solid var(--scholarsome-border);
+  border-radius: var(--bs-border-radius);
+}
+
+.review-stat-value {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-stat-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--scholarsome-muted);
+}
+
+.review-info-empty {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--scholarsome-muted);
+}
+
+// Shared colors of the chart elements of each rating
+.again {
+  background-color: var(--bs-danger);
+}
+
+.hard {
+  background-color: var(--bs-warning);
+}
+
+.good {
+  background-color: var(--bs-success);
+}
+
+.history-capped {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--scholarsome-muted);
+}
