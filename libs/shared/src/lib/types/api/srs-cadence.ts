@@ -19,20 +19,24 @@ export const srsCadenceOptions: { value: SrsCadence, label: string }[] = [
  * Maps each SRS review cadence to the ts-fsrs parameters that are written to
  * the SRS parameter columns of a user when the cadence is selected.
  *
- * The first learning/relearning step is roughly half of the session gap, so a
- * card rated "Again" resurfaces within the same session, while the "1d" step
- * lets cards rated "Hard"/"Good" graduate to the next day. Cadences sparser
- * than once per day share the parameters of the once per day preset, which is
- * why the selected cadence itself is stored separately (`srsCadence`).
+ * The first learning/relearning step keeps a card rated "Don't know" in the
+ * Learning/Relearning state until it is due again: within the same session for
+ * the denser cadences, and the next day for the once per day cadence and the
+ * sparser ones, where "23h" is the longest step that is still due by the next
+ * day. The last learning step is the graduating interval, set to the cadence
+ * itself for the once per day cadence and the sparser ones, so that cards
+ * rated "Took a while"/"Knew right away" return at the selected cadence.
  *
  * `srsRequestRetention`, `srsMaximumInterval`, `srsW` and `srsEnableFuzz` are
- * not affected by the cadence and keep their stored values.
+ * not affected by the cadence and keep their stored values. The selected
+ * cadence itself is stored separately (`srsCadence`) so that the settings can
+ * display it.
  */
 export const srsCadenceParameters: Record<SrsCadence, { enableShortTerm: boolean, learningSteps: string[], relearningSteps: string[] }> = {
   [SrsCadence.FOUR_TIMES_A_DAY]: { enableShortTerm: true, learningSteps: ["3h", "1d"], relearningSteps: ["3h"] },
   [SrsCadence.TWO_TIMES_A_DAY]: { enableShortTerm: true, learningSteps: ["6h", "1d"], relearningSteps: ["6h"] },
-  [SrsCadence.ONCE_PER_DAY]: { enableShortTerm: false, learningSteps: ["1d"], relearningSteps: ["1d"] },
-  [SrsCadence.EVERY_TWO_DAYS]: { enableShortTerm: false, learningSteps: ["1d"], relearningSteps: ["1d"] },
-  [SrsCadence.EVERY_FOUR_DAYS]: { enableShortTerm: false, learningSteps: ["1d"], relearningSteps: ["1d"] },
-  [SrsCadence.ONCE_PER_WEEK]: { enableShortTerm: false, learningSteps: ["1d"], relearningSteps: ["1d"] }
+  [SrsCadence.ONCE_PER_DAY]: { enableShortTerm: true, learningSteps: ["23h", "1d"], relearningSteps: ["23h"] },
+  [SrsCadence.EVERY_TWO_DAYS]: { enableShortTerm: true, learningSteps: ["23h", "2d"], relearningSteps: ["23h"] },
+  [SrsCadence.EVERY_FOUR_DAYS]: { enableShortTerm: true, learningSteps: ["23h", "4d"], relearningSteps: ["23h"] },
+  [SrsCadence.ONCE_PER_WEEK]: { enableShortTerm: true, learningSteps: ["23h", "7d"], relearningSteps: ["23h"] }
 };

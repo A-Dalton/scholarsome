@@ -157,8 +157,8 @@ export class SrsService {
    * Default SRS steps for cases where the values stored on the user are invalid,
    * matching the column defaults of the ONCE_PER_DAY cadence
    */
-  private readonly defaultLearningSteps: Steps = ["1d"];
-  private readonly defaultRelearningSteps: Steps = ["1d"];
+  private readonly defaultLearningSteps: Steps = ["23h", "1d"];
+  private readonly defaultRelearningSteps: Steps = ["23h"];
 
   /**
    * Builds the ts-fsrs parameters of a user from the columns stored on the user

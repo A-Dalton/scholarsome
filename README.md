@@ -59,7 +59,6 @@ You can read more about our design philosophy <a href="https://github.com/A-Dalt
 ## Features coming soon...
 
 - Interactive study games
-- Spaced repetition system implementation
 - Persistence of quiz results
 - Editing permission sharing with other users
 - Improved profile page
