@@ -145,7 +145,7 @@
     "@typescript-eslint/eslint-plugin": "^8.71.1",
     "@typescript-eslint/parser": "^8.71.1",
     "angular-eslint": "^22.5.0",
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "cypress": "^15.21.0",
     "eslint": "^10.12.0",
     "eslint-config-google": "^0.14.0",
@@ -184,11 +184,13 @@
     "nx": {
       "brace-expansion": "^5.0.12"
     },
+    "argparse": "^2.0.1",
     "axios": "^1.20.0",
-    "nodemailer": "^10.0.14",
+    "postcss-selector-parser": "^7.1.6",
     "qs": "^6.16.0",
     "serialize-javascript": "^7.1.2",
-    "smol-toml": "^1.7.1",
+    "smol-toml": "^1.9.0",
+    "tinypool": "^2.1.2",
     "uuid": "^11.1.1"
   },
   "allowScripts": {
