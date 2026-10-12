@@ -518,12 +518,13 @@ export class SrsService {
    * @param userId ID of the user to get the review information for
    * @param setId ID of the set to get the review information of
    *
-   * @returns `SrsSetReviewInfoData` object, or null if the set does not exist
+   * @returns `SrsSetReviewInfoData` object, or null if the set does not exist or does not belong to the user
    */
   async getSetReviewInfo(userId: string, setId: string): Promise<SrsSetReviewInfoData | null> {
     const set = await this.prisma.set.findUnique({
       where: { id: setId },
       select: {
+        authorId: true,
         cards: {
           select: {
             id: true,
@@ -532,7 +533,7 @@ export class SrsService {
         }
       }
     });
-    if (!set) return null;
+    if (!set || set.authorId !== userId) return null;
 
     const cardIds = set.cards.map((card) => card.id);
 

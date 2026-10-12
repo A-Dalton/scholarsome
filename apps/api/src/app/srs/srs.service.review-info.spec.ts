@@ -40,8 +40,18 @@ describe("SrsService - getSetReviewInfo", () => {
     await expect(srsService.getSetReviewInfo("user-1", "set-1")).resolves.toBeNull();
   });
 
+  it("returns null when the set belongs to another user", async () => {
+    prisma.set.findUnique.mockResolvedValue({
+      id: "set-1",
+      authorId: "user-2",
+      cards: [{ id: "card-1", index: 0 }]
+    });
+
+    await expect(srsService.getSetReviewInfo("user-1", "set-1")).resolves.toBeNull();
+  });
+
   it("returns every card as new when the user has not reviewed the set yet", async () => {
-    prisma.set.findUnique.mockResolvedValue({ id: "set-1", cards: [{ id: "card-1", index: 0 }] });
+    prisma.set.findUnique.mockResolvedValue({ id: "set-1", authorId: "user-1", cards: [{ id: "card-1", index: 0 }] });
     prisma.cardSrsState.findMany.mockResolvedValue([]);
     prisma.cardSrsReviewLog.findMany.mockResolvedValue([]);
 
@@ -66,6 +76,7 @@ describe("SrsService - getSetReviewInfo", () => {
   it("includes cards that were never reviewed as new and orders the cards by their index", async () => {
     prisma.set.findUnique.mockResolvedValue({
       id: "set-1",
+      authorId: "user-1",
       cards: [
         { id: "card-2", index: 1 },
         { id: "card-1", index: 0 }
@@ -104,7 +115,7 @@ describe("SrsService - getSetReviewInfo", () => {
   });
 
   it("combines the SRS state of a card with the counts and history of its reviews", async () => {
-    prisma.set.findUnique.mockResolvedValue({ id: "set-1", cards: [{ id: "card-1" }] });
+    prisma.set.findUnique.mockResolvedValue({ id: "set-1", authorId: "user-1", cards: [{ id: "card-1" }] });
     prisma.cardSrsState.findMany.mockResolvedValue([
       {
         cardId: "card-1",
@@ -197,7 +208,7 @@ describe("SrsService - getSetReviewInfo", () => {
   });
 
   it("includes cards whose review logs exist without a stored SRS state", async () => {
-    prisma.set.findUnique.mockResolvedValue({ id: "set-1", cards: [{ id: "card-1" }] });
+    prisma.set.findUnique.mockResolvedValue({ id: "set-1", authorId: "user-1", cards: [{ id: "card-1" }] });
     prisma.cardSrsState.findMany.mockResolvedValue([]);
     prisma.cardSrsReviewLog.findMany.mockResolvedValue([
       {
@@ -237,7 +248,7 @@ describe("SrsService - getSetReviewInfo", () => {
   });
 
   it("caps the review history of a card to its most recent reviews", async () => {
-    prisma.set.findUnique.mockResolvedValue({ id: "set-1", cards: [{ id: "card-1" }] });
+    prisma.set.findUnique.mockResolvedValue({ id: "set-1", authorId: "user-1", cards: [{ id: "card-1" }] });
     prisma.cardSrsState.findMany.mockResolvedValue([]);
 
     const logs = [];
@@ -263,7 +274,7 @@ describe("SrsService - getSetReviewInfo", () => {
   });
 
   it("only returns reviews of the given user for the given set", async () => {
-    prisma.set.findUnique.mockResolvedValue({ id: "set-1", cards: [{ id: "card-1" }] });
+    prisma.set.findUnique.mockResolvedValue({ id: "set-1", authorId: "user-1", cards: [{ id: "card-1" }] });
     prisma.cardSrsState.findMany.mockResolvedValue([]);
     prisma.cardSrsReviewLog.findMany.mockResolvedValue([]);
 
