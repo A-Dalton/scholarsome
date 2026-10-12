@@ -50,11 +50,12 @@
 }
 
 /*
- * The flashcard is the positioning context of the waiting overlay, which is
- * shown when a rating takes longer than the busy delay and blocks the card's
- * input until the API answered and the session advanced to the next card
+ * The card body is the positioning context of the waiting overlay and of the
+ * previous mistake note. Both are part of the card's content this way: they
+ * flip with it and keep their position and orientation while the card is
+ * flipped, as the body is counter-rotated by the flip animation
  */
-.flashcard {
+.flashcard .card-body {
   position: relative;
 }
 
@@ -68,6 +69,25 @@
   cursor: progress;
   border-radius: var(--bs-card-border-radius, var(--bs-border-radius-lg));
   background: color-mix(in srgb, var(--bs-card-bg, var(--bs-body-bg)) 85%, transparent);
+}
+
+/*
+ * Note on a card that was already rated "Don't know" within the session and
+ * is shown again: its rating is already scheduled on the server, so the card
+ * is only moved past instead of being rated again
+ */
+.previous-mistake {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.875rem;
+  padding: 0.45em 0.8em;
+}
+
+/* keeps the card's text from running under the note */
+.flashcard.has-previous-mistake .card-body {
+  padding-top: 2.5rem;
 }
 
 /* Stat tiles of the review start screen, shared by the scheduled states and upcoming reviews */

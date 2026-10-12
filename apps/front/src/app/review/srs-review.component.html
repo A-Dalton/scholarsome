@@ -104,13 +104,14 @@
 <!-- Review session -->
 <div class="container flashcard-container mb-4" *ngIf="answer() && !completed()">
   <div class="row">
-    <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped() && flipInteraction(), 'flip-forwards': !flipped() && flipInteraction()}">
+    <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped() && flipInteraction(), 'flip-forwards': !flipped() && flipInteraction(), 'has-previous-mistake': isReinsertedCard()}">
       <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" (click)="flipCard()">
+        <span class="previous-mistake badge text-bg-secondary" *ngIf="isReinsertedCard()">Previous mistake</span>
         <div [innerHTML]="sanitizer.bypassSecurityTrustHtml(sideText())" class="overflow-hidden"></div>
-      </div>
-      <div class="rating-waiting" *ngIf="ratingBusy()">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Saving your rating</span>
+        <div class="rating-waiting" *ngIf="ratingBusy()">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Saving your rating</span>
+          </div>
         </div>
       </div>
     </div>

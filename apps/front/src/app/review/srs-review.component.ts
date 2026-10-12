@@ -92,8 +92,9 @@ export class SrsReviewComponent implements OnInit {
   // Amount of cards learned so far, shown as the counter on the bottom
   protected learnedCount = signal(0);
 
-  // Card IDs that were already rated within the session; only the first
-  // rating of a card triggers the SRS and counts towards the summary
+  // Card IDs that were already rated within the session. Only the first
+  // rating of a card triggers the SRS and counts towards the summary; cards
+  // that are shown again after their "Don't know" are only moved past
   private ratedCardIds = new Set<string>();
 
   // Cards rated with "Don't know" that are shown once more after 4-12 learned cards
@@ -169,6 +170,21 @@ export class SrsReviewComponent implements OnInit {
    * Buttons of the lower card, rating the current card within the SRS
    */
   protected getRatingActions(): FlashcardControlAction[] {
+    // the card was already rated within the session and is shown again after
+    // its "Don't know": its rating is already scheduled on the server, so
+    // instead of the rating buttons it is only moved past
+    if (this.isReinsertedCard()) {
+      return [
+        {
+          label: "Continue",
+          variant: "btn-outline-secondary",
+          ariaLabel: "Continue",
+          disabled: this.ratingBusy(),
+          action: () => this.completeReinsertedCard()
+        }
+      ];
+    }
+
     return [
       {
         label: "Don't know",
@@ -269,10 +285,10 @@ export class SrsReviewComponent implements OnInit {
   /**
    * Applies the given rating to the current card. Cards rated with "Don't know"
    * disappear and are shown once more after 4-12 cards have been learned in the
-   * meantime, repeatedly until they are rated differently. They are also stored
-   * as a previous mistake. Any other rating completes the card and advances to
-   * the next one. Only the first rating of a card within the session triggers
-   * the SRS and counts towards the summary
+   * meantime, marked as a previous mistake. They are not rated again: their
+   * rating was already scheduled by the "Don't know", so they are only moved
+   * past with completeReinsertedCard. Any other rating completes the card and
+   * advances to the next one
    *
    * @param rating The rating to apply to the current card
    */
@@ -282,44 +298,47 @@ export class SrsReviewComponent implements OnInit {
     const card = this.cards()[this.index()];
     if (!card) return;
 
-    if (!this.ratedCardIds.has(card.card.id)) {
-      this.ratingInFlight.set(true);
+    // the card was already rated within the session and is only shown again
+    // after its "Don't know": its rating is already scheduled on the server,
+    // so it is neither rated again nor shown a third time
+    if (this.ratedCardIds.has(card.card.id)) return;
 
-      // the busy state is only shown when the rating takes longer than the
-      // delay, so that fast ratings do not flash the interface
-      this.ratingBusyTimeout = setTimeout(() => {
-        this.ratingBusyTimeout = undefined;
-        this.ratingBusy.set(true);
-      }, this.ratingBusyDelay);
+    this.ratingInFlight.set(true);
 
-      const result = await this.srsService.rate(card.card.id, rating);
+    // the busy state is only shown when the rating takes longer than the
+    // delay, so that fast ratings do not flash the interface
+    this.ratingBusyTimeout = setTimeout(() => {
+      this.ratingBusyTimeout = undefined;
+      this.ratingBusy.set(true);
+    }, this.ratingBusyDelay);
 
-      this.cancelRatingBusy();
-      this.ratingInFlight.set(false);
+    const result = await this.srsService.rate(card.card.id, rating);
 
-      // the rating was not persisted, e.g. because the connection was lost.
-      // The session is quit instead of continuing with a client state that
-      // no longer matches the schedule on the server
-      if (!result) {
-        await this.abortSession();
-        return;
-      }
+    this.cancelRatingBusy();
+    this.ratingInFlight.set(false);
 
-      // the state returned by the API is the source of truth for the session
-      card.srs = result.srs;
-
-      this.ratedCardIds.add(card.card.id);
-
-      if (rating === SrsRating.Again) {
-        this.againCount.update((c) => c + 1);
-
-        // the card is stored as a previous mistake, like the "Don't know"
-        // button of progressive flashcards; ratedCardIds ensures it is only
-        // recorded once per session, even when the card is rated again
-        void this.cardMistakesService.createMistake(card.card.id);
-      } else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
-      else this.goodCount.update((c) => c + 1);
+    // the rating was not persisted, e.g. because the connection was lost.
+    // The session is quit instead of continuing with a client state that
+    // no longer matches the schedule on the server
+    if (!result) {
+      await this.abortSession();
+      return;
     }
+
+    // the state returned by the API is the source of truth for the session
+    card.srs = result.srs;
+
+    this.ratedCardIds.add(card.card.id);
+
+    if (rating === SrsRating.Again) {
+      this.againCount.update((c) => c + 1);
+
+      // the card is stored as a previous mistake, like the "Don't know"
+      // button of progressive flashcards; it is recorded exactly once per
+      // session, as the card cannot be rated again within it
+      void this.cardMistakesService.createMistake(card.card.id);
+    } else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
+    else this.goodCount.update((c) => c + 1);
 
     if (rating === SrsRating.Again) {
       // the card is shown again after 4-12 cards have been learned in the
@@ -333,6 +352,51 @@ export class SrsReviewComponent implements OnInit {
     // and collects the ones that are due now
     this.learnedCount.update((c) => c + 1);
 
+    const due: SrsCard[] = [];
+    const stillPending: { card: SrsCard; remaining: number }[] = [];
+    for (const pending of this.pendingReinsertions) {
+      pending.remaining--;
+      if (pending.remaining > 0) stillPending.push(pending);
+      else due.push(pending.card);
+    }
+    this.pendingReinsertions = stillPending;
+
+    if (due.length) {
+      this.cards.update((cards) => {
+        const copy = [...cards];
+        copy.splice(this.index() + 1, 0, ...due);
+        return copy;
+      });
+    }
+
+    this.advanceToNextCard();
+  }
+
+  /**
+   * Whether the currently shown card was already rated within the session and
+   * is only shown again after its "Don't know"
+   */
+  protected isReinsertedCard(): boolean {
+    const card = this.cards()[this.index()];
+    return !!card && this.ratedCardIds.has(card.card.id);
+  }
+
+  /**
+   * Moves past the currently shown reinserted card. The card was already rated
+   * within the session and its "Don't know" is already scheduled on the
+   * server, so it is neither rated again nor shown a third time: it simply
+   * leaves the queue like any other completed card
+   */
+  private completeReinsertedCard(): void {
+    if (this.ratingInFlight()) return;
+
+    const card = this.cards()[this.index()];
+    if (!card || !this.ratedCardIds.has(card.card.id)) return;
+
+    this.learnedCount.update((c) => c + 1);
+
+    // completing the card advances the countdown of every other pending
+    // reinsertion and collects the ones that are due now
     const due: SrsCard[] = [];
     const stillPending: { card: SrsCard; remaining: number }[] = [];
     for (const pending of this.pendingReinsertions) {
@@ -489,6 +553,17 @@ export class SrsReviewComponent implements OnInit {
   @HostListener("document:keydown", ["$event"])
   keyboardRatingEvent(event: KeyboardEvent) {
     if (!this.answer() || this.ratingInFlight()) return;
+
+    // the shown card was already rated within the session and is only shown
+    // again after its "Don't know": every rating key just moves past it, as
+    // its rating is already scheduled on the server
+    if (this.isReinsertedCard()) {
+      if (event.key === "1" || event.key === "2" || event.key === "3") {
+        this.controls?.flashAction(0);
+        this.completeReinsertedCard();
+      }
+      return;
+    }
 
     if (event.key === "1") {
       this.controls?.flashAction(0);
