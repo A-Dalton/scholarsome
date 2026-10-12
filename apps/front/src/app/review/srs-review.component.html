@@ -15,6 +15,7 @@
       <p class="text-secondary small mb-0">
         Cards you struggle with come back more often, cards you know well come back less often — {{ setId ? "the cards of this set are reviewed" : folderId ? "the cards of this folder and its subfolders are reviewed" : "everything across all of your sets is reviewed" }}.
       </p>
+      <scholarsome-alert *ngIf="ratingFailed()" type="danger" [dismiss]="false" message="Your rating could not be saved and the review was ended. Check your connection and try again." spacingClass="mt-3"></scholarsome-alert>
       <div class="mt-4" *ngIf="queue()!.cards.length > 0">
         <p class="text-secondary fw-semibold text-uppercase section-label">{{ queue()!.cards.length }} card{{ queue()!.cards.length === 1 ? "" : "s" }} scheduled for review</p>
         <div class="row row-cols-2 row-cols-sm-4 g-2 stat-tile-row">
@@ -106,6 +107,11 @@
     <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped() && flipInteraction(), 'flip-forwards': !flipped() && flipInteraction()}">
       <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" (click)="flipCard()">
         <div [innerHTML]="sanitizer.bypassSecurityTrustHtml(sideText())" class="overflow-hidden"></div>
+      </div>
+      <div class="rating-waiting" *ngIf="ratingBusy()">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Saving your rating</span>
+        </div>
       </div>
     </div>
   </div>

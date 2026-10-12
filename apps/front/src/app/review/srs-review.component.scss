@@ -49,6 +49,27 @@
   transform: translateY(-2px);
 }
 
+/*
+ * The flashcard is the positioning context of the waiting overlay, which is
+ * shown when a rating takes longer than the busy delay and blocks the card's
+ * input until the API answered and the session advanced to the next card
+ */
+.flashcard {
+  position: relative;
+}
+
+.rating-waiting {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: progress;
+  border-radius: var(--bs-card-border-radius, var(--bs-border-radius-lg));
+  background: color-mix(in srgb, var(--bs-card-bg, var(--bs-body-bg)) 85%, transparent);
+}
+
 /* Stat tiles of the review start screen, shared by the scheduled states and upcoming reviews */
 .stat-tile {
   position: relative;

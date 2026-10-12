@@ -11,6 +11,7 @@ import { SrsService } from "../shared/http/srs.service";
 import { FoldersService } from "../shared/http/folders.service";
 import { SetsService } from "../shared/http/sets.service";
 import { CardMistakesService } from "../shared/http/card-mistakes.service";
+import { AlertComponent } from "../shared/alert/alert.component";
 import { FlashcardControlAction, FlashcardControlsComponent } from "../shared/flashcard-controls/flashcard-controls.component";
 
 @Component({
@@ -19,7 +20,7 @@ import { FlashcardControlAction, FlashcardControlsComponent } from "../shared/fl
   selector: "scholarsome-srs-review",
   templateUrl: "./srs-review.component.html",
   styleUrls: ["./srs-review.component.scss"],
-  imports: [CommonModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent, TooltipModule]
+  imports: [CommonModule, FontAwesomeModule, RouterLink, FlashcardControlsComponent, TooltipModule, AlertComponent]
 })
 export class SrsReviewComponent implements OnInit {
   constructor(
@@ -70,8 +71,15 @@ export class SrsReviewComponent implements OnInit {
 
   // Whether a rating request is currently in flight
   protected ratingInFlight = signal(false);
+  // Whether the busy state of a rating is shown; only activated when a rating
+  // takes longer than the delay, so that fast ratings do not flash the UI
+  protected ratingBusy = signal(false);
   // Whether all cards of the session have been rated
   protected completed = signal(false);
+
+  // Whether the last rating could not be saved and the session was aborted;
+  // shown on the start screen, from which the review can be started again
+  protected ratingFailed = signal(false);
 
   // Amount of cards rated with each rating within the current session
   protected againCount = signal(0);
@@ -93,6 +101,13 @@ export class SrsReviewComponent implements OnInit {
 
   // Delayed text swap of a flip, cancelled when a card is reset beforehand
   private flipTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  // Time until the busy state of a rating is shown
+  private readonly ratingBusyDelay = 200;
+
+  // Delayed activation of the busy state of a rating, cancelled when the
+  // rating resolves before the delay has elapsed
+  private ratingBusyTimeout: ReturnType<typeof setTimeout> | undefined;
 
   protected readonly faQuestionCircle = faQuestionCircle;
   protected readonly faBolt = faBolt;
@@ -160,6 +175,7 @@ export class SrsReviewComponent implements OnInit {
         variant: "btn-outline-danger",
         key: "1",
         ariaLabel: "Don't know (press 1)",
+        disabled: this.ratingBusy(),
         action: () => void this.rate(SrsRating.Again)
       },
       {
@@ -167,6 +183,7 @@ export class SrsReviewComponent implements OnInit {
         variant: "btn-outline-warning",
         key: "2",
         ariaLabel: "Took a while (press 2)",
+        disabled: this.ratingBusy(),
         action: () => void this.rate(SrsRating.Hard)
       },
       {
@@ -174,6 +191,7 @@ export class SrsReviewComponent implements OnInit {
         variant: "btn-outline-success",
         key: "3",
         ariaLabel: "Got it (press 3)",
+        disabled: this.ratingBusy(),
         action: () => void this.rate(SrsRating.Good)
       }
     ];
@@ -235,6 +253,20 @@ export class SrsReviewComponent implements OnInit {
   }
 
   /**
+   * Cancels the busy state of a rating: when its delayed activation is still
+   * pending, it is discarded so that the state is never shown at all, and when
+   * the busy state is already shown, it is hidden again
+   */
+  private cancelRatingBusy(): void {
+    if (this.ratingBusyTimeout) {
+      clearTimeout(this.ratingBusyTimeout);
+      this.ratingBusyTimeout = undefined;
+    } else {
+      this.ratingBusy.set(false);
+    }
+  }
+
+  /**
    * Applies the given rating to the current card. Cards rated with "Don't know"
    * disappear and are shown once more after 4-12 cards have been learned in the
    * meantime, repeatedly until they are rated differently. They are also stored
@@ -253,14 +285,28 @@ export class SrsReviewComponent implements OnInit {
     if (!this.ratedCardIds.has(card.card.id)) {
       this.ratingInFlight.set(true);
 
+      // the busy state is only shown when the rating takes longer than the
+      // delay, so that fast ratings do not flash the interface
+      this.ratingBusyTimeout = setTimeout(() => {
+        this.ratingBusyTimeout = undefined;
+        this.ratingBusy.set(true);
+      }, this.ratingBusyDelay);
+
       const result = await this.srsService.rate(card.card.id, rating);
 
-      // the state returned by the API is the source of truth for the session
-      if (result) {
-        card.srs = result.srs;
+      this.cancelRatingBusy();
+      this.ratingInFlight.set(false);
+
+      // the rating was not persisted, e.g. because the connection was lost.
+      // The session is quit instead of continuing with a client state that
+      // no longer matches the schedule on the server
+      if (!result) {
+        await this.abortSession();
+        return;
       }
 
-      this.ratingInFlight.set(false);
+      // the state returned by the API is the source of truth for the session
+      card.srs = result.srs;
 
       this.ratedCardIds.add(card.card.id);
 
@@ -338,7 +384,26 @@ export class SrsReviewComponent implements OnInit {
    * returning to the "Answer with" selection
    */
   async restart(): Promise<void> {
+    // a rating is in flight: the session must not be torn down before the
+    // API answered, as its response would apply to the reset session
+    if (this.ratingInFlight()) return;
+
     await this.loadQueue();
+  }
+
+  /**
+   * Quits the session because a rating could not be saved. The session is
+   * reset to the start screen and the queue is reloaded, so that its counts
+   * match the schedule on the server again. When the queue cannot be reached,
+   * the stale one is kept: the error on the start screen explains the aborted
+   * session and navigating away would hide it
+   */
+  private async abortSession(): Promise<void> {
+    this.resetSession();
+    this.ratingFailed.set(true);
+
+    const queue = await this.fetchQueue();
+    if (queue) this.queue.set(queue);
   }
 
   /**
@@ -348,10 +413,7 @@ export class SrsReviewComponent implements OnInit {
    * all cards scheduled for review across all folders
    */
   private async loadQueue(): Promise<void> {
-    let queue: SrsQueueData | null;
-    if (this.setId) queue = await this.srsService.setQueue(this.setId);
-    else if (this.folderId) queue = await this.srsService.queue(this.folderId);
-    else queue = await this.srsService.queueAll();
+    const queue = await this.fetchQueue();
 
     if (!queue) {
       await this.router.navigate(["404"]);
@@ -371,9 +433,38 @@ export class SrsReviewComponent implements OnInit {
     }
 
     // the session is reset whenever a new queue is loaded
+    this.resetSession();
+  }
+
+  /**
+   * Fetches the review queue of the current scope without any further
+   * processing, so that it can be used by both the initial load and the
+   * reload after an aborted session
+   *
+   * @returns `SrsQueueData` object, or null when it could not be loaded
+   */
+  private async fetchQueue(): Promise<SrsQueueData | null> {
+    if (this.setId) return this.srsService.setQueue(this.setId);
+    if (this.folderId) return this.srsService.queue(this.folderId);
+    return this.srsService.queueAll();
+  }
+
+  /**
+   * Resets the state of a session, e.g. when a new queue is loaded or when
+   * the session is aborted because a rating failed
+   */
+  private resetSession(): void {
+    if (this.flipTimeout) {
+      clearTimeout(this.flipTimeout);
+      this.flipTimeout = undefined;
+    }
+
+    this.cancelRatingBusy();
+
     this.answer.set(undefined);
     this.side.set(undefined);
     this.completed.set(false);
+    this.ratingFailed.set(false);
     this.cards.set([]);
     this.index.set(0);
     this.flipped.set(false);
