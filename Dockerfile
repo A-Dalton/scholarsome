@@ -6,10 +6,11 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache g++ make py3-pip openssl
 
 COPY package*.json ./
-# This stage installs production dependencies only, then builds below — so any
-# package needed at BUILD time (TypeScript, Nx, Angular tooling, and @types
-# packages whose declarations the code references, e.g. @types/multer for the
-# Express.Multer global namespace) must stay in "dependencies" in package.json.
+# This stage installs ALL dependencies (dev included) because it builds the
+# application. Build-time-only tooling (TypeScript, Nx, Angular and Docusaurus
+# toolchains, @types packages the code references, ...) lives in
+# "devDependencies" in package.json so that the runtime stage below can install
+# production dependencies only
 #
 # --libc=musl is required: this stage targets Alpine, but npm decides which
 # platform-specific native packages to install via libc autodetection, and that
@@ -17,8 +18,7 @@ COPY package*.json ./
 # class of bug). Angular's build then fails at chunk optimization because
 # rolldown's native binding is missing. Forcing musl matches the base image
 # and guarantees bindings like @rolldown/binding-linux-x64-musl install.
-RUN npm install --omit=dev --ignore-scripts --no-fund --libc=musl
-RUN npm rebuild bcrypt
+RUN npm install --ignore-scripts --no-fund --libc=musl
 
 COPY . .
 
@@ -34,6 +34,23 @@ RUN npm run generate
 # build is production-only.
 RUN npm run build -- --configuration=production
 
+FROM node:26-alpine AS runtime-deps
+
+WORKDIR /usr/src/app
+
+# g++/make/python exist only so `npm rebuild bcrypt` can compile from source on
+# musl; this stage's layers are never shipped — only its node_modules is copied
+# into the final stage.
+RUN apk add --no-cache g++ make py3-pip openssl
+
+COPY package*.json ./
+# Production dependencies only: exactly the packages the compiled API requires
+# at runtime (plus prisma for `migrate deploy` on boot). --ignore-scripts is
+# safe here because bcrypt, better-sqlite3 and sharp ship musl prebuilds (or
+# platform packages); bcrypt is rebuilt below.
+RUN npm install --omit=dev --ignore-scripts --no-fund --libc=musl
+RUN npm rebuild bcrypt
+
 FROM node:26-alpine
 
 WORKDIR /usr/src/app
@@ -46,10 +63,11 @@ RUN apk add --no-cache openssl libcap su-exec \
     && setcap "cap_net_bind_service=+ep" /usr/local/bin/node
 
 # Runtime needs: the full dist tree (the API serves the front-end, handbook and
-# sitemaps out of it), node_modules, package.json for the npm run scripts, and
-# the prisma schema/migrations for `prisma migrate deploy` on boot.
+# sitemaps out of it), node_modules from the production-only stage, package.json
+# for the npm run scripts, and the prisma schema/migrations for
+# `prisma migrate deploy` on boot.
 COPY --from=builder --chown=node:node /usr/src/app/dist ./dist
-COPY --from=builder --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --from=runtime-deps --chown=node:node /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node package.json prisma.config.ts ./
 COPY --chown=node:node prisma ./prisma
 
