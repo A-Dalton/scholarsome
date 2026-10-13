@@ -61,6 +61,11 @@ export class FlashcardControlsComponent {
   /** Optional word displayed after the "x/y" counter, e.g. "learned" */
   readonly counterLabel = input<string | undefined>(undefined);
 
+  /** Whether the session progress with the progress bar and the counter is
+   *  shown. Hidden for cards that are re-shown within a session without being
+   *  part of its counted progress, e.g. the reinserted mistakes of the review */
+  readonly showProgress = input(true);
+
   /** Buttons of the actions, flashed when an action is triggered without a tap */
   @ViewChildren("actionButton") private actionButtons: QueryList<ElementRef<HTMLButtonElement>>;
 

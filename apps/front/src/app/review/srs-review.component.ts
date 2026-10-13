@@ -89,7 +89,8 @@ export class SrsReviewComponent implements OnInit {
   // Amount of unique cards of the session, shown in the completion summary
   protected totalCards = signal(0);
 
-  // Amount of cards learned so far, shown as the counter on the bottom
+  // Amount of cards rated so far, shown as the counter on the bottom; a card
+  // re-shown as a previous mistake is not counted again when it is moved past
   protected learnedCount = signal(0);
 
   // Card IDs that were already rated within the session. Only the first
@@ -340,6 +341,10 @@ export class SrsReviewComponent implements OnInit {
     } else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
     else this.goodCount.update((c) => c + 1);
 
+    // every first rating counts the card as learned, including a "Don't know":
+    // the card was dealt with and comes back only as a previous mistake
+    this.learnedCount.update((c) => c + 1);
+
     if (rating === SrsRating.Again) {
       // the card is shown again after 4-12 cards have been learned in the
       // meantime, woven in between the remaining cards instead of the queue's end
@@ -348,10 +353,8 @@ export class SrsReviewComponent implements OnInit {
       return;
     }
 
-    // the learned card advances the countdown of every pending reinsertion
+    // the rated card advances the countdown of every pending reinsertion
     // and collects the ones that are due now
-    this.learnedCount.update((c) => c + 1);
-
     const due: SrsCard[] = [];
     const stillPending: { card: SrsCard; remaining: number }[] = [];
     for (const pending of this.pendingReinsertions) {
@@ -385,15 +388,13 @@ export class SrsReviewComponent implements OnInit {
    * Moves past the currently shown reinserted card. The card was already rated
    * within the session and its "Don't know" is already scheduled on the
    * server, so it is neither rated again nor shown a third time: it simply
-   * leaves the queue like any other completed card
+   * leaves the queue, without counting towards the learned counter again
    */
   private completeReinsertedCard(): void {
     if (this.ratingInFlight()) return;
 
     const card = this.cards()[this.index()];
     if (!card || !this.ratedCardIds.has(card.card.id)) return;
-
-    this.learnedCount.update((c) => c + 1);
 
     // completing the card advances the countdown of every other pending
     // reinsertion and collects the ones that are due now

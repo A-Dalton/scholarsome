@@ -47,7 +47,7 @@ The currently shown card is flipped by clicking on it or by pressing the spaceba
 - **Took a while (2)** - the card was remembered, but with difficulty
 - **Knew right away (3)** - the card was remembered easily
 
-Cards rated as "Don't know" do not leave the session right away. They come back after another 4-12 cards have been learned, marked with a "Previous mistake" note. Since the card was already scheduled by its "Don't know" rating, it is not rated again: the note comes with a neutral "Continue" button that moves past the card, and it is not shown a third time within the session. The counter at the bottom shows how many cards have been learned so far.
+Cards rated as "Don't know" do not leave the session right away. They come back after another 4-12 cards have been rated as remembered, marked with a "Previous mistake" note. Since the card was already scheduled by its "Don't know" rating, it is not rated again: the note comes with a neutral "Continue" button that moves past the card, and it is not shown a third time within the session.
 
 Cards rated as "Don't know" are also stored in [Previous mistakes](/usage/previous-mistakes), just like the "Don't know" button of progressive flashcards. Each card is only recorded once per session.
 

@@ -25,11 +25,13 @@
       }
     </div>
 
-    <div class="session-progress mt-3">
-      <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" [attr.aria-valuemax]="barTotal() ?? total()" [attr.aria-valuenow]="barValue()">
-        <div class="progress-bar" [style.width.%]="barPercent()"></div>
+    @if (showProgress()) {
+      <div class="session-progress mt-3">
+        <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" [attr.aria-valuemax]="barTotal() ?? total()" [attr.aria-valuenow]="barValue()">
+          <div class="progress-bar" [style.width.%]="barPercent()"></div>
+        </div>
+        <p class="text-secondary mb-0 mt-2">{{ counterText() }}</p>
       </div>
-      <p class="text-secondary mb-0 mt-2">{{ counterText() }}</p>
-    </div>
+    }
   </div>
 </div>
