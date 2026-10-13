@@ -98,9 +98,6 @@ export class SrsReviewComponent implements OnInit {
   // that are shown again after their "Don't know" are only moved past
   private ratedCardIds = new Set<string>();
 
-  // Cards rated with "Don't know" that are shown once more after 4-12 learned cards
-  private pendingReinsertions: { card: SrsCard; remaining: number }[] = [];
-
   // Delayed text swap of a flip, cancelled when a card is reset beforehand
   private flipTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -162,7 +159,6 @@ export class SrsReviewComponent implements OnInit {
     this.totalCards.set(cards.length);
     this.learnedCount.set(0);
     this.ratedCardIds.clear();
-    this.pendingReinsertions = [];
 
     this.resetToPromptSide(this.cards()[0]);
   }
@@ -285,8 +281,8 @@ export class SrsReviewComponent implements OnInit {
 
   /**
    * Applies the given rating to the current card. Cards rated with "Don't know"
-   * disappear and are shown once more after 4-12 cards have been learned in the
-   * meantime, marked as a previous mistake. They are not rated again: their
+   * are woven back into the remaining queue and are shown once more after 4-12
+   * cards have been passed in the meantime, marked as a previous mistake. They
    * rating was already scheduled by the "Don't know", so they are only moved
    * past with completeReinsertedCard. Any other rating completes the card and
    * advances to the next one
@@ -338,6 +334,10 @@ export class SrsReviewComponent implements OnInit {
       // button of progressive flashcards; it is recorded exactly once per
       // session, as the card cannot be rated again within it
       void this.cardMistakesService.createMistake(card.card.id);
+
+      // the card is woven back into the remaining queue, so that it is shown
+      // again after 4-12 cards instead of leaving the session right away
+      this.weaveInMistake(card);
     } else if (rating === SrsRating.Hard) this.hardCount.update((c) => c + 1);
     else this.goodCount.update((c) => c + 1);
 
@@ -345,34 +345,44 @@ export class SrsReviewComponent implements OnInit {
     // the card was dealt with and comes back only as a previous mistake
     this.learnedCount.update((c) => c + 1);
 
-    if (rating === SrsRating.Again) {
-      // the card is shown again after 4-12 cards have been learned in the
-      // meantime, woven in between the remaining cards instead of the queue's end
-      this.pendingReinsertions.push({ card, remaining: 4 + Math.floor(Math.random() * 9) });
-      this.advanceToNextCard();
-      return;
-    }
-
-    // the rated card advances the countdown of every pending reinsertion
-    // and collects the ones that are due now
-    const due: SrsCard[] = [];
-    const stillPending: { card: SrsCard; remaining: number }[] = [];
-    for (const pending of this.pendingReinsertions) {
-      pending.remaining--;
-      if (pending.remaining > 0) stillPending.push(pending);
-      else due.push(pending.card);
-    }
-    this.pendingReinsertions = stillPending;
-
-    if (due.length) {
-      this.cards.update((cards) => {
-        const copy = [...cards];
-        copy.splice(this.index() + 1, 0, ...due);
-        return copy;
-      });
-    }
-
     this.advanceToNextCard();
+  }
+
+  /**
+   * Weaves a card rated with "Don't know" back into the remaining queue, so
+   * that it is shown again after 4-12 cards have been passed in the meantime.
+   * The position is drawn at random and kept away from the mistakes that are
+   * woven in already, so that several mistakes do not come back one after
+   * another. When the queue ends before the drawn distance, the card is shown
+   * at its end
+   *
+   * @param card The card rated with "Don't know" to show again
+   */
+  private weaveInMistake(card: SrsCard): void {
+    this.cards.update((cards) => {
+      const copy = [...cards];
+
+      let position = copy.length;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const distance = 4 + Math.floor(Math.random() * 9);
+        position = Math.min(this.index() + 1 + distance, copy.length);
+
+        // the card must not be placed right next to a mistake that comes back
+        // later as well; when no free spot is drawn after several attempts,
+        // the last drawn position is used as a fallback
+        const before = copy[position - 1];
+        const after = copy[position];
+        if (
+          (!before || !this.ratedCardIds.has(before.card.id)) &&
+          (!after || !this.ratedCardIds.has(after.card.id))
+        ) {
+          break;
+        }
+      }
+
+      copy.splice(position, 0, card);
+      return copy;
+    });
   }
 
   /**
@@ -396,48 +406,22 @@ export class SrsReviewComponent implements OnInit {
     const card = this.cards()[this.index()];
     if (!card || !this.ratedCardIds.has(card.card.id)) return;
 
-    // completing the card advances the countdown of every other pending
-    // reinsertion and collects the ones that are due now
-    const due: SrsCard[] = [];
-    const stillPending: { card: SrsCard; remaining: number }[] = [];
-    for (const pending of this.pendingReinsertions) {
-      pending.remaining--;
-      if (pending.remaining > 0) stillPending.push(pending);
-      else due.push(pending.card);
-    }
-    this.pendingReinsertions = stillPending;
-
-    if (due.length) {
-      this.cards.update((cards) => {
-        const copy = [...cards];
-        copy.splice(this.index() + 1, 0, ...due);
-        return copy;
-      });
-    }
-
     this.advanceToNextCard();
   }
 
   /**
-   * Moves on to the next card. Pending reinsertions are flushed to the end of
-   * the queue when no cards are left to learn in between, and the session is
-   * completed once the last card is reached without pending reinsertions
+   * Moves on to the next card and completes the session once the last one is
+   * reached. Cards rated with "Don't know" are woven back into the queue when
+   * they are rated, so every card that is still to be shown is already part
+   * of it
    */
   private advanceToNextCard(): void {
     if (this.index() === this.cards().length - 1) {
-      if (this.pendingReinsertions.length > 0) {
-        // no cards are left to learn in between, so the pending cards can
-        // only be shown at the end of the queue
-        const flushed = this.pendingReinsertions.map((pending) => pending.card);
-        this.pendingReinsertions = [];
-        this.cards.update((cards) => [...cards, ...flushed]);
-      } else {
-        // the session is completed
-        this.answer.set(undefined);
-        this.side.set(undefined);
-        this.completed.set(true);
-        return;
-      }
+      // the session is completed
+      this.answer.set(undefined);
+      this.side.set(undefined);
+      this.completed.set(true);
+      return;
     }
 
     this.index.update((i) => i + 1);
@@ -540,7 +524,6 @@ export class SrsReviewComponent implements OnInit {
     this.totalCards.set(0);
     this.learnedCount.set(0);
     this.ratedCardIds.clear();
-    this.pendingReinsertions = [];
   }
 
   @HostListener("document:keypress", ["$event"])
