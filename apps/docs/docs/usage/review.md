@@ -37,7 +37,7 @@ Each box shows an info icon in its corner. Hovering over it explains what the st
 
 Underneath, "Answer with" lets you choose whether the term or the definition is shown first. This is the same choice as when studying with [Flashcards](/usage/flashcards): if "Definition" is selected as the answer, the term is presented first, and vice versa.
 
-If nothing is due, the screen states this, and the upcoming reviews section shows when cards are due next: within the next hour, the next 1 to 4 hours, 4 to 24 hours, or 24 to 72 hours. Cards that are not due yet are counted in this section, so every card shows up either as scheduled or as upcoming, but never as both.
+If nothing is due, the screen states this, and the upcoming reviews section shows when cards are due next: within the next hour, the next 1 to 4 hours, 4 to 24 hours, or 24 to 72 hours.
 
 ## Reviewing cards
 
