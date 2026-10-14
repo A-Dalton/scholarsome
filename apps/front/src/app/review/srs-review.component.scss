@@ -123,8 +123,13 @@
   color: var(--bs-body-color);
 }
 
+/*
+ * Labels of the stat tiles. The upcoming reviews split "Next" and the range
+ * onto two lines, so the text is centered to keep both lines aligned
+ */
 .stat-label {
   font-size: 0.875rem;
+  text-align: center;
 }
 
 .back-arrow:hover {

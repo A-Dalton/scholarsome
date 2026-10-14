@@ -66,8 +66,8 @@ describe("SrsService - getQueue", () => {
 
   it("keeps new cards first and cards with different due dates in ascending order", async () => {
     const hourInMs = 3600000;
-    const soon = new Date(Date.now() + hourInMs);
-    const later = new Date(Date.now() + 3 * hourInMs);
+    const soon = new Date(Date.now() - hourInMs);
+    const later = new Date(Date.now() - 3 * hourInMs);
 
     prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
     prisma.set.findUnique.mockResolvedValue({
@@ -101,14 +101,14 @@ describe("SrsService - getQueue", () => {
 
     const result = await srsService.getQueue("user-1", undefined, "set-1");
 
-    expect(result?.cards.map((card) => card.card.id)).toEqual(["card-new", "card-soon", "card-later"]);
+    expect(result?.cards.map((card) => card.card.id)).toEqual(["card-new", "card-later", "card-soon"]);
     expect(result?.cards.map((card) => card.srs.state)).toEqual([SrsState.New, SrsState.Review, SrsState.Review]);
   });
 
   it("shuffles ties within each due date group without mixing the groups", async () => {
     const hourInMs = 3600000;
-    const soon = new Date(Date.now() + hourInMs);
-    const later = new Date(Date.now() + 3 * hourInMs);
+    const soon = new Date(Date.now() - 3 * hourInMs);
+    const later = new Date(Date.now() - hourInMs);
 
     prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
     prisma.set.findUnique.mockResolvedValue({
@@ -146,5 +146,46 @@ describe("SrsService - getQueue", () => {
     const result = await srsService.getQueue("user-1", undefined, "set-1");
 
     expect(result?.cards.map((card) => card.card.id)).toEqual(["review-b", "review-a", "review-c"]);
+  });
+
+  it("keeps cards that are not due yet out of the queue and counts them in the buckets", async () => {
+    const hourInMs = 3600000;
+    const due = new Date(Date.now() - hourInMs);
+    const withinHour = new Date(Date.now() + 30 * 60000);
+    const within4Hours = new Date(Date.now() + 2 * hourInMs);
+    const within24Hours = new Date(Date.now() + 12 * hourInMs);
+    const within72Hours = new Date(Date.now() + 48 * hourInMs);
+
+    prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
+    prisma.set.findUnique.mockResolvedValue({
+      id: "set-1",
+      authorId: "user-1",
+      cards: [
+        { id: "card-due", index: 0 },
+        { id: "card-1h", index: 1 },
+        { id: "card-4h", index: 2 },
+        { id: "card-24h", index: 3 },
+        { id: "card-72h", index: 4 }
+      ]
+    });
+    prisma.cardSrsState.findMany.mockResolvedValue([
+      { cardId: "card-due", due, state: 2 },
+      { cardId: "card-1h", due: withinHour, state: 2 },
+      { cardId: "card-4h", due: within4Hours, state: 2 },
+      { cardId: "card-24h", due: within24Hours, state: 2 },
+      { cardId: "card-72h", due: within72Hours, state: 2 }
+    ]);
+
+    const result = await srsService.getQueue("user-1", undefined, "set-1");
+
+    // only the due card is scheduled for review, while every card that is not
+    // due yet is only counted in the bucket of its distance to the due date
+    expect(result?.cards.map((card) => card.card.id)).toEqual(["card-due"]);
+    expect(result?.upcomingBuckets).toEqual({
+      upcomingWithin1Hour: 1,
+      upcomingWithin4Hours: 1,
+      upcomingWithin24Hours: 1,
+      upcomingWithin72Hours: 1
+    });
   });
 });

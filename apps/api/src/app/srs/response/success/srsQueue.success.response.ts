@@ -79,28 +79,28 @@ export class SrsCardEntity {
 
 export class SrsUpcomingBucketsEntity {
   @ApiProperty({
-    description: "Amount of cards that are not yet due and scheduled within the next 4 hours",
+    description: "Amount of cards that are not yet due and scheduled within the next hour",
+    example: 0
+  })
+    upcomingWithin1Hour: number;
+
+  @ApiProperty({
+    description: "Amount of cards that are not yet due and scheduled between 1 and 4 hours from now",
     example: 0
   })
     upcomingWithin4Hours: number;
 
   @ApiProperty({
-    description: "Amount of cards that are not yet due and scheduled between 4 hours and 24 hours from now",
+    description: "Amount of cards that are not yet due and scheduled between 4 and 24 hours from now",
     example: 0
   })
     upcomingWithin24Hours: number;
 
   @ApiProperty({
-    description: "Amount of cards that are not yet due and scheduled between 24 hours and 3 days from now",
+    description: "Amount of cards that are not yet due and scheduled between 24 and 72 hours from now",
     example: 0
   })
-    upcomingWithin3Days: number;
-
-  @ApiProperty({
-    description: "Amount of cards that are not yet due and scheduled between 3 days and 7 days from now",
-    example: 0
-  })
-    upcomingWithin7Days: number;
+    upcomingWithin72Hours: number;
 }
 
 export class SrsQueueDataEntity {

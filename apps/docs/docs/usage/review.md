@@ -37,7 +37,7 @@ Each box shows an info icon in its corner. Hovering over it explains what the st
 
 Underneath, "Answer with" lets you choose whether the term or the definition is shown first. This is the same choice as when studying with [Flashcards](/usage/flashcards): if "Definition" is selected as the answer, the term is presented first, and vice versa.
 
-If nothing is due, the screen states this, and the upcoming reviews section shows when cards are due next: within the next 4 hours, 24 hours, 3 days, or 7 days.
+If nothing is due, the screen states this, and the upcoming reviews section shows when cards are due next: within the next hour, the next 1 to 4 hours, 4 to 24 hours, or 24 to 72 hours. Cards that are not due yet are counted in this section, so every card shows up either as scheduled or as upcoming, but never as both.
 
 ## Reviewing cards
 
@@ -62,7 +62,6 @@ Every card has a due date and one of the four states listed above:
 - Cards that have never been rated are new and due immediately, so newly created sets appear in the review right away.
 - Rating a card schedules its next due date. Cards rated "Knew right away" are scheduled further into the future than cards rated "Took a while", and cards rated "Don't know" return through the short learning and relearning steps.
 - The intervals grow as cards are rated successfully over time, which is what keeps well-known cards away and struggling cards close.
-- Cards that are due within the next few hours are part of the queue as well, so a session that starts earlier than the day before does not skip cards scheduled for exactly the time in between.
 
 The queue always contains every card that is due. It is not limited to a daily amount, so a review is as long as the number of due cards.
 

@@ -49,26 +49,26 @@
       <div class="row row-cols-2 row-cols-sm-4 g-2 stat-tile-row">
         <div class="col">
           <div class="stat-tile">
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin1Hour }}</span>
+            <span class="text-secondary stat-label">Next<br>hour</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
             <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin4Hours }}</span>
-            <span class="text-secondary stat-label">Next 4 hours</span>
+            <span class="text-secondary stat-label">Next<br>1-4 hours</span>
           </div>
         </div>
         <div class="col">
           <div class="stat-tile">
             <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin24Hours }}</span>
-            <span class="text-secondary stat-label">Next 24 hours</span>
+            <span class="text-secondary stat-label">Next<br>4-24 hours</span>
           </div>
         </div>
         <div class="col">
           <div class="stat-tile">
-            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin3Days }}</span>
-            <span class="text-secondary stat-label">Next 3 days</span>
-          </div>
-        </div>
-        <div class="col">
-          <div class="stat-tile">
-            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin7Days }}</span>
-            <span class="text-secondary stat-label">Next 7 days</span>
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin72Hours }}</span>
+            <span class="text-secondary stat-label">Next<br>24-72 hours</span>
           </div>
         </div>
       </div>

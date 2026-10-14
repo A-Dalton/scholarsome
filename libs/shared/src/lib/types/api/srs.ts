@@ -61,14 +61,15 @@ export interface SrsCard {
 
 /**
  * Amount of cards that are not yet due, bucketed by how far their due date is
- * in the future. The buckets are exclusive ranges, e.g. cards within the next
- * 4 hours are not part of the 24 hours bucket.
+ * in the future. The buckets are exclusive ranges, e.g. cards due within the
+ * next hour are not part of the 4 hours bucket, and cards due later than
+ * 72 hours are not part of any bucket.
  */
 export interface SrsUpcomingBuckets {
+  upcomingWithin1Hour: number;
   upcomingWithin4Hours: number;
   upcomingWithin24Hours: number;
-  upcomingWithin3Days: number;
-  upcomingWithin7Days: number;
+  upcomingWithin72Hours: number;
 }
 
 /**

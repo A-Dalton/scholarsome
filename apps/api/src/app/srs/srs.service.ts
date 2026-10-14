@@ -20,25 +20,6 @@ export class SrsService {
   ) {}
 
   /**
-   * Time by which the due cutoff of the review queue is extended. Cards that are
-   * not due yet but due within this window are part of the queue as well, so that
-   * a session starting slightly earlier than the last one does not skip cards
-   * scheduled for exactly the time between two sessions — a card graduating with
-   * a 24h interval would otherwise only reappear after 48h whenever a session
-   * starts earlier than the day before. Rating such cards early is scheduled
-   * correctly by ts-fsrs, as retrievability is always computed from the elapsed time.
-   *
-   * The window is deliberately the same for every review cadence: it compensates for
-   * the drift of session start times, which does not grow with the time between two
-   * sessions. For sparse cadences (every two days and sparser) nothing can be due
-   * within hours of a session, as their shortest schedule of 1d is always due before
-   * the next session, so a larger window would only pull stability-scheduled cards
-   * into reviews days too early. For dense cadences the short steps (3h/6h) are due
-   * again before the next session ends, so cards can slip at most a single session
-   */
-  private readonly queueLookaheadMs = 4 * 3600000;
-
-  /**
    * Amount of reviews returned per card within its review history. The charts of
    * the UI only show the most recent reviews, so the cap keeps the response of
    * sets with many heavily reviewed cards small while `totalReviews` still
@@ -295,8 +276,8 @@ export class SrsService {
    * When no set and no folder is given, it contains every card scheduled for
    * review across all sets of the user.
    * Cards are ordered new cards first, then by their due date. Cards sharing
-   * both are ordered randomly. Additionally returns the upcoming review
-   * buckets of the cards that are not due yet.
+   * both are ordered randomly. Additionally returns the upcoming review buckets
+   * of the cards that are not due yet.
    *
    * @param userId ID of the user to build the queue for
    * @param folderId Optional, ID of the folder to build the queue of
@@ -376,35 +357,32 @@ export class SrsService {
 
     const allCards = [...cardMap.values()];
 
-    // only cards that are scheduled for review are part of the queue, plus
-    // cards that fall into the lookahead window (see queueLookaheadMs)
+    // only cards that are already due are part of the queue
     const dueCards = allCards.filter((c) => c.due.getTime() <= now.getTime());
     const notDueCards = allCards.filter((c) => c.due.getTime() > now.getTime());
-    const upcomingCards = notDueCards.filter((c) => c.due.getTime() <= now.getTime() + this.queueLookaheadMs);
 
     // new cards first, then ordered by their due date; cards sharing both are
     // ordered randomly, as a fixed order inherited from the study set would
     // be predictable and easier to memorize than the cards themselves
-    const queueCards = [...dueCards, ...upcomingCards];
-    queueCards.sort((a, b) => {
+    dueCards.sort((a, b) => {
       if (a.srs.state !== b.srs.state) return a.srs.state - b.srs.state;
       if (a.due.getTime() !== b.due.getTime()) return a.due.getTime() - b.due.getTime();
       return a.shuffle - b.shuffle;
     });
 
     const hourInMs = 3600000;
-    const dayInMs = 24 * hourInMs;
 
-    // amount of not yet due cards, bucketed by how far their due date is in the future
+    // amount of not yet due cards, bucketed by how far their due date is in the
+    // future; cards due later than 72 hours are not part of any bucket
     const upcomingBuckets: SrsUpcomingBuckets = {
-      upcomingWithin4Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() <= 4 * hourInMs).length,
-      upcomingWithin24Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 4 * hourInMs && c.due.getTime() - now.getTime() <= dayInMs).length,
-      upcomingWithin3Days: notDueCards.filter((c) => c.due.getTime() - now.getTime() > dayInMs && c.due.getTime() - now.getTime() <= 3 * dayInMs).length,
-      upcomingWithin7Days: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 3 * dayInMs && c.due.getTime() - now.getTime() <= 7 * dayInMs).length
+      upcomingWithin1Hour: notDueCards.filter((c) => c.due.getTime() - now.getTime() <= hourInMs).length,
+      upcomingWithin4Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > hourInMs && c.due.getTime() - now.getTime() <= 4 * hourInMs).length,
+      upcomingWithin24Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 4 * hourInMs && c.due.getTime() - now.getTime() <= 24 * hourInMs).length,
+      upcomingWithin72Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 24 * hourInMs && c.due.getTime() - now.getTime() <= 72 * hourInMs).length
     };
 
     return {
-      cards: queueCards.map((c) => {
+      cards: dueCards.map((c) => {
         return {
           card: c.card,
           srs: c.srs
