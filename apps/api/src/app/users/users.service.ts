@@ -124,7 +124,9 @@ export class UsersService {
         srsCadence: cadence,
         srsEnableShortTerm: parameters.enableShortTerm,
         srsLearningSteps: parameters.learningSteps,
-        srsRelearningSteps: parameters.relearningSteps
+        srsRelearningSteps: parameters.relearningSteps,
+        srsRequestRetention: parameters.requestRetention,
+        srsMaximumInterval: parameters.maximumInterval
       }
     });
   }

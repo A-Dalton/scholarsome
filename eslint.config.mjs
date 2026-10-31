@@ -73,7 +73,7 @@ export default [
             // ts-fsrs exposes its API with snake_case identifiers,
             // which are mirrored by the database columns storing them.
             // userId_cardId is a Prisma-generated compound unique key name.
-            allow: ["jwt_decode", "request_retention", "maximum_interval", "enable_fuzz", "enable_short_term", "learning_steps", "relearning_steps", "elapsed_days", "scheduled_days", "last_elapsed_days", "last_review", "userId_cardId"],
+            allow: ["jwt_decode", "request_retention", "maximum_interval", "enable_fuzz", "enable_short_term", "learning_steps", "relearning_steps", "elapsed_days", "scheduled_days", "last_elapsed_days", "last_review", "scheduled_minutes", "next_step", "userId_cardId"],
           },
         ],
         "valid-jsdoc": "off",

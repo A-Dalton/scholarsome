@@ -10,7 +10,7 @@ import {
   SrsState,
   SrsUpcomingBuckets
 } from "@scholarsome/shared";
-import { createEmptyCard, fsrs, generatorParameters, State, type Card, type FSRSParameters, type Grade, type RecordLogItem, type Steps } from "ts-fsrs";
+import { ConvertStepUnitToMinutes, createEmptyCard, fsrs, generatorParameters, Rating, State, StrategyMode, type Card, type FSRSParameters, type Grade, type RecordLogItem, type Steps, type TLearningStepsStrategy } from "ts-fsrs";
 import { PrismaService } from "../providers/database/prisma/prisma.service";
 
 @Injectable()
@@ -140,6 +140,75 @@ export class SrsService {
    */
   private readonly defaultLearningSteps: Steps = ["23h", "1d"];
   private readonly defaultRelearningSteps: Steps = ["23h"];
+
+  /**
+   * Learning-steps strategy that lets a card rated "Took a while" advance
+   * through the learning steps instead of staying on the same step forever.
+   * The step delay is the midpoint between the current and next step, and once
+   * the last step is reached the card graduates with the FSRS-computed interval.
+   * The default ts-fsrs strategy keeps "Hard" on the current step, which leaves
+   * cards rated only "Took a while" in Learning/Relearning indefinitely.
+   */
+  private readonly learningStepsStrategy: TLearningStepsStrategy = (parameters, state, currentStep) => {
+    const steps = state === State.Relearning || state === State.Review ? parameters.relearning_steps : parameters.learning_steps;
+    if (steps.length === 0 || currentStep >= steps.length) return {};
+
+    const firstStep = ConvertStepUnitToMinutes(steps[0]);
+    const result: Partial<Record<Grade, ReturnType<typeof this.learningStepInfo>>> = {};
+
+    if (state === State.Review) {
+      // "Don't know" on a review card enters the relearning step
+      result[Rating.Again] = this.learningStepInfo(firstStep, 0);
+      return result;
+    }
+
+    result[Rating.Again] = this.learningStepInfo(firstStep, 0);
+
+    // a single step repeats itself with a 1.5x delay when rated "Took a while",
+    // matching the ts-fsrs behavior for relearning steps
+    if (steps.length === 1) {
+      result[Rating.Hard] = this.learningStepInfo(Math.round(firstStep * 1.5), 0);
+      return result;
+    }
+
+    const nextStep = currentStep + 1;
+    if (nextStep < steps.length) {
+      const currentMinutes = ConvertStepUnitToMinutes(steps[currentStep]);
+      const nextMinutes = ConvertStepUnitToMinutes(steps[nextStep]);
+      result[Rating.Hard] = this.learningStepInfo(Math.round((currentMinutes + nextMinutes) / 2), nextStep);
+      result[Rating.Good] = this.learningStepInfo(nextMinutes, nextStep);
+    } else {
+      // at the last step, both "Took a while" and "Knew right away" graduate
+      result[Rating.Hard] = this.learningStepInfo(0, steps.length);
+      result[Rating.Good] = this.learningStepInfo(0, steps.length);
+    }
+
+    return result;
+  };
+
+  /**
+   * Building block of the learning-steps strategy, with the snake_case field
+   * names used by ts-fsrs
+   */
+  private learningStepInfo(scheduledMinutes: number, nextStep: number) {
+    return {
+      ["scheduled_minutes"]: scheduledMinutes,
+      ["next_step"]: nextStep
+    };
+  }
+
+  /**
+   * Builds the scheduler with the custom learning-steps strategy applied
+   *
+   * @param parameters Complete `FSRSParameters` of the user
+   *
+   * @returns ts-fsrs scheduler
+   */
+  private buildScheduler(parameters: FSRSParameters) {
+    const scheduler = fsrs(parameters);
+    scheduler.useStrategy(StrategyMode.LEARNING_STEPS, this.learningStepsStrategy);
+    return scheduler;
+  }
 
   /**
    * Builds the ts-fsrs parameters of a user from the columns stored on the user
@@ -429,7 +498,7 @@ export class SrsService {
     if (!user) return null;
 
     const parameters = this.buildParameters(user);
-    const scheduler = fsrs(parameters);
+    const scheduler = this.buildScheduler(parameters);
 
     const stateRow = await this.prisma.cardSrsState.findUnique({
       where: {

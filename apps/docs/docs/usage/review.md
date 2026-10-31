@@ -75,31 +75,31 @@ Here is what each option means, and what each of the three answers does with the
 
 - **Four times a day** - you review about every six hours, and cards you are learning come back within the same day.
   - **Don't know** - the card moves into the first learning step and is due again after 3 hours. Rating it "Don't know" again repeats the same wait.
-  - **Took a while** - the card stays in the learning steps, but is due a little later: roughly halfway between the 3-hour step and the next day, so about 13 hours.
+  - **Took a while** - the card advances to the next learning step and is due a little later: roughly halfway between the 3-hour step and the next day, so about 13 hours. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card skips the same-day steps and is due the next day. From then on, its intervals grow as usual.
 - **Two times a day** - you review about every twelve hours, and the same-day waits stretch accordingly.
   - **Don't know** - the card moves into the first learning step and is due again after 6 hours. Rating it "Don't know" again repeats the same wait.
-  - **Took a while** - the card stays in the learning steps, but is due a little later: roughly halfway between the 6-hour step and the next day, so about 15 hours.
+  - **Took a while** - the card advances to the next learning step and is due a little later: roughly halfway between the 6-hour step and the next day, so about 15 hours. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card skips the same-day steps and is due the next day. From then on, its intervals grow as usual.
 - **Once per day** - you review every day.
   - **Don't know** - the card moves into the first learning step and is due again after 23 hours, so it comes back in your next review. Rating it "Don't know" again repeats the same wait.
-  - **Took a while** - the card stays in the learning steps, but is due a little later: halfway between the 23-hour step and the next day.
+  - **Took a while** - the card advances to the next learning step and is due a little later: halfway between the 23-hour step and the next day. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card graduates and is due the next day. From then on, its intervals grow as usual.
 - **Every two days** - you review every other day.
   - **Don't know** - the card moves into the first learning step and is due again after 23 hours. Your next review is two days later, so it comes back then, still in the learning steps.
-  - **Took a while** - the card is due roughly halfway between the 23-hour step and two days, so about a day and a half.
+  - **Took a while** - the card advances to the next learning step and is due roughly halfway between the 23-hour step and two days, so about a day and a half. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card graduates and is due in two days. From then on, its intervals grow as usual.
 - **Every four days** - you review every four days.
   - **Don't know** - the card moves into the first learning step and is due again after 23 hours. Your next review is four days later, so it comes back then, still in the learning steps.
-  - **Took a while** - the card is due roughly halfway between the 23-hour step and four days, so about two and a half days.
+  - **Took a while** - the card advances to the next learning step and is due roughly halfway between the 23-hour step and four days, so about two and a half days. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card graduates and is due in four days. From then on, its intervals grow as usual.
 - **Once per week** - you review once a week.
   - **Don't know** - the card moves into the first learning step and is due again after 23 hours. Your next review is a week later, so it comes back then, still in the learning steps.
-  - **Took a while** - the card is due roughly halfway between the 23-hour step and a week, so about four days.
+  - **Took a while** - the card advances to the next learning step and is due roughly halfway between the 23-hour step and a week, so about four days. Repeated ratings advance it through the remaining steps and graduate it.
   - **Knew right away** - the card graduates and is due in a week. From then on, its intervals grow as usual.
 
 When a card that has already graduated is rated "Don't know", it goes through a relearning step first: 3 hours with "Four times a day", 6 hours with "Two times a day" and 23 hours with the other options. While it relearns, "Don't know" repeats that step, and "Knew right away" ends the relearning and returns the card to its normal schedule. "Took a while" stretches the wait to one and a half times the step, which keeps the card in the relearning steps with "Four times a day" and "Two times a day"; with the options from "Once per day" on, this wait is longer than a day, so the card graduates right away.
 
-The choice between the options from "Once per day" on is about how often you plan to sit down and review: it sets how long a card you know waits before it comes back first, and the waits of the learning and relearning steps. Once a card has graduated, its intervals grow the same way for every option, while cards that are being learned or relearned keep following the steps of the selected option.
+The choice between the options from "Once per day" on is about how often you plan to sit down and review: it sets how long a card you know waits before it comes back first, and the waits of the learning and relearning steps.
 
 The change applies immediately to cards that have not been studied yet. Cards that have already been studied keep their current due date until the next time they are reviewed.

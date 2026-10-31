@@ -32,8 +32,8 @@ model User {
 
   // SRS parameters (ts-fsrs `FSRSParameters`) and the source of truth for scheduling;
   // rewritten whenever the user selects a cadence, so the columns always match the preset
-  srsRequestRetention Float   @default(0.9)
-  srsMaximumInterval  Int     @default(36500)
+  srsRequestRetention Float   @default(0.96)
+  srsMaximumInterval  Int     @default(60)
   srsW                Json    @default("[0.212,1.2931,2.3065,8.2956,6.4133,0.8334,3.0194,0.001,1.8722,0.1666,0.796,1.4835,0.0614,0.2629,1.6483,0.6014,1.8729,0.5425,0.0912,0.0658,0.1542]")
   srsEnableFuzz       Boolean @default(false)
   srsEnableShortTerm  Boolean @default(true)
