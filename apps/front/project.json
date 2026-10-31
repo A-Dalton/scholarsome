@@ -4,18 +4,24 @@
   "projectType": "application",
   "sourceRoot": "apps/front/src",
   "prefix": "scholarsome",
-  "tags": ["scope:client"],
+  "tags": [
+    "scope:client"
+  ],
   "targets": {
     "build": {
       "executor": "@ngx-env/builder:application",
       "builder": "@ngx-env/builder:application",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/front",
         "index": "apps/front/src/index.html",
         "browser": "apps/front/src/main.ts",
-        "polyfills": ["apps/front/src/polyfills.ts"],
+        "polyfills": [
+          "apps/front/src/polyfills.ts"
+        ],
         "tsConfig": "apps/front/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -23,7 +29,9 @@
           "apps/front/src/assets",
           "apps/front/src/robots.txt"
         ],
-        "styles": ["apps/front/src/styles.scss"],
+        "styles": [
+          "apps/front/src/styles.scss"
+        ],
         "scripts": [],
         "ngxEnv": {
           "prefix": "SCHOLARSOME_",
@@ -39,7 +47,10 @@
             ]
           }
         },
-        "allowedCommonJsDependencies": ["@prisma/client", "validator"]
+        "allowedCommonJsDependencies": [
+          "@prisma/client",
+          "validator"
+        ]
       },
       "configurations": {
         "production": {
@@ -96,9 +107,6 @@
       "options": {
         "browserTarget": "front:build"
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

@@ -1,4 +1,7 @@
-import { FlatCompat } from "@eslint/eslintrc";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { FlatCompat } = require("@eslint/eslintrc");
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import js from "@eslint/js";
