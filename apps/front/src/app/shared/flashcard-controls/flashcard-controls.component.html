@@ -1,7 +1,10 @@
 <div class="card text-center shadow-sm">
   <div class="card-body">
     <div class="d-flex gap-2">
-      @for (action of actions(); track $index) {
+      <!-- Track by action rather than index: reusing a button for a different
+           action would keep the tap-flash animation class and flash it on the
+           next card. -->
+      @for (action of actions(); track action.key ?? action.label ?? $index) {
         <button
           type="button"
           #actionButton
