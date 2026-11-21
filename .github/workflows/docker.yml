@@ -9,7 +9,23 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Each architecture is built on a runner of that architecture. The image
+    # bundles native modules (bcrypt, better-sqlite3, sharp, the rolldown
+    # bindings and the Prisma engines), so they have to be compiled/downloaded
+    # for the architecture the image will run on. Emulating arm64 with QEMU on
+    # an x64 runner works, but compiling those modules under emulation is slow
+    # and prone to native toolchain crashes.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux/amd64
+            digest: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            digest: arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
 
@@ -22,6 +38,61 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # The per-architecture manifests are pushed untagged and referenced by
+      # digest, because the same release tags cannot be pushed from two
+      # concurrent jobs without one clobbering the other. The "merge" job below
+      # attaches them to the release tags as a single manifest list.
+      - name: Build and push image by digest
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ matrix.platform }}
+          # Docker Hub consumers on older Docker versions can trip over
+          # attestation manifests, so they are disabled for this image.
+          provenance: false
+          tags: ${{ secrets.DOCKER_USERNAME }}/scholarsome
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          # One cache scope per architecture, so the concurrent jobs do not
+          # overwrite each other's exported Github Actions cache entries.
+          cache-from: type=gha,scope=${{ matrix.digest }}
+          cache-to: type=gha,scope=${{ matrix.digest }},mode=max
+
+      - name: Export digest
+        run: |
+          digest="${{ steps.build.outputs.digest }}"
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.digest }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
       - name: Determine image tags
         id: image-tags
         env:
@@ -32,25 +103,42 @@ jobs:
           # version number after a dash. Pre-release builds must not
           # overwrite the latest tag on Docker Hub.
           if printf '%s' "$GIT_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+-(alpha|beta)'; then
-            echo "tags=$IMAGE:$GIT_TAG" >> "$GITHUB_OUTPUT"
+            tags="$IMAGE:$GIT_TAG"
           else
-            {
-              echo "tags<<TAGS"
-              echo "$IMAGE:latest"
-              echo "$IMAGE:$GIT_TAG"
-              echo "TAGS"
-            } >> "$GITHUB_OUTPUT"
+            tags="$IMAGE:latest $IMAGE:$GIT_TAG"
           fi
+          tag_args=""
+          for tag in $tags; do
+            tag_args="$tag_args -t $tag"
+          done
+          {
+            echo "tag_args=$tag_args"
+            # Last tag in the list is always the version tag, which exists for
+            # pre-releases too, unlike "latest".
+            echo "version_tag=${tags##* }"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Build and push image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          # Docker Hub consumers on older Docker versions can trip over
-          # attestation manifests, so they are disabled for this image.
-          provenance: false
-          tags: ${{ steps.image-tags.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        env:
+          IMAGE: ${{ secrets.DOCKER_USERNAME }}/scholarsome
+        run: |
+          docker buildx imagetools create \
+            ${{ steps.image-tags.outputs.tag_args }} \
+            $(printf "$IMAGE@sha256:%s " *)
+
+      # Guards against a release where one architecture was pushed by digest but
+      # never reached the manifest list, which would silently make the image
+      # amd64-only again.
+      - name: Verify both architectures are published
+        env:
+          TAG: ${{ steps.image-tags.outputs.version_tag }}
+        run: |
+          docker buildx imagetools inspect "$TAG" \
+            | awk '/^[[:space:]]*Platform:/ { print $2 }' \
+            | sort -u > /tmp/platforms.txt
+          cat /tmp/platforms.txt
+          for arch in linux/amd64 linux/arm64; do
+            grep -q "^$arch" /tmp/platforms.txt \
+              || { echo "::error::$TAG is missing the $arch image"; exit 1; }
+          done

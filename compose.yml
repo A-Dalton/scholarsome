@@ -39,7 +39,8 @@ services:
     restart: always
   scholarsome:
     image: a1dalton/scholarsome:latest
-    platform: "linux/amd64"
+    # No `platform` pin: the image is published for both linux/amd64 and
+    # linux/arm64, so Docker picks the manifest matching the host architecture.
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
 #      - "(your ssl port):8443"

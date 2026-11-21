@@ -1,4 +1,9 @@
 # syntax=docker/dockerfile:1
+#
+# Multi-architecture: the same file is built for linux/amd64 and linux/arm64.
+# Nothing here pins an architecture: the base images are multi-arch and npm
+# resolves native packages from the build host, so keep new stages arch-neutral
+# (no x64-only binaries or hard-coded --platform overrides).
 FROM node:26-alpine AS builder
 
 WORKDIR /usr/src/app
@@ -17,7 +22,8 @@ COPY package*.json ./
 # detection can silently skip musl-only optional dependencies (the npm/cli#4828
 # class of bug). Angular's build then fails at chunk optimization because
 # rolldown's native binding is missing. Forcing musl matches the base image
-# and guarantees bindings like @rolldown/binding-linux-x64-musl install.
+# and guarantees bindings like @rolldown/binding-linux-x64-musl or
+# @rolldown/binding-linux-arm64-musl install on the matching architecture.
 RUN npm install --ignore-scripts --no-fund --libc=musl
 
 COPY . .
