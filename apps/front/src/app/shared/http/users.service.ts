@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { ApiResponse, ApiResponseOptions, User } from "@scholarsome/shared";
+import { ApiResponse, ApiResponseOptions, SrsCadence, User } from "@scholarsome/shared";
 import { lastValueFrom } from "rxjs";
 
 @Injectable({
@@ -139,6 +139,23 @@ export class UsersService {
   async deleteMyAvatar(): Promise<boolean> {
     try {
       await lastValueFrom(this.http.delete("/api/user/me/avatar"));
+    } catch {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Updates the SRS review cadence of the authenticated user
+   *
+   * @param cadence SRS cadence to apply
+   *
+   * @returns Boolean of whether the operation was successful
+   */
+  async setMySrsCadence(cadence: SrsCadence): Promise<boolean> {
+    try {
+      await lastValueFrom(this.http.patch("/api/users/me/srs-cadence", { cadence }));
     } catch {
       return false;
     }

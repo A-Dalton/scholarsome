@@ -215,7 +215,7 @@ describe("AuthController", () => {
     } as any as Response;
 
     it("should redirect to /reset", async () => {
-      (redisService.getClient("default").get as jest.Mock).mockResolvedValue(null);
+      (redisService.getOrThrow("default").get as jest.Mock).mockResolvedValue(null);
 
       await authController.verifyPasswordResetRequest({ token: "" }, res);
 
@@ -223,7 +223,7 @@ describe("AuthController", () => {
     });
 
     it("should not set a cookie if the param is not valid", async () => {
-      (redisService.getClient("default").get as jest.Mock).mockResolvedValue(null);
+      (redisService.getOrThrow("default").get as jest.Mock).mockResolvedValue(null);
 
       await authController.verifyPasswordResetRequest({ token: "" }, res);
 
@@ -231,7 +231,7 @@ describe("AuthController", () => {
     });
 
     it("should set a cookie if the param is valid", async () => {
-      const redisClient = redisService.getClient("default");
+      const redisClient = redisService.getOrThrow("default");
       (redisClient.get as jest.Mock).mockResolvedValue(resetPasswordToken);
 
       await authController.verifyPasswordResetRequest({ token: "opaque" }, res);

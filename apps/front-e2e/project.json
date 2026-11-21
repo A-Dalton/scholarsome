@@ -4,7 +4,9 @@
   "sourceRoot": "apps/front-e2e/src",
   "projectType": "application",
   "tags": [],
-  "implicitDependencies": ["front"],
+  "implicitDependencies": [
+    "front"
+  ],
   "targets": {
     "e2e": {
       "executor": "@nx/cypress:cypress",
@@ -18,10 +20,6 @@
           "devServerTarget": "front:serve:production"
         }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
     }
   }
 }

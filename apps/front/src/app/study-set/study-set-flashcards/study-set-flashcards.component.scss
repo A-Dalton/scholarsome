@@ -1,16 +1,4 @@
-.flashcard {
-  min-height: 65vh;
-  cursor: pointer;
-
-  // Clicking the card must not start a text selection
-  user-select: none;
-  -webkit-user-select: none;
-
-  // Keep native image dragging from hijacking presses on card content
-  img {
-    -webkit-user-drag: none;
-  }
-}
+@use "../../shared/styles/flashcard";
 
 .flashcard-container {
   margin-top: 2vh;
@@ -18,26 +6,6 @@
 
 .message {
   margin-top: 5vh;
-}
-
-.flashcard.flip-back {
-  animation: flip-card-body-back 0.5s;
-  animation-fill-mode: forwards;
-}
-
-.flashcard.flip-back > .card-body {
-  animation: flip-card-text-back 0s 0.10s;
-  animation-fill-mode: forwards;
-}
-
-.flashcard.flip-forwards {
-  animation: flip-card-body-forwards 0.5s;
-  animation-fill-mode: forwards;
-}
-
-.flashcard.flip-forwards > .card-body {
-  animation: flip-card-text-forwards 0s 0.10s;
-  animation-fill-mode: forwards;
 }
 
 .back-arrow:hover {
@@ -57,92 +25,8 @@
 
 }
 
-@keyframes flip-card-text-back {
-  0% {
-    transform: rotateX(0deg);
-  }
-
-  100% {
-    transform: rotateX(180deg);
-  }
-}
-
-@keyframes flip-card-body-back {
-  0% {
-    transform: rotateX(0deg);
-    background-color: var(--scholarsome-surface);
-  }
-
-  100% {
-    transform: rotateX(180deg);
-    background-color: var(--scholarsome-surface-2);
-  }
-}
-
-@keyframes flip-card-text-forwards {
-  0% {
-    transform: rotateX(0deg);
-  }
-
-  100% {
-    transform: rotateX(-180deg);
-  }
-}
-
-@keyframes flip-card-body-forwards {
-  0% {
-    transform: rotateX(0deg);
-    background-color: var(--scholarsome-surface-2);
-  }
-
-  100% {
-    transform: rotateX(-180deg);
-    background-color: var(--scholarsome-surface);
-  }
-}
-
-@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
-  .flashcard {
-    min-height: 45vh;
-  }
-}
-
-/*
- * Touch feedback for the progressive answer buttons.
- *
- * On touch devices there is no true hover: the browser applies a sticky
- * :hover state that persists after a tap, which would otherwise leave the
- * filled background stuck on the button. Instead of relying on hover styles,
- * the tap triggers a one-shot 1.5s "flash" (via the `flash-bg` class added in
- * the component) that briefly fills the button like a mouse hover would, then
- * automatically returns to the neutral outline thanks to `animation-fill-mode:
- * both` holding the final keyframe over the sticky hover.
- */
-.flash-bg {
-  animation: flash-background 1.5s ease-in-out both;
-}
-
-@keyframes flash-background {
-  0%,
-  100% {
-    color: var(--bs-btn-color);
-    background-color: transparent;
-    border-color: var(--bs-btn-border-color);
-  }
-
-  50% {
-    color: var(--bs-btn-hover-color);
-    background-color: var(--bs-btn-hover-bg);
-    border-color: var(--bs-btn-hover-border-color);
-  }
-}
-
 @media only screen and (min-device-width : 768px) and (max-device-width : 7680px) {
   .container {
     margin-top: 5vh;
-  }
-
-  .flashcard {
-    min-height: 60vh;
   }
 }

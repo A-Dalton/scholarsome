@@ -66,7 +66,7 @@ export class TokenRefreshMiddleware implements NestMiddleware {
 
     // A refresh token is only valid while its session id exists in Redis -
     // logout revokes a token by deleting that key, so a missing key means revoked
-    if (!refreshToken.sessionId || !(await this.redisService.getClient("default").get(refreshToken.sessionId))) {
+    if (!refreshToken.sessionId || !(await this.redisService.getOrThrow("default").get(refreshToken.sessionId))) {
       this.authService.logout(req, res);
       return;
     }

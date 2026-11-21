@@ -1,0 +1,14 @@
+<form class="py-5" (ngSubmit)="submit()">
+  <div class="mb-3">
+    <label class="form-label" for="srsCadence">How often do you learn?</label>
+    <select class="form-select" id="srsCadence" name="srsCadence" [(ngModel)]="selectedCadence" [disabled]="saveClicked()">
+      <option *ngFor="let option of cadenceOptions" [value]="option.value">{{ option.label }}</option>
+    </select>
+    <div class="form-text">Sets how often you review due cards. The change applies immediately to cards you have not studied yet, while cards you have already studied keep their current due date until the next time you review them.</div>
+    <div *ngIf="saveError()" class="form-text text-danger">Something went wrong. Try again, or look at the developer console for more information.</div>
+  </div>
+  <button type="submit" class="btn btn-primary" [disabled]="saveClicked() || selectedCadence === undefined || selectedCadence === savedCadence">
+    <span *ngIf="saveClicked()" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    Save
+  </button>
+</form>

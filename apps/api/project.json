@@ -3,18 +3,26 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/api/src",
   "projectType": "application",
-  "tags": ["scope:client"],
+  "tags": [
+    "scope:client"
+  ],
   "targets": {
     "build": {
-      "outputs": ["{workspaceRoot}/dist/apps/api"],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/api"
+      ],
       "configurations": {
         "production": {}
       }
     },
     "spec-gen": {
       "executor": "nx:run-commands",
-      "dependsOn": ["build"],
-      "outputs": ["{workspaceRoot}/dist/api-spec.json"],
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "{workspaceRoot}/dist/api-spec.json"
+      ],
       "options": {
         "command": "node dist/apps/api/api-spec.js"
       }
@@ -29,10 +37,6 @@
           "buildTarget": "api:build:production"
         }
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"]
     }
   }
 }

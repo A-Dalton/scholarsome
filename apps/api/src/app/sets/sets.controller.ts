@@ -19,7 +19,6 @@ import { ApiResponse, ApiResponseOptions } from "@scholarsome/shared";
 import { Set } from "@scholarsome/prisma";
 import * as crypto from "crypto";
 import { CardsService } from "../cards/cards.service";
-import { CardMedia } from "@scholarsome/prisma";
 import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -354,19 +353,27 @@ export class SetsController {
     }
 
     const newMedia: string[] = [];
-    const existingMedias: CardMedia[] = [];
+
+    // the diff of the set's cards: cards that already exist are updated in
+    // place, as deleting and recreating them would cascade away the SRS
+    // state, review history and previous mistakes of every user; new cards
+    // are created, and cards that were removed from the set are deleted
+    const updatedCards: { where: { id: string }, data: { index: number, term: string, definition: string } }[] = [];
+    const createdCards: { id?: string, index: number, term: string, definition: string }[] = [];
+    const removedCardIds: string[] = [];
 
     if (body.cards) {
       // need to get the cards here before any are modified in the queries below
       const existingCards = await this.cardsService.cards({ where: { setId: set.id } });
+      const existingCardsById = new Map(existingCards.map((card) => [card.id, card] as const));
 
       for (const [i, card] of body.cards.entries()) {
-        const completeCard = await this.cardsService.card({ id: card.id });
-        if (completeCard) {
+        const existingCard = card.id ? existingCardsById.get(card.id) : undefined;
+
+        if (existingCard) {
           // for when media is deleted using the text editor
           // remove the associated files
-          for (const mediaFile of completeCard.media) {
-            existingMedias.push(mediaFile);
+          for (const mediaFile of existingCard.media) {
             if (!card.term.includes(mediaFile.name) && !card.definition.includes(mediaFile.name)) {
               await this.cardsService.deleteCardMedia({ id: mediaFile.id });
               await this.cardsService.deleteMedia(set.id, mediaFile.name);
@@ -387,20 +394,33 @@ export class SetsController {
         }
       }
 
-      // remove all the cards linked to the set
-      // as we will be recreating them all
-      await this.setsService.updateSet({
-        where: {
-          id: set.id
-        },
-        data: {
-          cards: {
-            deleteMany: {
-              setId: params.setId
+      for (const card of body.cards) {
+        const existingCard = card.id ? existingCardsById.get(card.id) : undefined;
+
+        if (existingCard) {
+          updatedCards.push({
+            where: { id: existingCard.id },
+            data: {
+              index: card.index,
+              term: card.term,
+              definition: card.definition
             }
-          }
+          });
+        } else {
+          createdCards.push({
+            id: card.id ? card.id : undefined,
+            index: card.index,
+            term: card.term,
+            definition: card.definition
+          });
         }
-      });
+      }
+
+      for (const existingCard of existingCards) {
+        if (!body.cards.some((card) => card.id && card.id === existingCard.id)) {
+          removedCardIds.push(existingCard.id);
+        }
+      }
 
       // for cards that have been entirely deleted
       // remove any media files they have attached to them
@@ -435,16 +455,9 @@ export class SetsController {
           })
         },
         cards: body.cards ? {
-          createMany: {
-            data: body.cards.map((c) => {
-              return {
-                id: c.id ? c.id : undefined,
-                index: c.index,
-                term: c.term,
-                definition: c.definition
-              };
-            })
-          }
+          ...(createdCards.length > 0 ? { create: createdCards } : {}),
+          ...(updatedCards.length > 0 ? { update: updatedCards } : {}),
+          ...(removedCardIds.length > 0 ? { deleteMany: { id: { in: removedCardIds } } } : {})
         } : undefined
       }
     });
@@ -461,21 +474,6 @@ export class SetsController {
           }
         },
         name: file
-      });
-    }
-
-    // recreate media entries for existing media
-    for (const file of existingMedias) {
-      const card = update.cards.find((c) => c.term.includes(file.name) || c.definition.includes(file.name));
-      if (!card) continue;
-
-      await this.cardsService.createCardMedia({
-        card: {
-          connect: {
-            id: card.id
-          }
-        },
-        name: file.name
       });
     }
 

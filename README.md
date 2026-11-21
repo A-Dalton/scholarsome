@@ -51,6 +51,7 @@ You can read more about our design philosophy <a href="https://github.com/A-Dalt
 - Import sets from Anki, Quizlet, and CSV files 🔼
 - Export sets to Anki, Quizlet, and CSV files 🔽
 - Study flashcards in multiple learning modes, mimicking real-world flashcards 📖
+- Review your flashcards with spaced repetition, scheduling cards to return right when you need them ⏰
 - Review your previous mistakes to target your weakest flashcards 🔄
 - Create quizzes using fill-in-the-blank, true/false, and multiple choice questions ✏️
 - Edit your sets 🛠️
@@ -59,7 +60,6 @@ You can read more about our design philosophy <a href="https://github.com/A-Dalt
 ## Features coming soon...
 
 - Interactive study games
-- Spaced repetition system implementation
 - Persistence of quiz results
 - Editing permission sharing with other users
 - Improved profile page

@@ -1,0 +1,135 @@
+<div class="d-flex justify-content-center mt-5" *ngIf="!queue()">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+<!-- Answer with selection -->
+<div class="d-flex flex-column justify-content-center align-items-center mx-4 message" *ngIf="queue() && !answer() && !completed()">
+  <div class="card shadow-sm review-start-card">
+    <div class="card-body">
+      <h2>
+        Spaced repetition
+        <a href="/handbook/usage/review" target="_blank" class="text-decoration-none help-button"><fa-icon [icon]="faQuestionCircle" class="fs-5"></fa-icon></a>
+      </h2>
+      <p class="text-secondary small mb-0">
+        Cards you struggle with come back more often, cards you know well come back less often — {{ setId ? "the cards of this set are reviewed" : folderId ? "the cards of this folder and its subfolders are reviewed" : "everything across all of your sets is reviewed" }}.
+      </p>
+      <scholarsome-alert *ngIf="ratingFailed()" type="danger" [dismiss]="false" message="Your rating could not be saved and the review was ended. Check your connection and try again." spacingClass="mt-3"></scholarsome-alert>
+      <div class="mt-4" *ngIf="queue()!.cards.length > 0">
+        <p class="text-secondary fw-semibold text-uppercase section-label">{{ queue()!.cards.length }} card{{ queue()!.cards.length === 1 ? "" : "s" }} scheduled for review</p>
+        <div class="row row-cols-2 row-cols-sm-4 g-2 stat-tile-row">
+          @for (tile of stateTiles; track tile.state) {
+            <div class="col">
+              <div class="stat-tile">
+                <span class="fs-4 fw-bold text-primary">{{ scheduledStateCount(tile.state) }}</span>
+                <span class="text-secondary stat-label">{{ tile.label }}</span>
+                <button type="button" class="stat-info" [tooltip]="tile.info" placement="top" [attr.aria-label]="'What does ' + tile.label + ' mean?'">
+                  <fa-icon [icon]="faCircleInfo"></fa-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="mt-4" *ngIf="queue()!.cards.length > 0">
+        <p class="text-secondary fw-semibold text-uppercase section-label">Answer with</p>
+        <div class="d-flex flex-column flex-sm-row gap-3">
+          <button type="button" class="btn btn-outline-primary answer-button flex-sm-fill fs-5 fw-bold" (click)="beginReview('term')">Term</button>
+          <button type="button" class="btn btn-outline-primary answer-button flex-sm-fill fs-5 fw-bold" (click)="beginReview('definition')">Definition</button>
+        </div>
+      </div>
+      <p class="text-secondary mb-0 mt-3" *ngIf="queue()!.cards.length === 0">Nothing to review right now. Come back later!</p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm upcoming-reviews-card mt-4" *ngIf="queue()">
+    <div class="card-body">
+      <p class="text-secondary fw-semibold text-uppercase section-label">Upcoming reviews</p>
+      <div class="row row-cols-2 row-cols-sm-4 g-2 stat-tile-row">
+        <div class="col">
+          <div class="stat-tile">
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin1Hour }}</span>
+            <span class="text-secondary stat-label">Next<br>hour</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin4Hours }}</span>
+            <span class="text-secondary stat-label">Next<br>1-4 hours</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin24Hours }}</span>
+            <span class="text-secondary stat-label">Next<br>4-24 hours</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="fs-4 fw-bold text-primary">{{ queue()!.upcomingBuckets.upcomingWithin72Hours }}</span>
+            <span class="text-secondary stat-label">Next<br>24-72 hours</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session completed -->
+<div class="d-flex flex-column justify-content-center align-items-center mx-4 message" *ngIf="completed()">
+  <div class="card">
+    <div class="card-body">
+      <div class="container-fluid justify-content-around">
+        <div class="row">
+          <div class="col d-flex align-items-center justify-content-center">
+            <fa-icon [icon]="faBolt" class="display-1"></fa-icon>
+          </div>
+          <div class="col">
+            <h1 class="me-4">Review completed!</h1>
+            <h2 class="fs-4 fw-bold">You rated {{ totalCards() }} {{ totalCards() === 1 ? "card" : "cards" }}</h2>
+            <p class="mb-0">
+              <span class="fw-bold text-danger">{{ againCount() }}</span> didn't know<br>
+              <span class="fw-bold text-warning">{{ hardCount() }}</span> took a while<br>
+              <span class="fw-bold text-success">{{ goodCount() }}</span> knew right away
+            </p>
+            <button class="btn btn-primary mt-3" [routerLink]="['/homepage']">Back to Home</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review session -->
+<div class="container flashcard-container mb-4" *ngIf="answer() && !completed()">
+  <div class="row">
+    <div class="flashcard card text-center shadow-sm" [ngClass]="{'flip-back': flipped() && flipInteraction(), 'flip-forwards': !flipped() && flipInteraction(), 'has-previous-mistake': isReinsertedCard()}">
+      <div class="card-body fs-1 d-flex align-items-center justify-content-center text-wrap" (click)="flipCard()">
+        <span class="previous-mistake badge text-bg-secondary" *ngIf="isReinsertedCard()">Didn't know</span>
+        <div [innerHTML]="sanitizer.bypassSecurityTrustHtml(sideText())" class="overflow-hidden"></div>
+        <div class="rating-waiting" *ngIf="ratingBusy()">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Saving your rating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-3">
+    <scholarsome-flashcard-controls
+      *ngIf="cards()"
+      [actions]="getRatingActions()"
+      [progress]="learnedCount()"
+      [total]="totalCards()"
+      counterLabel="learned"
+      [showProgress]="!isReinsertedCard()"
+    />
+  </div>
+</div>
+
+<div class="d-flex container-fluid justify-content-between bg-white fixed-bottom shadow controlbar">
+  <fa-icon class="fs-2 back-arrow" *ngIf="answer()" (click)="restart()" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
+  <fa-icon class="fs-2 back-arrow" *ngIf="!answer()" [routerLink]="setId ? ['/study-set', setId] : folderId ? ['/folder', folderId] : ['/homepage']" [icon]="['far', 'arrow-alt-circle-left']"></fa-icon>
+</div>
