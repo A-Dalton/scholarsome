@@ -1,0 +1,248 @@
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Request,
+  UnauthorizedException,
+  UseGuards
+} from "@nestjs/common";
+import {
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiCreatedResponse,
+  ApiTags,
+  ApiUnauthorizedResponse
+} from "@nestjs/swagger";
+import { Request as ExpressRequest } from "express";
+import { ApiResponse, ApiResponseOptions, SrsQueueData, SrsReviewData, SrsSetReviewInfoData } from "@scholarsome/shared";
+import { AuthService } from "../auth/auth.service";
+import { AuthenticatedGuard } from "../auth/guards/authenticated.guard";
+import { ErrorResponse } from "../shared/response/error.response";
+import { FolderIdParam } from "../folders/param/folderId.param";
+import { SetIdParam } from "../sets/param/setIdParam.param";
+import { RateCardDto } from "./dto/rateCard.dto";
+import { SrsService } from "./srs.service";
+import { SrsQueueSuccessResponse } from "./response/success/srsQueue.success.response";
+import { SrsReviewInfoSuccessResponse } from "./response/success/srsReviewInfo.success.response";
+import { SrsReviewSuccessResponse } from "./response/success/srsReview.success.response";
+
+@ApiTags("SRS")
+@Controller("srs")
+export class SrsController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly srsService: SrsService
+  ) {}
+
+  /**
+   * Gets the full review queue across all folders of the authenticated user
+   *
+   * @returns Cards scheduled for review and the upcoming review buckets
+   */
+  @ApiOperation({
+    summary: "Get the full review queue across all folders",
+    description: "Gets all of the cards that are scheduled for review across all folders of the authenticated user"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsQueueSuccessResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("queue")
+  async queueAll(@Request() req: ExpressRequest): Promise<ApiResponse<SrsQueueData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: await this.srsService.getQueue(user.id)
+    };
+  }
+
+  /**
+   * Gets the review queue of a folder, including all cards scheduled for
+   * review within the folder and recursively within its subfolders
+   *
+   * @returns Cards scheduled for review and the upcoming review buckets
+   */
+  @ApiOperation({
+    summary: "Get the review queue of a folder",
+    description: "Gets all of the cards that are scheduled for review within a folder and recursively within its subfolders"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsQueueSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("folders/:folderId/queue")
+  async queue(@Param() params: FolderIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<SrsQueueData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const queue = await this.srsService.getQueue(user.id, params.folderId);
+    if (!queue) {
+      throw new NotFoundException({ status: "fail", message: "Folder not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: queue
+    };
+  }
+
+  /**
+   * Gets the review queue of a set, including all cards scheduled for review
+   * within the set
+   *
+   * @returns Cards scheduled for review and the upcoming review buckets
+   */
+  @ApiOperation({
+    summary: "Get the review queue of a set",
+    description: "Gets all of the cards that are scheduled for review within a set"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsQueueSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("sets/:setId/queue")
+  async setQueue(@Param() params: SetIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<SrsQueueData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const queue = await this.srsService.getQueue(user.id, undefined, params.setId);
+    if (!queue) {
+      throw new NotFoundException({ status: "fail", message: "Set not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: queue
+    };
+  }
+
+  /**
+   * Gets the review information of a set for the authenticated user
+   *
+   * @returns SRS states, rating counts and review histories of the reviewed cards of the set
+   */
+  @ApiOperation({
+    summary: "Get the review information of a set",
+    description: "Gets the SRS states, rating counts and review histories of the cards of a set that the authenticated user has already reviewed"
+  })
+  @ApiOkResponse({
+    description: "Expected response to a valid request",
+    type: SrsReviewInfoSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Get("sets/:setId/review-info")
+  async setReviewInfo(@Param() params: SetIdParam, @Request() req: ExpressRequest): Promise<ApiResponse<SrsSetReviewInfoData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const reviewInfo = await this.srsService.getSetReviewInfo(user.id, params.setId);
+    if (!reviewInfo) {
+      throw new NotFoundException({ status: "fail", message: "Set not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: reviewInfo
+    };
+  }
+
+  /**
+   * Applies a rating to a card within the SRS
+   *
+   * @returns New SRS state of the card
+   */
+  @ApiOperation({
+    summary: "Rate a card within the SRS",
+    description: "Applies a rating to a card and returns its new SRS state"
+  })
+  @ApiCreatedResponse({
+    description: "Expected response to a valid request",
+    type: SrsReviewSuccessResponse
+  })
+  @ApiNotFoundResponse({
+    description: "Resource not found or inaccessible",
+    type: ErrorResponse
+  })
+  @ApiUnauthorizedResponse({
+    description: "Invalid authentication to access the requested resource",
+    type: ErrorResponse
+  })
+  @UseGuards(AuthenticatedGuard)
+  @Post("review")
+  async review(@Body() body: RateCardDto, @Request() req: ExpressRequest): Promise<ApiResponse<SrsReviewData>> {
+    const user = await this.authService.getUserInfo(req);
+    if (!user) {
+      throw new UnauthorizedException({
+        status: "fail",
+        message: "Invalid authentication to access the requested resource"
+      });
+    }
+
+    const result = await this.srsService.rate(user.id, body.cardId, body.rating);
+    if (!result) {
+      throw new NotFoundException({ status: "fail", message: "Card not found" });
+    }
+
+    return {
+      status: ApiResponseOptions.Success,
+      data: result
+    };
+  }
+}

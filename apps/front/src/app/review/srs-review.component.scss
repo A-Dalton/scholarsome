@@ -1,0 +1,156 @@
+@use "../shared/styles/flashcard";
+
+.flashcard-container {
+  margin-top: 2vh;
+}
+
+.message {
+  margin-top: 5vh;
+}
+
+/*
+ * Cards of the review start screen. Both get the same width so the boxes
+ * align, while the cap keeps the header text wrapping naturally on small
+ * screens instead of stretching the card.
+ */
+.review-start-card,
+.upcoming-reviews-card {
+  width: 100%;
+  max-width: 500px;
+}
+
+/*
+ * Stat tiles fill their column so every tile of a row has the same height,
+ * even when a label wraps onto a second line.
+ */
+.stat-tile-row .col {
+  display: flex;
+}
+
+.stat-tile-row .stat-tile {
+  flex: 1;
+}
+
+/* Section labels of the review start screen */
+.section-label {
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+/* Answer with buttons of the review start screen */
+.answer-button {
+  padding: 1rem 1.5rem;
+  transition: transform 0.15s ease-in-out, color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.answer-button:hover {
+  transform: translateY(-2px);
+}
+
+/*
+ * The card body is the positioning context of the waiting overlay and of the
+ * previous mistake note. Both are part of the card's content this way: they
+ * flip with it and keep their position and orientation while the card is
+ * flipped, as the body is counter-rotated by the flip animation
+ */
+.flashcard .card-body {
+  position: relative;
+}
+
+.rating-waiting {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: progress;
+  border-radius: var(--bs-card-border-radius, var(--bs-border-radius-lg));
+  background: color-mix(in srgb, var(--bs-card-bg, var(--bs-body-bg)) 85%, transparent);
+}
+
+/*
+ * Note on a card that was already rated "Don't know" within the session and
+ * is shown again: its rating is already scheduled on the server, so the card
+ * is only moved past instead of being rated again
+ */
+.previous-mistake {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.875rem;
+  padding: 0.45em 0.8em;
+}
+
+/* keeps the card's text from running under the note */
+.flashcard.has-previous-mistake .card-body {
+  padding-top: 2.5rem;
+}
+
+/* Stat tiles of the review start screen, shared by the scheduled states and upcoming reviews */
+.stat-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.75rem 0.5rem;
+  background-color: var(--scholarsome-surface-2);
+  border: 1px solid var(--scholarsome-border);
+  border-radius: var(--bs-border-radius-lg);
+}
+
+/* Info icon of a stat tile, anchored to its top right corner; the tooltip
+   explaining the box is shown when the icon is hovered or focused */
+.stat-info {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--scholarsome-muted);
+  background: none;
+  border: none;
+  cursor: help;
+}
+
+.stat-info:hover,
+.stat-info:focus-visible {
+  color: var(--bs-body-color);
+}
+
+/*
+ * Labels of the stat tiles. The upcoming reviews split "Next" and the range
+ * onto two lines, so the text is centered to keep both lines aligned
+ */
+.stat-label {
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.back-arrow:hover {
+  animation: button-color-change 0.25s;
+  animation-fill-mode: forwards;
+  cursor: pointer;
+}
+
+@keyframes button-color-change {
+  0% {
+    color: #212529;
+  }
+
+  100% {
+    color: #8438ff;
+  }
+
+}
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 7680px) {
+  .container {
+    margin-top: 5vh;
+  }
+}

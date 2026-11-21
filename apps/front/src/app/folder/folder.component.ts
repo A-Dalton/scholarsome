@@ -288,32 +288,30 @@ export class FolderComponent implements OnInit, OnDestroy {
 
     this.username.set(this.folder()!.author.username);
 
-    // for when someone clicks on a folder from within another folder
-    // we need to manually trigger the change in the page
-    this.route.url
+    // When someone clicks on a folder from within another folder, the router
+    // reuses this component instance and only swaps the :folderId parameter.
+    // This component sits on the empty-path child route of ":folderId", whose
+    // own url segments never change, so route.url does not emit again — but
+    // paramMap does, as it contains the inherited folderId.
+    this.route.paramMap
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(async () => {
           if (this.destroyed) return;
 
-          if (this.router.getCurrentNavigation()?.previousNavigation) {
-            this.loading.set(true);
+          const folderId = this.route.snapshot.paramMap.get("folderId");
+          if (!folderId || folderId === this.folderId) return;
 
-            const folderId = this.route.snapshot.paramMap.get("folderId");
-            if (!folderId) {
-              await this.router.navigate(["404"]);
-              return;
-            }
+          this.folderId = folderId;
+          this.loading.set(true);
 
-            this.folderId = folderId;
-            this.username.set(this.folder()!.author.username);
+          await this.view();
 
-            await this.view();
+          this.username.set(this.folder()!.author.username);
 
-            this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
-            this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
+          this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");
+          this.metaService.addTag({ name: "description", content: "Study using the sets inside the " + this.folder()!.name + " folder on Scholarsome." });
 
-            this.loading.set(false);
-          }
+          this.loading.set(false);
         });
 
     this.titleService.setTitle(this.folder()!.name + " Folder — Scholarsome");

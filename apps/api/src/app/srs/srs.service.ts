@@ -1,0 +1,688 @@
+import { Injectable } from "@nestjs/common";
+import { Card as PrismaCard, CardSrsState as PrismaCardSrsState, Prisma } from "@scholarsome/prisma";
+import {
+  SrsCardReviewInfo,
+  SrsCardState,
+  SrsQueueData,
+  SrsRating,
+  SrsReviewData,
+  SrsSetReviewInfoData,
+  SrsState,
+  SrsUpcomingBuckets
+} from "@scholarsome/shared";
+import { ConvertStepUnitToMinutes, createEmptyCard, fsrs, generatorParameters, Rating, State, StrategyMode, type Card, type FSRSParameters, type Grade, type RecordLogItem, type Steps, type TLearningStepsStrategy } from "ts-fsrs";
+import { PrismaService } from "../providers/database/prisma/prisma.service";
+
+@Injectable()
+export class SrsService {
+  constructor(
+    private readonly prisma: PrismaService
+  ) {}
+
+  /**
+   * Amount of reviews returned per card within its review history. The charts of
+   * the UI only show the most recent reviews, so the cap keeps the response of
+   * sets with many heavily reviewed cards small while `totalReviews` still
+   * reflects every review of the card
+   */
+  private readonly reviewHistoryLimit = 50;
+
+  /**
+   * Collects the IDs of a folder and recursively all of its subfolders
+   *
+   * @param userId ID of the user the folders have to belong to
+   * @param folderId ID of the folder to start the traversal at
+   *
+   * @returns Array of folder IDs, or null if the folder does not exist or does not belong to the user
+   */
+  private async collectFolderTreeIds(userId: string, folderId: string): Promise<string[] | null> {
+    const folders = await this.prisma.folder.findMany({
+      where: {
+        authorId: userId
+      },
+      select: {
+        id: true,
+        parentFolderId: true
+      }
+    });
+
+    if (!folders.some((f) => f.id === folderId)) return null;
+
+    // map of parent folder IDs to their subfolder IDs
+    const subfolderMap = new Map<string, string[]>();
+    for (const folder of folders) {
+      if (!folder.parentFolderId) continue;
+      subfolderMap.set(folder.parentFolderId, [...subfolderMap.get(folder.parentFolderId) ?? [], folder.id]);
+    }
+
+    // depth-first traversal with a cycle guard, as parent/subfolder
+    // relations are not strictly prevented from forming cycles
+    const folderIds: string[] = [];
+    const stack = [folderId];
+
+    while (stack.length > 0) {
+      const currentId = stack.pop() as string;
+      if (folderIds.includes(currentId)) continue;
+
+      folderIds.push(currentId);
+      stack.push(...subfolderMap.get(currentId) ?? []);
+    }
+
+    return folderIds;
+  }
+
+  /**
+   * Queries all sets that are connected to any of the given folders
+   *
+   * @param folderIds IDs of the folders to query the sets of
+   *
+   * @returns Array of `Set` objects including their cards
+   */
+  private async setsOfFolders(folderIds: string[]): Promise<Prisma.SetGetPayload<{ include: { cards: true } }>[]> {
+    return this.prisma.set.findMany({
+      where: {
+        folders: {
+          some: {
+            id: { in: folderIds }
+          }
+        }
+      },
+      include: {
+        cards: true
+      }
+    });
+  }
+
+  /**
+   * Queries all sets of a user
+   *
+   * @param userId ID of the user to query the sets of
+   *
+   * @returns Array of `Set` objects including their cards
+   */
+  private async setsOfUser(userId: string): Promise<Prisma.SetGetPayload<{ include: { cards: true } }>[]> {
+    return this.prisma.set.findMany({
+      where: {
+        authorId: userId
+      },
+      include: {
+        cards: true
+      }
+    });
+  }
+
+  /**
+   * Converts the stored JSON columns of the user into arrays.
+   * Falls back to null on invalid values, in which case the ts-fsrs defaults are used.
+   *
+   * @param value Value of a Prisma `Json` column
+   *
+   * @returns Parsed array or null
+   */
+  private parseJsonArray(value: Prisma.JsonValue | null): unknown[] | null {
+    if (value === null || value === undefined) return null;
+
+    let parsed: unknown = value;
+    if (typeof parsed === "string") {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch {
+        return null;
+      }
+    }
+
+    return Array.isArray(parsed) ? parsed : null;
+  }
+
+  /**
+   * Default SRS steps for cases where the values stored on the user are invalid,
+   * matching the column defaults of the ONCE_PER_DAY cadence
+   */
+  private readonly defaultLearningSteps: Steps = ["23h", "1d"];
+  private readonly defaultRelearningSteps: Steps = ["23h"];
+
+  /**
+   * Learning-steps strategy that lets a card rated "Took a while" advance
+   * through the learning steps instead of staying on the same step forever.
+   * The step delay is the midpoint between the current and next step, and once
+   * the last step is reached the card graduates with the FSRS-computed interval.
+   * The default ts-fsrs strategy keeps "Hard" on the current step, which leaves
+   * cards rated only "Took a while" in Learning/Relearning indefinitely.
+   */
+  private readonly learningStepsStrategy: TLearningStepsStrategy = (parameters, state, currentStep) => {
+    const steps = state === State.Relearning || state === State.Review ? parameters.relearning_steps : parameters.learning_steps;
+    if (steps.length === 0 || currentStep >= steps.length) return {};
+
+    const firstStep = ConvertStepUnitToMinutes(steps[0]);
+    const result: Partial<Record<Grade, ReturnType<typeof this.learningStepInfo>>> = {};
+
+    if (state === State.Review) {
+      // "Don't know" on a review card enters the relearning step
+      result[Rating.Again] = this.learningStepInfo(firstStep, 0);
+      return result;
+    }
+
+    result[Rating.Again] = this.learningStepInfo(firstStep, 0);
+
+    // a single step repeats itself with a 1.5x delay when rated "Took a while",
+    // matching the ts-fsrs behavior for relearning steps
+    if (steps.length === 1) {
+      result[Rating.Hard] = this.learningStepInfo(Math.round(firstStep * 1.5), 0);
+      return result;
+    }
+
+    const nextStep = currentStep + 1;
+    if (nextStep < steps.length) {
+      const currentMinutes = ConvertStepUnitToMinutes(steps[currentStep]);
+      const nextMinutes = ConvertStepUnitToMinutes(steps[nextStep]);
+      result[Rating.Hard] = this.learningStepInfo(Math.round((currentMinutes + nextMinutes) / 2), nextStep);
+      result[Rating.Good] = this.learningStepInfo(nextMinutes, nextStep);
+    } else {
+      // at the last step, both "Took a while" and "Knew right away" graduate
+      result[Rating.Hard] = this.learningStepInfo(0, steps.length);
+      result[Rating.Good] = this.learningStepInfo(0, steps.length);
+    }
+
+    return result;
+  };
+
+  /**
+   * Building block of the learning-steps strategy, with the snake_case field
+   * names used by ts-fsrs
+   */
+  private learningStepInfo(scheduledMinutes: number, nextStep: number) {
+    return {
+      ["scheduled_minutes"]: scheduledMinutes,
+      ["next_step"]: nextStep
+    };
+  }
+
+  /**
+   * Builds the scheduler with the custom learning-steps strategy applied
+   *
+   * @param parameters Complete `FSRSParameters` of the user
+   *
+   * @returns ts-fsrs scheduler
+   */
+  private buildScheduler(parameters: FSRSParameters) {
+    const scheduler = fsrs(parameters);
+    scheduler.useStrategy(StrategyMode.LEARNING_STEPS, this.learningStepsStrategy);
+    return scheduler;
+  }
+
+  /**
+   * Builds the ts-fsrs parameters of a user from the columns stored on the user
+   *
+   * @param user User object containing the SRS parameter columns
+   *
+   * @returns Complete `FSRSParameters` object, with defaults filled in for invalid values
+   */
+  private buildParameters(user: {
+    srsRequestRetention: number | null,
+    srsMaximumInterval: number | null,
+    srsW: Prisma.JsonValue | null,
+    srsEnableFuzz: boolean | null,
+    srsEnableShortTerm: boolean | null,
+    srsLearningSteps: Prisma.JsonValue | null,
+    srsRelearningSteps: Prisma.JsonValue | null
+  }): FSRSParameters {
+    const parsedW = this.parseJsonArray(user.srsW);
+    const parsedLearningSteps = this.parseJsonArray(user.srsLearningSteps);
+    const parsedRelearningSteps = this.parseJsonArray(user.srsRelearningSteps);
+
+    const isStep = (value: unknown): value is string => typeof value === "string" && /^\d+(?:m|h|d)$/.test(value);
+
+    return generatorParameters({
+      request_retention: user.srsRequestRetention ?? undefined,
+      maximum_interval: user.srsMaximumInterval ?? undefined,
+      // an empty or invalid w array falls back to the ts-fsrs defaults
+      w: parsedW !== null && parsedW.length > 0 && parsedW.every((n) => typeof n === "number") ? parsedW as number[] : undefined,
+      enable_fuzz: user.srsEnableFuzz ?? undefined,
+      enable_short_term: user.srsEnableShortTerm ?? undefined,
+      learning_steps: parsedLearningSteps !== null && parsedLearningSteps.every(isStep) ? parsedLearningSteps as Steps : this.defaultLearningSteps,
+      relearning_steps: parsedRelearningSteps !== null && parsedRelearningSteps.every(isStep) ? parsedRelearningSteps as Steps : this.defaultRelearningSteps
+    });
+  }
+
+  /**
+   * Converts a persisted `CardSrsState` row into a ts-fsrs `Card`
+   *
+   * @param state `CardSrsState` row of the user and card
+   *
+   * @returns ts-fsrs `Card` object
+   */
+  private rowToFsrsCard(state: PrismaCardSrsState): Card {
+    return {
+      due: state.due,
+      stability: state.stability,
+      difficulty: state.difficulty,
+      elapsed_days: state.elapsedDays,
+      scheduled_days: state.scheduledDays,
+      learning_steps: state.learningSteps,
+      reps: state.reps,
+      lapses: state.lapses,
+      // the numeric values of `SrsState` map 1:1 to the ts-fsrs `State` enum
+      state: state.state as number as State,
+      last_review: state.lastReview ?? undefined
+    };
+  }
+
+  /**
+   * Converts a ts-fsrs `Card` into the data of a `CardSrsState` row,
+   * without the user and card references
+   *
+   * @param card ts-fsrs `Card` object
+   *
+   * @returns Data object for creating or updating a `CardSrsState` row
+   */
+  private fsrsCardToStateData(card: Card): {
+    due: Date,
+    stability: number,
+    difficulty: number,
+    elapsedDays: number,
+    scheduledDays: number,
+    learningSteps: number,
+    reps: number,
+    lapses: number,
+    state: number,
+    lastReview: Date | null
+  } {
+    return {
+      due: card.due,
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsedDays: card.elapsed_days,
+      scheduledDays: card.scheduled_days,
+      learningSteps: card.learning_steps,
+      reps: card.reps,
+      lapses: card.lapses,
+      state: card.state as number,
+      lastReview: card.last_review ?? null
+    };
+  }
+
+  /**
+   * Converts a ts-fsrs `Card` into its serializable representation
+   *
+   * @param card ts-fsrs `Card` object
+   *
+   * @returns `SrsCardState` object
+   */
+  private toSrsCardState(card: Card): SrsCardState {
+    return {
+      due: new Date(card.due).toISOString(),
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsed_days: card.elapsed_days,
+      scheduled_days: card.scheduled_days,
+      learning_steps: card.learning_steps,
+      reps: card.reps,
+      lapses: card.lapses,
+      // the numeric values of the ts-fsrs `State` enum map 1:1 to `SrsState`
+      state: card.state as number as SrsState,
+      last_review: card.last_review ? new Date(card.last_review).toISOString() : null
+    };
+  }
+
+  /**
+   * Converts a `SrsRating` into a ts-fsrs `Grade`, whose numeric
+   * values map 1:1 to the `SrsRating` enum
+   *
+   * @param rating `SrsRating` to convert
+   *
+   * @returns ts-fsrs `Grade`
+   */
+  private toGrade(rating: SrsRating): Grade {
+    return rating as number as Grade;
+  }
+
+  /**
+   * Builds the review queue for a user.
+   * When a set is given, it contains every card scheduled for review within
+   * the set.
+   * Otherwise, when a folder is given, it contains every card scheduled for
+   * review within the folder and recursively within all of its subfolders.
+   * When no set and no folder is given, it contains every card scheduled for
+   * review across all sets of the user.
+   * Cards are ordered new cards first, then by their due date. Cards sharing
+   * both are ordered randomly. Additionally returns the upcoming review buckets
+   * of the cards that are not due yet.
+   *
+   * @param userId ID of the user to build the queue for
+   * @param folderId Optional, ID of the folder to build the queue of
+   * @param setId Optional, ID of the set to build the queue of
+   *
+   * @returns `SrsQueueData` object, or null if the folder or set does not exist or does not belong to the user
+   */
+  async getQueue(userId: string, folderId?: string, setId?: string): Promise<SrsQueueData | null> {
+    const now = new Date();
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+    if (!user) return null;
+
+    let sets: Prisma.SetGetPayload<{ include: { cards: true } }>[];
+
+    if (setId) {
+      // within a set, only the set itself is considered, and only if it belongs to the user
+      const set = await this.prisma.set.findUnique({
+        where: { id: setId },
+        include: { cards: true }
+      });
+      if (!set || set.authorId !== userId) return null;
+
+      sets = [set];
+    } else if (folderId) {
+      const folderIds = await this.collectFolderTreeIds(userId, folderId);
+      if (!folderIds) return null;
+
+      // within a folder, only the sets connected to the folder tree are considered
+      sets = await this.setsOfFolders(folderIds);
+    } else {
+      // without a folder, the queue spans every set of the user
+      sets = await this.setsOfUser(userId);
+    }
+
+    // a set can be connected to multiple folders of the tree, so cards have to be deduplicated
+    const uniqueCards: PrismaCard[] = [];
+    const seenCards = new Set<string>();
+    for (const set of sets) {
+      for (const card of set.cards) {
+        if (seenCards.has(card.id)) continue;
+
+        seenCards.add(card.id);
+        uniqueCards.push(card);
+      }
+    }
+
+    // batch load the persisted SRS states of the user for all cards
+    const srsStates = await this.prisma.cardSrsState.findMany({
+      where: {
+        userId,
+        cardId: {
+          in: uniqueCards.map((card) => card.id)
+        }
+      }
+    });
+    const srsStateMap = new Map<string, PrismaCardSrsState>(srsStates.map((state) => [state.cardId, state]));
+
+    // the random keys break ties between cards sharing their state and due
+    // date, drawn once per card so that the sort comparator stays consistent
+    const cardMap = new Map<string, { card: PrismaCard, srs: SrsCardState, due: Date, shuffle: number }>();
+    for (const card of uniqueCards) {
+      // cards without a persisted state are treated as new cards
+      const state = srsStateMap.get(card.id);
+      const fsrsCard = state ? this.rowToFsrsCard(state) : createEmptyCard(now);
+
+      cardMap.set(card.id, {
+        card,
+        srs: this.toSrsCardState(fsrsCard),
+        due: fsrsCard.due,
+        shuffle: Math.random()
+      });
+    }
+
+    const allCards = [...cardMap.values()];
+
+    // only cards that are already due are part of the queue
+    const dueCards = allCards.filter((c) => c.due.getTime() <= now.getTime());
+    const notDueCards = allCards.filter((c) => c.due.getTime() > now.getTime());
+
+    // new cards first, then ordered by their due date; cards sharing both are
+    // ordered randomly, as a fixed order inherited from the study set would
+    // be predictable and easier to memorize than the cards themselves
+    dueCards.sort((a, b) => {
+      if (a.srs.state !== b.srs.state) return a.srs.state - b.srs.state;
+      if (a.due.getTime() !== b.due.getTime()) return a.due.getTime() - b.due.getTime();
+      return a.shuffle - b.shuffle;
+    });
+
+    const hourInMs = 3600000;
+
+    // amount of not yet due cards, bucketed by how far their due date is in the
+    // future; cards due later than 72 hours are not part of any bucket
+    const upcomingBuckets: SrsUpcomingBuckets = {
+      upcomingWithin1Hour: notDueCards.filter((c) => c.due.getTime() - now.getTime() <= hourInMs).length,
+      upcomingWithin4Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > hourInMs && c.due.getTime() - now.getTime() <= 4 * hourInMs).length,
+      upcomingWithin24Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 4 * hourInMs && c.due.getTime() - now.getTime() <= 24 * hourInMs).length,
+      upcomingWithin72Hours: notDueCards.filter((c) => c.due.getTime() - now.getTime() > 24 * hourInMs && c.due.getTime() - now.getTime() <= 72 * hourInMs).length
+    };
+
+    return {
+      cards: dueCards.map((c) => {
+        return {
+          card: c.card,
+          srs: c.srs
+        };
+      }),
+      upcomingBuckets
+    };
+  }
+
+  /**
+   * Applies a rating to a card within the SRS
+   *
+   * @param userId ID of the user reviewing the card
+   * @param cardId ID of the card to rate
+   * @param rating Rating to apply to the card
+   *
+   * @returns `SrsReviewData` object, or null if the card does not exist or does not belong to the user
+   */
+  async rate(userId: string, cardId: string, rating: SrsRating): Promise<SrsReviewData | null> {
+    const now = new Date();
+
+    const card = await this.prisma.card.findUnique({
+      where: { id: cardId },
+      include: {
+        set: {
+          select: { authorId: true }
+        }
+      }
+    });
+    if (!card || card.set.authorId !== userId) return null;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        srsRequestRetention: true,
+        srsMaximumInterval: true,
+        srsW: true,
+        srsEnableFuzz: true,
+        srsEnableShortTerm: true,
+        srsLearningSteps: true,
+        srsRelearningSteps: true
+      }
+    });
+    if (!user) return null;
+
+    const parameters = this.buildParameters(user);
+    const scheduler = this.buildScheduler(parameters);
+
+    const stateRow = await this.prisma.cardSrsState.findUnique({
+      where: {
+        userId_cardId: {
+          userId,
+          cardId
+        }
+      }
+    });
+    const currentCard = stateRow ? this.rowToFsrsCard(stateRow) : createEmptyCard(now);
+
+    const result: RecordLogItem = scheduler.next(currentCard, now, this.toGrade(rating));
+
+    const srsState = this.toSrsCardState(result.card);
+
+    // persist the new card state and store the review log within a transaction,
+    // so that the history always matches the stored state
+    await this.prisma.$transaction([
+      this.prisma.cardSrsState.upsert({
+        where: {
+          userId_cardId: {
+            userId,
+            cardId
+          }
+        },
+        create: {
+          userId,
+          cardId,
+          ...this.fsrsCardToStateData(result.card)
+        },
+        update: this.fsrsCardToStateData(result.card)
+      }),
+      this.prisma.cardSrsReviewLog.create({
+        data: {
+          userId,
+          cardId,
+          setId: card.setId,
+          rating,
+          state: result.log.state as number,
+          due: result.log.due,
+          stability: result.log.stability,
+          difficulty: result.log.difficulty,
+          elapsedDays: result.log.elapsed_days,
+          lastElapsedDays: result.log.last_elapsed_days,
+          scheduledDays: result.log.scheduled_days,
+          learningSteps: result.log.learning_steps,
+          review: result.log.review
+        }
+      })
+    ]);
+
+    return {
+      cardId: card.id,
+      rating,
+      srs: srsState
+    };
+  }
+
+  /**
+   * Gets the review information of the authenticated user for the cards of a set,
+   * including the current SRS state, the rating counts and the review history of
+   * every card of the set that has already been reviewed
+   *
+   * @param userId ID of the user to get the review information for
+   * @param setId ID of the set to get the review information of
+   *
+   * @returns `SrsSetReviewInfoData` object, or null if the set does not exist or does not belong to the user
+   */
+  async getSetReviewInfo(userId: string, setId: string): Promise<SrsSetReviewInfoData | null> {
+    const set = await this.prisma.set.findUnique({
+      where: { id: setId },
+      select: {
+        authorId: true,
+        cards: {
+          select: {
+            id: true,
+            index: true
+          }
+        }
+      }
+    });
+    if (!set || set.authorId !== userId) return null;
+
+    const cardIds = set.cards.map((card) => card.id);
+
+    const info = new Map<string, SrsCardReviewInfo>();
+
+    // the states hold the current scheduling of the cards, while the review
+    // logs below hold the history the statistics are aggregated from
+    const states = await this.prisma.cardSrsState.findMany({
+      where: {
+        userId,
+        cardId: { in: cardIds }
+      }
+    });
+    for (const state of states) {
+      info.set(state.cardId, {
+        cardId: state.cardId,
+        due: state.due.toISOString(),
+        state: state.state as SrsState,
+        lapses: state.lapses,
+        lastReview: state.lastReview ? state.lastReview.toISOString() : null,
+        totalReviews: 0,
+        againCount: 0,
+        hardCount: 0,
+        goodCount: 0,
+        history: []
+      });
+    }
+
+    const logs = await this.prisma.cardSrsReviewLog.findMany({
+      where: {
+        userId,
+        setId
+      },
+      orderBy: { review: "asc" }
+    });
+    for (const log of logs) {
+      let entry = info.get(log.cardId);
+      if (!entry) {
+        // the logs of a card can exist without a state, e.g. when the state
+        // row was removed while the logs were kept, so the entry is rebuilt
+        // from the logs alone
+        entry = {
+          cardId: log.cardId,
+          due: null,
+          state: null,
+          lapses: 0,
+          lastReview: null,
+          totalReviews: 0,
+          againCount: 0,
+          hardCount: 0,
+          goodCount: 0,
+          history: []
+        };
+        info.set(log.cardId, entry);
+      }
+
+      entry.totalReviews++;
+      if (log.rating === SrsRating.Again) entry.againCount++;
+      else if (log.rating === SrsRating.Hard) entry.hardCount++;
+      else entry.goodCount++;
+
+      entry.lastReview = log.review.toISOString();
+      entry.history.push({
+        rating: log.rating,
+        state: log.state as SrsState,
+        review: log.review.toISOString(),
+        due: log.due.toISOString(),
+        scheduledDays: log.scheduledDays
+      });
+    }
+
+    // cards without a state and reviews are included as new, so that the UI
+    // can show the review information of every card of the set
+    const reviewedCardIds = new Set(info.keys());
+    for (const card of set.cards) {
+      if (reviewedCardIds.has(card.id)) continue;
+
+      info.set(card.id, {
+        cardId: card.id,
+        due: null,
+        state: SrsState.New,
+        lapses: 0,
+        lastReview: null,
+        totalReviews: 0,
+        againCount: 0,
+        hardCount: 0,
+        goodCount: 0,
+        history: []
+      });
+    }
+
+    // only the most recent reviews are needed for the charts of the UI
+    for (const entry of info.values()) {
+      if (entry.history.length > this.reviewHistoryLimit) {
+        entry.history = entry.history.slice(-this.reviewHistoryLimit);
+      }
+    }
+
+    // the cards are returned in the order of the set
+    const order = new Map(set.cards.map((card) => [card.id, card.index]));
+    const cards = [...info.values()].sort((a, b) => (order.get(a.cardId) ?? 0) - (order.get(b.cardId) ?? 0));
+
+    return { cards };
+  }
+}

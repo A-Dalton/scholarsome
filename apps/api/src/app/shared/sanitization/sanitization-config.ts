@@ -4,7 +4,6 @@ const allowedElements = [
   // HTML Elements
   "div",
   "span",
-  "style",
   "class",
   "id",
 

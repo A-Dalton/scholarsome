@@ -25,3 +25,43 @@
 .scholarsome-card {
   min-width: 50vw;
 }
+
+/*
+ * Anchors the review information button to the right section of the card. The
+ * definition text ends 2rem inside of the card (card body padding, column
+ * gutter and the extra right padding of the definition column below), which
+ * leaves room for the divider and the button: the divider sits 0.3125rem away
+ * from the text, and the icon glyph is centered inside of the button with
+ * 0.3125rem of space to the divider and to the card edge. The button spans the
+ * full height of the card body, so the whole section right of the divider is
+ * the hover and tap target; no transform is used on an ancestor, as one would
+ * turn the fixed-position tooltip of the icon into its containing block.
+ */
+.has-review-info {
+  position: relative;
+}
+
+.has-review-info::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  right: 1.625rem;
+  width: 1px;
+  background-color: var(--scholarsome-border);
+}
+
+// Extra right padding of the definition column, reserving room for the divider
+// and the review information button while review information is shown
+.has-review-info .definition-col {
+  padding-right: 1rem;
+}
+
+.review-info-position {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1.625rem;
+}

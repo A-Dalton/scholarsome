@@ -22,6 +22,7 @@ import { ConvertingModule } from "./converting/converting.module";
 import { StorageModule } from "./providers/storage/storage.module";
 import { FoldersModule } from "./folders/folders.module";
 import { CardMistakesModule } from "./card-mistakes/card-mistakes.module";
+import { SrsModule } from "./srs/srs.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { TasksService } from "./providers/tasks.service";
 import { PassportOptionsModule } from "./providers/passport-options.module";
@@ -124,7 +125,8 @@ const htmlRevalidationHeaders = (res: { setHeader: (name: string, value: string)
     },
     ConvertingModule,
     FoldersModule,
-    CardMistakesModule
+    CardMistakesModule,
+    SrsModule
   ],
   controllers: [],
   providers: [TasksService],
