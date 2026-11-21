@@ -277,6 +277,14 @@ export class StudySetComponent implements OnInit {
     }
     this.set.set(updated);
 
+    // newly created cards did not exist when the review information was last
+    // loaded, so it has to be refreshed before the cards are shown again;
+    // otherwise the new cards would only display the review information
+    // indicator after the page is reloaded
+    if (this.userIsAuthor()) {
+      await this.loadReviewInfo();
+    }
+
     this.cards.set([]);
 
     this.isEditing.set(false);
